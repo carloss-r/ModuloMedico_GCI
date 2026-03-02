@@ -1,0 +1,253 @@
+@model Telerik.Models.ViewModels.OrdenServicioMedicoVm
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Impresión de Solicitud - @Model.FolioDisplay</title>
+    
+    @* --- Fuente corporativa --- *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .print-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Tabla principal de datos */
+        .main-table {
+            border: 2px solid #333;
+            margin-bottom: 0;
+        }
+        .main-table td {
+            border-right: 1px solid #333;
+            border-bottom: 1px solid #333;
+            padding: 6px 10px;
+        }
+        .label-cell {
+            font-size: 11px;
+            font-weight: bold;
+            width: 15%;
+            background-color: #f9f9f9;
+        }
+        .value-cell {
+            font-size: 12px;
+            width: 35%;
+        }
+        .header-cell {
+            text-align: center;
+            padding: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+            letter-spacing: 1px;
+            background-color: #eee;
+        }
+
+        /* Tabla de instrucciones */
+        .instruction-table {
+            border-left: 2px solid #333;
+            border-right: 2px solid #333;
+            margin-top: 0;
+        }
+        .instruction-header {
+            text-align: center;
+            padding: 6px;
+            background: #444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            /* Forzar el color de fondo al imprimir */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .instruction-subheader {
+            text-align: center;
+            padding: 3px;
+            font-size: 10px;
+            color: #555;
+            border-bottom: 1px solid #333;
+        }
+        .option-cell {
+            width: 33%;
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-right: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+        .option-cell:last-child {
+            border-right: none;
+        }
+
+        /* Tabla de indicaciones especiales */
+        .special-table {
+            border-left: 2px solid #333;
+            border-right: 2px solid #333;
+        }
+        .fill-instruction {
+            padding: 3px 10px;
+            font-size: 9px;
+            color: #888;
+            text-align: center;
+            border-bottom: 1px solid #999;
+        }
+        .special-label {
+            padding: 8px 10px;
+            font-size: 11px;
+            color: #333;
+        }
+        .line-row td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #999;
+        }
+
+        /* Tabla de firmas */
+        .signature-table {
+            border: 2px solid #333;
+            margin-top: 0;
+        }
+        .signature-space {
+            height: 50px;
+            border-right: 1px solid #333;
+            border-bottom: 1px solid #333;
+        }
+        .signature-space:last-child {
+            border-right: none;
+        }
+        .signature-label {
+            width: 33%;
+            text-align: center;
+            padding: 6px;
+            font-size: 9px;
+            font-weight: bold;
+            border-right: 1px solid #333;
+            vertical-align: top;
+        }
+        .signature-label:last-child {
+            border-right: none;
+        }
+
+        @@media print {
+            body { padding: 0; }
+            .no-print { display: none !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-content">
+        <!-- Encabezado principal -->
+        <table class="main-table">
+            <tr>
+                <td colspan="4" class="header-cell">
+                    SERVICIO MEDICO
+                </td>
+            </tr>
+            <tr>
+                <td class="label-cell">EMPRESA</td>
+                <td class="value-cell">@(!string.IsNullOrEmpty(Model.EmpresaNombre) ? Model.EmpresaNombre : (!string.IsNullOrEmpty(Model.EmpresaCandidato) ? Model.EmpresaCandidato : Model.ProyectoDesc))</td>
+                <td class="label-cell">FECHA:</td>
+                <td class="value-cell">@Model.FechaOrdenFormateada</td>
+            </tr>
+            <tr>
+                <td class="label-cell">PROYECTO</td>
+                <td colspan="3" class="value-cell">@Model.ProyectoDesc</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="padding:6px 10px; font-size:11px; border-bottom:1px solid #333;">
+                    <span style="font-weight:bold;">POR ESTE CONDUCTO LE ENVIO AL SR.(A):</span>
+                    <span style="margin-left:8px; font-size:12px; text-transform:uppercase;">@Model.NombrePersona</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" style="padding:6px 10px; font-size:11px; border-bottom:1px solid #333;">
+                    <span style="font-weight:bold;">CANDIDATO(A) A OCUPAR EL PUESTO DE:</span>
+                    <span style="margin-left:8px; font-size:12px; text-transform:uppercase;">@Model.PuestoCandidato</span>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Instrucción -->
+        <table class="instruction-table">
+            <tr>
+                <td colspan="3" class="instruction-header">
+                    INSTRUCCIÓN AL AREA DE RECLUTAMIENTO Y SELECCIÓN
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" class="instruction-subheader">
+                    El candidato es considerado como:
+                </td>
+            </tr>
+            <tr>
+                <td class="option-cell">APTO</td>
+                <td class="option-cell">APTO CONDICIONADO</td>
+                <td class="option-cell">NO APTO</td>
+            </tr>
+        </table>
+
+        <!-- Indicación especial -->
+        <table class="special-table">
+            <tr>
+                <td class="fill-instruction">
+                    RELLENAR O MARCAR LA CASILLA INDICADA
+                </td>
+            </tr>
+            <tr>
+                <td class="special-label">
+                    Existe alguna indicación especial para el candidato:
+                </td>
+            </tr>
+            <tr class="line-row"><td>&nbsp;</td></tr>
+            <tr class="line-row"><td>&nbsp;</td></tr>
+            <tr class="line-row"><td>&nbsp;</td></tr>
+        </table>
+
+        <!-- Firmas -->
+        <table class="signature-table">
+            <tr>
+                <td class="signature-space">&nbsp;</td>
+                <td class="signature-space">&nbsp;</td>
+                <td class="signature-space">&nbsp;</td>
+            </tr>
+            <tr>
+                <td class="signature-label">
+                    Nombre y firma<br />Reclutamiento
+                </td>
+                <td class="signature-label">
+                    Vo. Bo. Nombre y firma<br />del médico
+                </td>
+                <td class="signature-label">
+                    EN CASO DE SER CONDICIONADO (NOMBRE Y FIRMA DE QUIEN AUTORIZA)
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,554 @@
+@{
+    ViewBag.Title = "RH - Solicitud de Examen Médico";
+}
+
+<style>
+    .rh-container { padding: 20px 25px; min-height: 80vh; }
+    .rh-header { background: #1a5276; border-radius: 6px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+    .rh-header h2 { margin: 0; font-size: 1.3rem; color: #fff; font-weight: 600; }
+    .rh-header h2 i { margin-right: 8px; }
+
+    /* Botones */
+    .btn-gci { padding: 9px 24px; font-size: 0.85rem; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn-gci-primary { background: #1a5276; color: #fff; }
+    .btn-gci-primary:hover { background: #154360; }
+    .btn-gci-secondary { background: #f0f0f0; color: #333; border: 1px solid #d0d0d0; }
+    .btn-gci-secondary:hover { background: #e0e0e0; }
+
+    /* Tabla de solicitudes */
+    .solicitudes-panel { background: #fff; border: 1px solid #d0d0d0; border-radius: 6px; padding: 22px; margin-bottom: 20px; }
+    .solicitudes-panel .sp-title { font-size: 0.92rem; font-weight: 600; color: #1a5276; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .solicitudes-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .solicitudes-table thead th { background: #1a5276; color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.3px; }
+    .solicitudes-table tbody tr { border-bottom: 1px solid #eee; transition: background 0.15s; }
+    .solicitudes-table tbody tr:hover { background: #f5f8fc; }
+    .solicitudes-table tbody td { padding: 9px 12px; color: #333; }
+    
+    .badge-sm { padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; color: #fff; display: inline-block; }
+    .badge-periodico { background: #8e44ad; }
+    .badge-ingreso { background: #16a085; }
+    .badge-pendiente { background: #e67e22; }
+    .badge-proceso { background: #2471a3; }
+    .badge-completado { background: #27ae60; }
+    .no-data { text-align: center; padding: 30px; color: #999; font-size: 0.9rem; }
+
+    /* Modal de Nueva Solicitud */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 3000; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #fff; border-radius: 8px; width: 680px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .modal-header { background: #1a5276; color: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .modal-header h3 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+    .modal-close { background: none; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; padding: 2px 8px; }
+    .modal-body { padding: 15px 20px; overflow-y: auto; flex: 1; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 20px; background: #f9f9f9; border-top: 1px solid #eee; flex-shrink: 0; }
+    
+    .form-group { flex: 1; margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+    .form-control { width: 100%; padding: 8px 10px; border: 1px solid #d0d0d0; border-radius: 4px; font-size: 0.85rem; font-family: inherit; box-sizing: border-box; }
+
+    .modalidad-cards { display:flex; gap:15px; margin-bottom:15px; }
+    .modalidad-card { flex:1; padding:15px; text-align:center; cursor:pointer; border-radius:6px; transition: all 0.3s; border: 2px solid transparent; }
+    .card-periodico { border-color: #8e44ad; color: #8e44ad; }
+    .card-periodico.selected { background-color: rgba(142, 68, 173, 0.1); }
+    .card-ingreso { border-color: #16a085; color: #16a085; }
+    .card-ingreso.selected { background-color: rgba(22, 160, 133, 0.1); }
+    
+    .modal-alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; display: none; font-size: 0.85rem; }
+    .modal-alert.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .modal-alert.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6c3; }
+
+    /* Paginación */
+    .paginacion { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 0; }
+    .paginacion button { padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .paginacion button:hover:not(:disabled) { background: #2471a3; color: #fff; border-color: #2471a3; }
+    .paginacion button:disabled { opacity: 0.4; cursor: default; }
+    .paginacion .pag-info { font-size: 0.82rem; color: #555; font-weight: 500; }
+    .resultados-info { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
+
+    /* Modal de Impresión Embebida */
+    .print-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+    .print-overlay.active { display: flex; }
+    .print-modal { background: #fff; width: 90%; max-width: 900px; height: 85vh; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+    .print-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: #1a5276; color: #fff; }
+    .print-modal-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+    .print-iframe { flex: 1; border: none; width: 100%; }
+</style>
+
+<div class="rh-container">
+    <div class="rh-header">
+        <h2><i class="fas fa-users"></i> Recursos Humanos</h2>
+        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.7);">M&oacute;dulo de Solicitudes M&eacute;dicas</span>
+    </div>
+
+    <!-- Acciones -->
+    <div style="text-align:right; margin-bottom:15px;">
+        <button class="btn-gci btn-gci-primary" onclick="abrirNuevaSolicitud()"><i class="fas fa-plus-circle"></i> Nueva Solicitud</button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="solicitudes-panel">
+        <div class="sp-title">
+            <span><i class="fas fa-inbox"></i> Solicitudes Recientes</span>
+            <button class="btn-gci btn-gci-secondary" style="padding: 5px 12px; font-size: 0.75rem;" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+        </div>
+        <div class="resultados-info" id="resultsInfo"></div>
+        <table class="solicitudes-table">
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Modalidad</th>
+                    <th>Candidato / Empleado</th>
+                    <th>Servicio</th>
+                    <th>Estatus</th>
+                    <th style="text-align:center;">Formato(s)</th>
+                </tr>
+            </thead>
+            <tbody id="tbodySolicitudes">
+                <tr><td colspan="7" class="no-data">Cargando solicitudes...</td></tr>
+            </tbody>
+        </table>
+        <div id="paginacionControles" class="paginacion"></div>
+    </div>
+</div>
+
+<!-- Modal Nueva Solicitud -->
+<div class="modal-overlay" id="modalNuevaSolicitud">
+    <div class="modal-box" style="width: 600px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-medical"></i> Solicitud de Examen M&eacute;dico</h3>
+            <button class="modal-close" onclick="cerrarNuevaSolicitud()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 25px;">
+            <div id="modalAlert" class="modal-alert error"></div>
+            <div class="modal-instruction" style="text-align:center; color:#555; margin-bottom:20px;">Seleccione el tipo de examen a solicitar:</div>
+
+            <div class="modalidad-cards">
+                <div class="modalidad-card card-periodico" id="cardPeriodico" onclick="seleccionarModalidad('PERIODICO')">
+                    <i class="fas fa-user-check" style="font-size:2rem; margin-bottom:6px;"></i>
+                    <div style="font-weight:700; font-size:1rem; margin-top:10px;">PERI&Oacute;DICO</div>
+                    <div style="font-size:0.75rem; color:#777; margin-top:5px;">Empleado existente</div>
+                </div>
+                <div class="modalidad-card card-ingreso" id="cardIngreso" onclick="seleccionarModalidad('INGRESO')">
+                    <i class="fas fa-user-plus" style="font-size:2rem; margin-bottom:6px;"></i>
+                    <div style="font-weight:700; font-size:1rem; margin-top:10px;">NUEVO INGRESO</div>
+                    <div style="font-size:0.75rem; color:#777; margin-top:5px;">Sin datos previos</div>
+                </div>
+            </div>
+
+            <div id="formPeriodico" style="display:none; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>No. Empleado</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="txtNumEmpleado" class="form-control" placeholder="Ingrese # n&oacute;mina" />
+                        <button class="btn-gci btn-gci-primary" onclick="buscarEmpleadoParaSolicitud()"><i class="fas fa-search"></i> Buscar</button>
+                    </div>
+                </div>
+
+                <div id="datosEmpleadoConfirm" style="display:none; background:#f0f9f0; padding:15px; border-radius:6px; border:1px solid #c3e6c3; margin-bottom:15px;">
+                    <div style="display:grid; grid-template-columns:1fr; gap:8px; font-size:0.9rem;">
+                        <div><strong>Nombre:</strong> <span id="confNombre"></span></div>
+                        <div><strong>Empresa:</strong> <span id="confEmpresa"></span></div>
+                        <div><strong>Proyecto:</strong> <span id="confProyecto"></span></div>
+                        <div><strong>Puesto:</strong> <span id="confPuesto"></span></div>
+                    </div>
+                </div>
+                
+                <div id="wrapperPerOptions" style="display:none;">
+                    <div class="form-group">
+                        <label>Tipo de Servicio</label>
+                        <select id="ddlTipoServicioPer" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="formIngreso" style="display:none; border-top: 1px solid #eee; padding-top: 15px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px 15px;">
+                    <div class="form-group">
+                        <label>Nombre(s)</label>
+                        <input type="text" id="txtNombreCandidato" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido(s)</label>
+                        <input type="text" id="txtApellidoCandidato" class="form-control" />
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Empresa</label>
+                         <select id="ddlEmpresaIng" class="form-control" onchange="cargarProyectosYPuestos(this.value)">
+                            <option value="">-- Seleccione Empresa --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Proyecto</label>
+                        <select id="ddlProyectoIng" class="form-control">
+                            <option value="">-- Primero Empresa --</option>
+                        </select>
+                    </div>
+                     <div class="form-group">
+                        <label>Puesto / Vacante</label>
+                        <select id="ddlPuestoIng" class="form-control">
+                            <option value="">-- Primero Empresa --</option>
+                        </select>
+                    </div>
+                     <div class="form-group" style="grid-column: 1 / -1;">
+                         <label>Tipo de Servicio</label>
+                         <select id="ddlTipoServicioIng" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                         </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-gci btn-gci-secondary" onclick="cerrarNuevaSolicitud()">Cerrar</button>
+            <button class="btn-gci btn-gci-primary" id="btnCrearSol" onclick="crearSolicitud()" style="display:none;">Crear Solicitud</button>
+            <button class="btn-gci btn-gci-primary" id="btnPrintNewSol" onclick="imprimirDesdeIframe()" style="display:none;"><i class="fas fa-print"></i> Imprimir Formato</button>
+        </div>
+    </div>
+</div>
+
+<div class="print-overlay" id="printOverlay">
+    <div class="print-modal">
+        <div class="print-modal-header">
+            <h3><i class="fas fa-print"></i> Vista Previa de Impresi&oacute;n</h3>
+            <div>
+                <button class="btn-gci btn-gci-success" style="padding: 6px 14px;" onclick="imprimirIframeReal()"><i class="fas fa-print"></i> Imprimir</button>
+                <button class="btn-gci btn-gci-secondary" style="padding: 6px 14px;" onclick="cerrarImpresion()">Cerrar</button>
+            </div>
+        </div>
+        <iframe id="printIframe" class="print-iframe"></iframe>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    var catalogosLoaded = false;
+    var tiposServicioGlobal = [];
+    var datosSolicitudes = [];
+    var registrosPorPagina = 10;
+    var paginaActual = 1;
+
+    $(document).ready(function () {
+        cargarCatalogosYTabla();
+        
+        // Permitir buscar empleado presionando Enter
+        $('#txtNumEmpleado').on('keypress', function (e) {
+            if(e.which === 13) {
+                buscarEmpleadoParaSolicitud();
+            }
+        });
+    });
+
+    function cargarCatalogosYTabla() {
+        $.getJSON('@Url.Action("CargarInicial", "ServicioMedico")', function (resp) {
+            if (resp.success) {
+                llenarCatalogos(resp.tiposServicio, resp.empresas);
+                cargarSolicitudes(); // Update table initially
+            }
+        });
+    }
+
+    function cargarSolicitudes() {
+        $.getJSON('@Url.Action("ObtenerSolicitudes", "ServicioMedico")', function (resp) {
+            if (resp.success) {
+                datosSolicitudes = resp.data || [];
+                paginaActual = 1;
+                renderPagina();
+            } else {
+                var $tbody = $('#tbodySolicitudes');
+                $tbody.empty().append('<tr><td colspan="7" class="no-data">Error al cargar solicitudes.</td></tr>');
+            }
+        });
+    }
+
+    function renderPagina() {
+        var $tbody = $('#tbodySolicitudes');
+        $tbody.empty();
+        
+        if (!datosSolicitudes || datosSolicitudes.length === 0) {
+            $tbody.append('<tr><td colspan="7" class="no-data">No hay solicitudes registradas.</td></tr>');
+            $('#resultsInfo').text('0 resultados.');
+            $('#paginacionControles').empty();
+            return;
+        }
+
+        var totalPaginas = Math.ceil(datosSolicitudes.length / registrosPorPagina);
+        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+
+        var inicio = (paginaActual - 1) * registrosPorPagina;
+        var fin = Math.min(inicio + registrosPorPagina, datosSolicitudes.length);
+        var pagina = datosSolicitudes.slice(inicio, fin);
+
+        $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + datosSolicitudes.length + ' solicitudes.');
+
+        var html = [];
+        for (var i = 0; i < pagina.length; i++) {
+            var s = pagina[i];
+            var badgeMod = s.Modalidad === 'PERIODICO'
+                ? '<span class="badge-sm badge-periodico">PERIÓDICO</span>'
+                : '<span class="badge-sm badge-ingreso">INGRESO</span>';
+            var estLow = (s.EstatusDesc || '').toLowerCase();
+            var badgeEst = 'badge-pendiente';
+            if (estLow.indexOf('proceso') >= 0) badgeEst = 'badge-proceso';
+            if (estLow.indexOf('complet') >= 0) badgeEst = 'badge-completado';
+
+            var accionesHtml = '<div style="display:flex; justify-content:center; gap:5px;">';
+            accionesHtml += '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="abrirImpresion(\'@Url.Action("ImprimirSolicitud", "ServicioMedico")/' + s.PkOrdenMedico + '\')" title="Ver Forma de Solicitud"><i class="fas fa-file-alt"></i></button>';
+            
+            // Logica del negocio - no mostrar botones medicos en RH. (El dashboard RH no revisa expediente)
+            accionesHtml += '</div>';
+
+            html.push(
+                '<tr>' +
+                '<td>' + s.FolioDisplay + '</td>' +
+                '<td>' + s.FechaOrdenFormateada + '</td>' +
+                '<td>' + badgeMod + '</td>' +
+                '<td>' + (s.NombrePersona || '-') + '</td>' +
+                '<td>' + (s.TipoServicioDesc || '-') + '</td>' +
+                '<td><span class="badge-sm ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span></td>' +
+                '<td>' + accionesHtml + '</td>' +
+                '</tr>'
+            );
+        }
+        $tbody.html(html.join(''));
+
+        var pagHtml = '<button ' + (paginaActual <= 1 ? 'disabled' : '') + ' onclick="cambiarPagina(-1)">&laquo; Anterior</button>' +
+                      '<span class="pag-info">P\u00e1gina ' + paginaActual + ' de ' + totalPaginas + '</span>' +
+                      '<button ' + (paginaActual >= totalPaginas ? 'disabled' : '') + ' onclick="cambiarPagina(1)">Siguiente &raquo;</button>';
+        $('#paginacionControles').html(pagHtml);
+    }
+
+    function cambiarPagina(dir) {
+        paginaActual += dir;
+        renderPagina();
+    }
+
+    function abrirNuevaSolicitud() {
+        $('#modalNuevaSolicitud').addClass('active');
+        $('.modalidad-cards').show();
+        $('.modal-instruction').show();
+        $('.modal-header h3').html('<i class="fas fa-file-medical"></i> Solicitud de Examen M&eacute;dico');
+        $('.modalidad-card').removeClass('selected');
+        $('#formPeriodico').hide();
+        $('#formIngreso').hide();
+        $('#btnCrearSol').hide();
+        $('#btnPrintNewSol').hide();
+        $('#modalAlert').hide().removeClass('error success').text('');
+        
+        $('#txtNumEmpleado').val('');
+        $('#datosEmpleadoConfirm').hide();
+        $('#wrapperPerOptions').hide(); 
+        $('#confNombre').text('');
+        $('#confPuesto').text('');
+        $('#confEmpresa').text('');
+         
+         $('#txtNombreCandidato').val('');
+         $('#txtApellidoCandidato').val('');
+         $('#ddlEmpresaIng').val('');
+         $('#ddlProyectoIng').empty().append('<option value="">-- Primero Empresa --</option>');
+         $('#ddlPuestoIng').empty().append('<option value="">-- Primero Empresa --</option>');
+         $('#ddlTipoServicioIng').val('');
+         $('#ddlTipoServicioPer').val('');
+    }
+
+    function cerrarNuevaSolicitud() {
+        $('#modalNuevaSolicitud').removeClass('active');
+    }
+
+    function mostrarAlertaModal(msg, isSuccess) {
+        var alertBox = $('#modalAlert');
+        alertBox.removeClass('error success');
+        if(isSuccess) alertBox.addClass('success');
+        else alertBox.addClass('error');
+        
+        alertBox.text(msg).show();
+    }
+
+    function seleccionarModalidad(mod) {
+        $('#modalAlert').hide();
+        $('.modalidad-card').removeClass('selected');
+        $('#btnPrintNewSol').hide();
+        
+        var $sper = $('#ddlTipoServicioPer');
+        var $sing = $('#ddlTipoServicioIng');
+
+        // Limpiar opciones
+        $sper.find('option:gt(0)').remove();
+        $sing.find('option:gt(0)').remove();
+
+        if(mod === 'PERIODICO') {
+            $('#cardPeriodico').addClass('selected');
+            $('#formPeriodico').show();
+            $('#formIngreso').hide();
+            $('#btnCrearSol').show(); 
+            
+            $sper.prop('disabled', false).val('');
+            
+            if (tiposServicioGlobal) {
+                $.each(tiposServicioGlobal, function(_, s) {
+                    var txt = (s.Descripcion || '').toUpperCase();
+                    if (txt.indexOf('PERIODICO') >= 0 || txt.indexOf('PERIÓDICO') >= 0 || txt.indexOf('ANTIDOPING') >= 0 || s.Id == 2 || s.Id == 3) {
+                        $sper.append('<option value="' + s.Id + '">' + s.Descripcion + '</option>');
+                    }
+                });
+            }
+
+        } else {
+            $('#cardIngreso').addClass('selected');
+            $('#formPeriodico').hide();
+            $('#formIngreso').show();
+            $('#btnCrearSol').show();
+            
+            if (tiposServicioGlobal) {
+                $.each(tiposServicioGlobal, function(_, s) {
+                    var txt = (s.Descripcion || '').toUpperCase();
+                    if (txt.indexOf('PRE-EMPLEO') >= 0 || txt.indexOf('PRE EMPLEO') >= 0 || s.Id == 1) {
+                        $sing.append('<option value="' + s.Id + '">' + s.Descripcion + '</option>');
+                    }
+                });
+            }
+            
+            // Seleccionar Pre-Empleo por defecto y deshabilitar si existe
+            var preEmpleoOpt = $sing.find('option').eq(1);
+            if(preEmpleoOpt.length > 0) {
+                $sing.val(preEmpleoOpt.val()).prop('disabled', true);
+            } else {
+                $sing.prop('disabled', false).val('');
+            }
+        }
+    }
+
+    function buscarEmpleadoParaSolicitud() {
+        var num = $('#txtNumEmpleado').val();
+         if (!num) { mostrarAlertaModal('Ingrese un número de empleado para buscar.', false); return; }
+         
+         $('#modalAlert').hide(); 
+
+         $.getJSON('@Url.Action("BuscarEmpleado", "ServicioMedico")', { numero: num }, function(resp) {
+             if(resp.success) {
+                 var e = resp.data;
+                 $('#confNombre').text(e.NombreCompleto || '-');
+                 $('#confEmpresa').text(e.EmpresaDesc || '-');
+                 $('#confProyecto').text(e.ProyectoDesc || '-');
+                 $('#confPuesto').text(e.PuestoDesc || '-');
+                 $('#datosEmpleadoConfirm').show();
+                 $('#wrapperPerOptions').show();
+             } else {
+                 mostrarAlertaModal(resp.message, false);
+                 $('#datosEmpleadoConfirm').hide();
+                 $('#wrapperPerOptions').hide();
+             }
+         });
+    }
+
+    function llenarCatalogos(servicios, empresas) {
+        tiposServicioGlobal = servicios;
+        var $sper = $('#ddlTipoServicioPer');
+        var $sing = $('#ddlTipoServicioIng');
+        var $empIng = $('#ddlEmpresaIng');
+
+        $sper.find('option:gt(0)').remove();
+        $sing.find('option:gt(0)').remove();
+        $empIng.find('option:gt(0)').remove();
+
+        $.each(empresas, function(_, e) {
+           $empIng.append('<option value="' + e.Id + '">' + e.Descripcion + '</option>');
+        });
+        catalogosLoaded = true;
+    }
+
+    function cargarProyectosYPuestos(idEmpresa) {
+        var $proy = $('#ddlProyectoIng');
+        var $puesto = $('#ddlPuestoIng');
+        
+        $proy.empty().append('<option value="">-- Seleccione --</option>');
+        $puesto.empty().append('<option value="">-- Seleccione --</option>');
+
+        if (!idEmpresa) return;
+
+        $.getJSON('@Url.Action("ProyectosPorEmpresa", "ServicioMedico")', { fkEmpresa: idEmpresa }, function(resp) {
+            if(resp.success) {
+                $.each(resp.data, function(_, p) {
+                    $proy.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>');
+                });
+            }
+        });
+
+        $.getJSON('@Url.Action("PuestosPorEmpresa", "ServicioMedico")', { fkEmpresa: idEmpresa }, function(resp) {
+            if(resp.success) {
+                $.each(resp.data, function(_, p) {
+                    $puesto.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>');
+                });
+            }
+        });
+    }
+
+    function crearSolicitud() {
+        var isPeriodico = $('#cardPeriodico').hasClass('selected');
+        var data = {};
+        
+        $('#modalAlert').hide(); 
+
+        if (isPeriodico) {
+            data.Modalidad = 'PERIODICO';
+            data.NumeroEmpleado = $('#txtNumEmpleado').val();
+            data.FkTipoServicio = $('#ddlTipoServicioPer').val();
+            
+            if(!data.NumeroEmpleado || data.NumeroEmpleado <= 0) { mostrarAlertaModal('Ingrese y busque un número de empleado valido', false); return; }
+        } else {
+            data.Modalidad = 'INGRESO';
+            data.NombreCandidato = $('#txtNombreCandidato').val();
+            data.ApellidoCandidato = $('#txtApellidoCandidato').val();
+            data.FkEmpresa = $('#ddlEmpresaIng').val();
+            data.FkProyecto = $('#ddlProyectoIng').val();
+            var puestoSel = $('#ddlPuestoIng option:selected');
+            if(puestoSel.val()) data.PuestoDeseado = puestoSel.text();
+            data.FkTipoServicio = $('#ddlTipoServicioIng').val();
+            
+             if(!data.NombreCandidato) { mostrarAlertaModal('Ingrese el nombre del candidato', false); return; }
+             if(!data.FkEmpresa) { mostrarAlertaModal('Seleccione la empresa para el ingreso', false); return; }
+        }
+
+        if(!data.FkTipoServicio) { mostrarAlertaModal('Seleccione un tipo de servicio', false); return; }
+
+        $.post('@Url.Action("CrearSolicitud", "ServicioMedico")', data, function(resp) {
+            if(resp.success) {
+                mostrarAlertaModal('Solicitud generada con éxito. Ya ha sido enviada.', true);
+                cargarSolicitudes();
+                
+                $('#btnCrearSol').hide();
+                $('#formPeriodico').hide();
+                $('#formIngreso').hide();
+                $('.modalidad-cards').hide();
+                $('.modal-instruction').hide();
+                $('.modal-header h3').html('<i class="fas fa-check-circle"></i> Solicitud Creada');
+
+                var printUrl = '@Url.Action("ImprimirSolicitud", "ServicioMedico")/' + resp.pkOrdenMedico;
+                $('#btnPrintNewSol').off('click').on('click', function(e) { e.preventDefault(); abrirImpresion(printUrl); }).show();
+            } else {
+                mostrarAlertaModal(resp.message, false);
+            }
+        });
+    }
+
+    function abrirImpresion(url) {
+        if (!url) return;
+        $('#printIframe').attr('src', url);
+        $('#printOverlay').addClass('active');
+    }
+
+    function cerrarImpresion() {
+        $('#printOverlay').removeClass('active');
+        $('#printIframe').attr('src', 'about:blank');
+    }
+
+    function imprimirIframeReal() {
+        var iframe = document.getElementById('printIframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.print();
+        }
+    }
+</script>
+}

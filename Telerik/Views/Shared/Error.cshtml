@@ -1,0 +1,28 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Error</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f8dbdb; color: #a94442; text-align: center; padding: 50px; }
+        .error-container { background: #fff; border: 1px solid #ebccd1; border-radius: 5px; padding: 30px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; font-size: 24px; }
+        p { font-size: 16px; margin-bottom: 20px; }
+        a.btn { display: inline-block; padding: 10px 20px; background-color: #a94442; color: #fff; text-decoration: none; border-radius: 4px; }
+        a.btn:hover { background-color: #843534; }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>Ocurrió un Problema</h1>
+        <p>
+            @(ViewBag.Error ?? "Error: No se encontró la evaluación médica o la orden no ha sido completada.")
+        </p>
+        <p>No se puede generar este reporte impreso porque faltan datos. Asegúrese de guardar los resultados primero.</p>
+        <a href="javascript:window.close();" class="btn">Cerrar esta Ventana</a>
+    </div>
+</body>
+</html>

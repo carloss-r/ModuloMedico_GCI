@@ -1,0 +1,883 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - GCI Sistema Industrial</title>
+
+    @* --- Fuente corporativa --- *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    @* --- FontAwesome para iconos --- *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    @* --- Sidebar CSS --- *@
+    <link rel="stylesheet" href="~/Content/sidebar.css" />
+
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+    <style>
+        /* Override Inter como fuente base si se carga */
+        body { font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    </style>
+</head>
+<body>
+
+    <!-- ════════════════════════════════════════
+         SIDEBAR
+         ════════════════════════════════════════ -->
+    <nav class="gci-sidebar" id="gciSidebar">
+
+        <!-- ─── LOGO ─── -->
+        <div class="gci-sidebar-logo">
+            <div class="gci-logo-text">
+                <span class="logo-letter-g">G</span><span class="logo-letter-c">C</span><span class="logo-letter-i">i</span>
+            </div>
+            <div class="gci-logo-subtitle">GRUPO CONSTRUCTOR INDUSTRIAL</div>
+            <div class="gci-logo-oilgas">o i l &nbsp; & &nbsp; g a s</div>
+        </div>
+
+        <!-- ─── ROL & ACCIONES ─── -->
+        <div class="gci-sidebar-info">
+            <div class="gci-rol-label">
+                <span>Rol del sistema:</span>&nbsp; <strong>ADMIN</strong>
+            </div>
+            <div class="gci-sidebar-actions">
+                <a href="#"><i class="fas fa-address-card"></i> Mi cuenta</a>
+                <a href="#"><i class="fas fa-arrow-right-from-bracket"></i> Salir</a>
+            </div>
+        </div>
+
+        <!-- ─── FILTROS (Dropdowns) ─── -->
+        <div class="gci-sidebar-filters">
+            <!-- GCI (Fábrica) -->
+            <div class="gci-filter-row">
+                <div class="filter-icon"><i class="fas fa-industry"></i></div>
+                <select id="ddlEmpresa">
+                    <option>GCI</option>
+                    <option>GCI NORTE</option>
+                    <option>GCI SUR</option>
+                </select>
+                <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
+            </div>
+
+            <!-- ADMINISTRATIVO (Usuario) -->
+            <div class="gci-filter-row">
+                <div class="filter-icon"><i class="fas fa-user-tie"></i></div>
+                <select id="ddlDepartamento">
+                    <option>ADMINISTRATIVO</option>
+                    <option>OPERATIVO</option>
+                    <option>GERENCIA</option>
+                </select>
+                <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
+            </div>
+
+            <!-- MATRIZ (Ubicación) -->
+            <div class="gci-filter-row">
+                <div class="filter-icon"><i class="fas fa-location-dot"></i></div>
+                <select id="ddlUbicacion">
+                    <option>MATRIZ</option>
+                    <option>SUCURSAL NORTE</option>
+                    <option>SUCURSAL SUR</option>
+                </select>
+                <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
+            </div>
+
+            <!-- 2026 (Calendario año) -->
+            <div class="gci-filter-row">
+                <div class="filter-icon"><i class="fas fa-calendar-days"></i></div>
+                <select id="ddlAnio">
+                    <option>2026</option>
+                    <option>2025</option>
+                    <option>2024</option>
+                </select>
+                <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
+            </div>
+
+            <!-- SEMANA 3 (Calendario semana) -->
+            <div class="gci-filter-row">
+                <div class="filter-icon"><i class="fas fa-calendar-days"></i></div>
+                <select id="ddlSemana">
+                    <option>SEMANA 3</option>
+                    <option>SEMANA 1</option>
+                    <option>SEMANA 2</option>
+                    <option>SEMANA 4</option>
+                    <option>SEMANA 5</option>
+                </select>
+                <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
+            </div>
+
+            <!-- Label de rango de fecha -->
+            <div class="gci-filter-date-label">
+                DEL 12 AL 18 DE ENERO DEL 2026
+            </div>
+        </div>
+
+        <!-- ─── ENCABEZADO MENÚ PRINCIPAL ─── -->
+        <div class="gci-menu-header">
+            <span class="gci-menu-header-text">MEN&Uacute; PRINCIPAL</span>
+        </div>
+
+        <!-- ─── MENÚ DE NAVEGACIÓN ─── -->
+        <ul class="gci-main-menu" id="gciMainMenu">
+            <!-- RH -->
+            <li>
+                <a href="#">
+                    RH
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="@Url.Action("Index", "Solicitud")">M&oacute;dulo de Solicitudes (Dashboard)</a></li>
+                </ul>
+            </li>
+
+            <!-- NOMINA -->
+            <li>
+                <a href="#">
+                    NOMINA
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Nómina Semanal</a></li>
+                    <li><a href="#">Nómina Quincenal</a></li>
+                </ul>
+            </li>
+
+            <!-- REPORTES -->
+            <li>
+                <a href="#">
+                    REPORTES
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Reportes Generales</a></li>
+                </ul>
+            </li>
+
+            <!-- CATALOGOS -->
+            <li>
+                <a href="#">
+                    CATALOGOS
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Catálogos Generales</a></li>
+                </ul>
+            </li>
+
+            <!-- ASISTENCIAS -->
+            <li>
+                <a href="#">
+                    ASISTENCIAS
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Control de Asistencia</a></li>
+                </ul>
+            </li>
+
+            <!-- SEGURIDAD E HIGIENE -->
+            <li>
+                <a href="#">
+                    SEGURIDAD E HIGIENE
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Seguridad Industrial</a></li>
+                </ul>
+            </li>
+
+            <!-- SISTEMA -->
+            <li>
+                <a href="#">
+                    SISTEMA
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Configuración</a></li>
+                </ul>
+            </li>
+
+            <!-- ADMINISTRACION -->
+            <li>
+                <a href="#">
+                    ADMINISTRACION
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="#">Panel Administrativo</a></li>
+                </ul>
+            </li>
+
+            <!-- SERVICIO MÉDICO -->
+            <li>
+                <a href="#">
+                    SERVICIO M&Eacute;DICO
+                    <span class="gci-menu-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <ul class="gci-submenu">
+                    <li><a href="@Url.Action("Index", "ServicioMedico")">Solicitudes Recibidas</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- ════════════════════════════════════════
+         CONTENIDO PRINCIPAL
+         ════════════════════════════════════════ -->
+    <div class="gci-main-content">
+        @RenderBody()
+    </div>
+
+    <!-- ════════════════════════════════════════
+         FOOTER
+         ════════════════════════════════════════ -->
+    <footer class="gci-footer">
+        &copy; @DateTime.Now.Year - GCI Grupo Constructor Industrial | Sistema de Gestión
+    </footer>
+
+    <!-- ════════════════════════════════════════
+         MODAL: Solicitud de Examen Médico
+         ════════════════════════════════════════ -->
+    <div id="modalSolicitud" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:5000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:8px; width:580px; max-width:94%; box-shadow:0 10px 40px rgba(0,0,0,0.25); overflow:hidden; max-height:90vh; overflow-y:auto;">
+
+            <!-- Header -->
+            <div style="background:#1a5276; color:#fff; padding:14px 20px; display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-size:1rem; font-weight:600;"><i class="fas fa-file-medical"></i> Solicitud de Examen Médico</span>
+                <button onclick="cerrarModalSol()" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer; padding:2px 8px;">&times;</button>
+            </div>
+
+            <!-- Paso 1: Elegir modalidad -->
+            <div id="solPaso1" style="padding:25px 20px; text-align:center;">
+                <p style="font-size:0.9rem; color:#555; margin-bottom:20px;">Seleccione el tipo de examen a solicitar:</p>
+                <div style="display:flex; gap:14px; justify-content:center;">
+                    <button onclick="elegirModalidad('PERIODICO')" style="flex:1; padding:20px 10px; border:2px solid #8e44ad; border-radius:8px; background:#fff; cursor:pointer; transition:all 0.2s;">
+                        <div style="font-size:2rem; color:#8e44ad; margin-bottom:6px;"><i class="fas fa-user-check"></i></div>
+                        <div style="font-size:0.9rem; font-weight:700; color:#333;">PERIÓDICO</div>
+                        <div style="font-size:0.72rem; color:#888; margin-top:4px;">Empleado existente</div>
+                    </button>
+                    <button onclick="elegirModalidad('INGRESO')" style="flex:1; padding:20px 10px; border:2px solid #16a085; border-radius:8px; background:#fff; cursor:pointer; transition:all 0.2s;">
+                        <div style="font-size:2rem; color:#16a085; margin-bottom:6px;"><i class="fas fa-user-plus"></i></div>
+                        <div style="font-size:0.9rem; font-weight:700; color:#333;">NUEVO INGRESO</div>
+                        <div style="font-size:0.72rem; color:#888; margin-top:4px;">Sin datos previos</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paso 2a: Periódico - pedir número de empleado -->
+            <div id="solPasoPeriodico" style="display:none; padding:25px 20px;">
+                <p style="font-size:0.85rem; color:#555; margin-bottom:14px;"><i class="fas fa-user-check" style="color:#8e44ad;"></i> <strong>Examen Periódico</strong> — Ingrese el número de empleado:</p>
+                
+                <div style="display:flex; gap:8px; margin-bottom:14px;">
+                    <input type="number" id="solNumEmpleado" placeholder="No. Empleado" style="flex:1; padding:10px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.9rem; outline:none;" onkeypress="if(event.which === 13) buscarEmpleadoGeneral();" />
+                    <button type="button" onclick="buscarEmpleadoGeneral()" style="padding:10px 20px; background:#8e44ad; color:#fff; border:none; border-radius:4px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+
+                <div id="solMsgPeriodico" style="display:none; padding:10px; border-radius:4px; font-size:0.82rem;"></div>
+
+                <!-- Detalles del Empleado (Oculto hasta buscar) -->
+                <div id="solDetallesPeriodico" style="display:none;">
+                    <div style="background:#f9f9f9; border:1px solid #eee; border-radius:6px; padding:15px; margin-bottom:15px;">
+                        <div style="display:grid; grid-template-columns:1fr; gap:8px; font-size:0.85rem; color:#333;">
+                            <div><strong>Nombre:</strong> <span id="solConfNombre"></span></div>
+                            <div><strong>Empresa:</strong> <span id="solConfEmpresa"></span></div>
+                            <div><strong>Proyecto:</strong> <span id="solConfProyecto"></span></div>
+                            <div><strong>Puesto:</strong> <span id="solConfPuesto"></span></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:18px;">
+                        <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Tipo de Servicio <span style="color:#e74c3c;">*</span></label>
+                        <select id="solTipoServicioPer" style="width:100%; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; background:#fff; transition:border-color 0.2s;">
+                            <option value="">-- Seleccione servicio --</option>
+                            <option value="2">Periódico</option>
+                            <option value="3">Antidoping</option>
+                        </select>
+                    </div>
+
+                    <div style="text-align:right;">
+                        <button type="button" onclick="enviarPeriodicoGeneral()" style="padding:10px 24px; background:#16a085; color:#fff; border:none; border-radius:4px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+                            <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                        </button>
+                    </div>
+                </div>
+
+                <div style="text-align:left; margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+                    <button type="button" onclick="volverPaso1()" style="padding:6px 16px; background:#f0f0f0; color:#555; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem; cursor:pointer;">← Volver</button>
+                </div>
+            </div>
+
+            <!-- Paso 2b: Ingreso - Formulario completo -->
+            <div id="solPasoIngreso" style="display:none; padding:25px 20px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px; padding-bottom:10px; border-bottom:2px solid #16a085;">
+                    <i class="fas fa-user-plus" style="color:#16a085; font-size:1.1rem;"></i>
+                    <span style="font-size:0.95rem; font-weight:700; color:#333;">Solicitud de Nuevo Ingreso</span>
+                </div>
+
+                <!-- Nombre del candidato -->
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Nombre del Candidato <span style="color:#e74c3c;">*</span></label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="solNombreIng" placeholder="Nombre(s)" style="flex:1; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
+                        <input type="text" id="solApellidoIng" placeholder="Apellido(s)" style="flex:1; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
+                    </div>
+                </div>
+
+                <!-- Empresa -->
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Empresa <span style="color:#e74c3c;">*</span></label>
+                    <select id="solEmpresaIng" onchange="onEmpresaChange()" style="width:100%; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; background:#fff; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'">
+                        <option value="">-- Seleccione empresa --</option>
+                    </select>
+                </div>
+
+                <!-- Proyecto -->
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Proyecto <span style="color:#e74c3c;">*</span></label>
+                    <select id="solProyectoIng" disabled style="width:100%; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; background:#f5f5f5; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'">
+                        <option value="">-- Primero seleccione empresa --</option>
+                    </select>
+                </div>
+
+                <!-- Puesto -->
+                <div style="margin-bottom:18px;">
+                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Puesto a Ocupar <span style="color:#e74c3c;">*</span></label>
+                    <select id="solPuestoIng" disabled style="width:100%; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; background:#f5f5f5; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'">
+                        <option value="">-- Primero seleccione empresa --</option>
+                    </select>
+                </div>
+
+                <div id="solMsgIngreso" style="display:none; padding:10px; border-radius:4px; font-size:0.82rem; margin-bottom:12px;"></div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button onclick="volverPaso1()" style="padding:9px 20px; background:#f0f0f0; color:#555; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; cursor:pointer;">← Volver</button>
+                    <button onclick="enviarIngreso()" style="padding:9px 24px; background:#16a085; color:#fff; border:none; border-radius:4px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+                        <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paso 3: Éxito -->
+            <div id="solPasoExito" style="display:none; padding:30px 20px; text-align:center;">
+                <div style="font-size:3rem; color:#27ae60; margin-bottom:10px;"><i class="fas fa-check-circle"></i></div>
+                <p style="font-size:1rem; font-weight:700; color:#333; margin-bottom:6px;">¡Solicitud Enviada!</p>
+                <p id="solFolioExito" style="font-size:0.85rem; color:#1a5276; margin-bottom:18px;"></p>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button onclick="cerrarModalSol()" style="padding:9px 28px; background:#1a5276; color:#fff; border:none; border-radius:4px; font-size:0.85rem; font-weight:600; cursor:pointer;">Aceptar</button>
+                    <button id="btnImprimirFormato" onclick="imprimirFormato()" style="display:none; padding:9px 28px; background:#27ae60; color:#fff; border:none; border-radius:4px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+                        <i class="fas fa-print"></i> Imprimir Formato
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         FORMATO DE IMPRESIÓN: Servicio Médico
+         ════════════════════════════════════════ -->
+    <div id="formatoImpresion" style="display:none;">
+        <style>
+            @@media print {
+                /* Eliminar encabezados y pies de página del navegador (fecha, hora, URL, título, # página) */
+                @@page {
+                    margin: 0 !important;
+                    size: letter;
+                }
+
+                /* Ocultar TODO el contenido de la página */
+                html, body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                body > *:not(#formatoImpresion) {
+                    display: none !important;
+                    visibility: hidden !important;
+                    height: 0 !important;
+                    overflow: hidden !important;
+                }
+
+                /* Solo mostrar el formato de impresión */
+                #formatoImpresion {
+                    display: block !important;
+                    visibility: visible !important;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    background: #fff;
+                    z-index: 99999;
+                    padding: 10mm 12mm;
+                    margin: 0;
+                    box-sizing: border-box;
+                }
+                #formatoImpresion * {
+                    visibility: visible !important;
+                }
+                #formatoImpresion .print-content {
+                    max-width: 100% !important;
+                    width: 100% !important;
+                    margin: 0 !important;
+                }
+            }
+        </style>
+        <div class="print-content" style="max-width:700px; margin:0 auto; font-family:'Inter','Segoe UI',Tahoma,sans-serif;">
+            <!-- Encabezado principal -->
+            <table style="width:100%; border-collapse:collapse; border:2px solid #333;">
+                <tr>
+                    <td colspan="4" style="text-align:center; padding:8px; font-size:15px; font-weight:bold; border-bottom:2px solid #333; letter-spacing:1px;">
+                        SERVICIO MEDICO
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:6px 10px; font-size:11px; font-weight:bold; border-right:1px solid #333; border-bottom:1px solid #333; width:15%;">EMPRESA</td>
+                    <td id="printEmpresa" style="padding:6px 10px; font-size:12px; border-right:1px solid #333; border-bottom:1px solid #333; width:35%;"></td>
+                    <td style="padding:6px 10px; font-size:11px; font-weight:bold; border-right:1px solid #333; border-bottom:1px solid #333; width:15%;">FECHA:</td>
+                    <td id="printFecha" style="padding:6px 10px; font-size:12px; border-bottom:1px solid #333; width:35%;"></td>
+                </tr>
+                <tr>
+                    <td style="padding:6px 10px; font-size:11px; font-weight:bold; border-right:1px solid #333; border-bottom:1px solid #333;">PROYECTO</td>
+                    <td id="printProyecto" colspan="3" style="padding:6px 10px; font-size:12px; border-bottom:1px solid #333;"></td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="padding:6px 10px; font-size:11px; border-bottom:1px solid #333;">
+                        <span style="font-weight:bold;">POR ESTE CONDUCTO LE ENVIO AL SR.(A):</span>
+                        <span id="printNombre" style="margin-left:8px; font-size:12px;"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="padding:6px 10px; font-size:11px; border-bottom:1px solid #333;">
+                        <span style="font-weight:bold;">CANDIDATO(A) A OCUPAR EL PUESTO DE:</span>
+                        <span id="printPuesto" style="margin-left:8px; font-size:12px;"></span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Instrucción -->
+            <table style="width:100%; border-collapse:collapse; border-left:2px solid #333; border-right:2px solid #333; margin-top:0;">
+                <tr>
+                    <td colspan="3" style="text-align:center; padding:6px; background:#444; color:#fff; font-size:10px; font-weight:bold; letter-spacing:0.5px;">
+                        INSTRUCCIÓN AL AREA DE RECLUTAMIENTO Y SELECCIÓN
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align:center; padding:3px; font-size:10px; color:#555; border-bottom:1px solid #333;">
+                        El candidato es considerado como:
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:33%; text-align:center; padding:12px; font-size:12px; font-weight:bold; border-right:1px solid #333; border-bottom:1px solid #333;">APTO</td>
+                    <td style="width:33%; text-align:center; padding:12px; font-size:12px; font-weight:bold; border-right:1px solid #333; border-bottom:1px solid #333;">APTO CONDICIONADO</td>
+                    <td style="width:33%; text-align:center; padding:12px; font-size:12px; font-weight:bold; border-bottom:1px solid #333;">NO APTO</td>
+                </tr>
+            </table>
+
+            <!-- Indicación especial -->
+            <table style="width:100%; border-collapse:collapse; border-left:2px solid #333; border-right:2px solid #333;">
+                <tr>
+                    <td style="padding:3px 10px; font-size:9px; color:#888; text-align:center; border-bottom:1px solid #999;">
+                        RELLENAR O MARCAR LA CASILLA INDICADA
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 10px; font-size:11px; color:#333;">
+                        Existe alguna indicación especial para el candidato:
+                    </td>
+                </tr>
+                <tr><td style="padding:5px 10px; border-bottom:1px solid #999;">&nbsp;</td></tr>
+                <tr><td style="padding:5px 10px; border-bottom:1px solid #999;">&nbsp;</td></tr>
+                <tr><td style="padding:5px 10px; border-bottom:1px solid #999;">&nbsp;</td></tr>
+            </table>
+
+            <!-- Firmas -->
+            <table style="width:100%; border-collapse:collapse; border:2px solid #333; margin-top:0;">
+                <tr>
+                    <td style="height:50px; border-right:1px solid #333; border-bottom:1px solid #333;">&nbsp;</td>
+                    <td style="height:50px; border-right:1px solid #333; border-bottom:1px solid #333;">&nbsp;</td>
+                    <td style="height:50px; border-bottom:1px solid #333;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td style="width:33%; text-align:center; padding:6px; font-size:9px; font-weight:bold; border-right:1px solid #333;">
+                        Nombre y firma<br/>Reclutamiento
+                    </td>
+                    <td style="width:33%; text-align:center; padding:6px; font-size:9px; font-weight:bold; border-right:1px solid #333;">
+                        Vo. Bo. Nombre y firma<br/>del médico
+                    </td>
+                    <td style="width:33%; text-align:center; padding:6px; font-size:9px; font-weight:bold;">
+                        EN CASO DE SER CONDICIONADO (NOMBRE Y FIRMA DE QUIEN AUTORIZA)
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        // ═══════════════════════════════════════
+        // Modal de Solicitud de Examen Médico
+        // ═══════════════════════════════════════
+        var _datosFormatoIngreso = null;
+
+        function abrirModalSolicitud() {
+            volverPaso1();
+            _datosFormatoIngreso = null;
+            $('#modalSolicitud').css('display', 'flex');
+            cargarEmpresasModal();
+        }
+
+        function cerrarModalSol() {
+            $('#modalSolicitud').hide();
+            $('#solNumEmpleado').val('');
+            $('#solNombreIng, #solApellidoIng').val('');
+            $('#solEmpresaIng').val('');
+            $('#solProyectoIng').html('<option value="">-- Primero seleccione empresa --</option>').prop('disabled', true).css('background', '#f5f5f5');
+            $('#solPuestoIng').html('<option value="">-- Primero seleccione empresa --</option>').prop('disabled', true).css('background', '#f5f5f5');
+            $('#solMsgPeriodico, #solMsgIngreso').hide();
+            $('#solDetallesPeriodico').hide();
+            $('#solTipoServicioPer').val('');
+            $('#btnImprimirFormato').hide();
+            _datosFormatoIngreso = null;
+        }
+
+        function elegirModalidad(tipo) {
+            $('#solPaso1').hide();
+            if (tipo === 'PERIODICO') {
+                $('#solPasoPeriodico').show();
+                $('#solNumEmpleado').focus();
+            } else {
+                $('#solPasoIngreso').show();
+                $('#solNombreIng').focus();
+            }
+        }
+
+        function volverPaso1() {
+            $('#solPasoPeriodico, #solPasoIngreso, #solPasoExito').hide();
+            $('#solMsgPeriodico, #solMsgIngreso').hide();
+            $('#solPaso1').show();
+        }
+
+        // --- Cascading dropdowns ---
+        function cargarEmpresasModal() {
+            $.getJSON('/ServicioMedico/ObtenerEmpresas', function (resp) {
+                if (resp.success) {
+                    var $dd = $('#solEmpresaIng');
+                    $dd.html('<option value="">-- Seleccione empresa --</option>');
+                    $.each(resp.data, function (_, item) {
+                        $dd.append('<option value="' + item.Id + '">' + item.Descripcion + '</option>');
+                    });
+                }
+            });
+        }
+
+        function onEmpresaChange() {
+            cargarProyectosPorEmpresa();
+            cargarPuestosPorEmpresa();
+        }
+
+        function cargarProyectosPorEmpresa() {
+            var fkEmpresa = parseInt($('#solEmpresaIng').val());
+            var $proj = $('#solProyectoIng');
+
+            if (!fkEmpresa) {
+                $proj.html('<option value="">-- Primero seleccione empresa --</option>').prop('disabled', true).css('background', '#f5f5f5');
+                return;
+            }
+
+            $proj.html('<option value="">Cargando...</option>').prop('disabled', true);
+
+            $.getJSON('/ServicioMedico/ProyectosPorEmpresa', { fkEmpresa: fkEmpresa }, function (resp) {
+                $proj.html('<option value="">-- Seleccione proyecto --</option>');
+                if (resp.success && resp.data.length > 0) {
+                    $.each(resp.data, function (_, item) {
+                        $proj.append('<option value="' + item.Id + '">' + item.Descripcion + '</option>');
+                    });
+                    $proj.prop('disabled', false).css('background', '#fff');
+                } else {
+                    $proj.html('<option value="">-- Sin proyectos disponibles --</option>');
+                    $proj.prop('disabled', true).css('background', '#f5f5f5');
+                }
+            });
+        }
+
+        function cargarPuestosPorEmpresa() {
+            var fkEmpresa = parseInt($('#solEmpresaIng').val());
+            var $puesto = $('#solPuestoIng');
+
+            if (!fkEmpresa) {
+                $puesto.html('<option value="">-- Primero seleccione empresa --</option>').prop('disabled', true).css('background', '#f5f5f5');
+                return;
+            }
+
+            $puesto.html('<option value="">Cargando...</option>').prop('disabled', true);
+
+            $.getJSON('/ServicioMedico/PuestosPorEmpresa', { fkEmpresa: fkEmpresa }, function (resp) {
+                $puesto.html('<option value="">-- Seleccione puesto --</option>');
+                if (resp.success && resp.data.length > 0) {
+                    $.each(resp.data, function (_, item) {
+                        $puesto.append('<option value="' + item.Id + '">' + item.Descripcion + '</option>');
+                    });
+                    $puesto.prop('disabled', false).css('background', '#fff');
+                } else {
+                    $puesto.html('<option value="">-- Sin puestos disponibles --</option>');
+                    $puesto.prop('disabled', true).css('background', '#f5f5f5');
+                }
+            });
+        }
+
+        // --- Periódico / Buscar empleado primero ---
+        var _empleadoActual = null;
+        
+        function buscarEmpleadoGeneral() {
+            var num = parseInt($('#solNumEmpleado').val());
+            if (!num || num <= 0) {
+                mostrarMsg('#solMsgPeriodico', 'error', 'Ingrese un número de empleado válido.');
+                return;
+            }
+
+            mostrarMsg('#solMsgPeriodico', 'info', 'Buscando empleado...');
+            $('#solDetallesPeriodico').hide();
+            _empleadoActual = null;
+
+            $.ajax({
+                url: '/ServicioMedico/BuscarEmpleado', 
+                type: 'GET',
+                data: { numero: num },
+                success: function (resp) {
+                    if (resp.success && resp.data) {
+                        $('#solMsgPeriodico').hide();
+                        var e = resp.data;
+                        _empleadoActual = e;
+                        $('#solConfNombre').text(e.NombreCompleto || '-');
+                        $('#solConfEmpresa').text(e.EmpresaDesc || '-');
+                        $('#solConfProyecto').text(e.ProyectoDesc || '-');
+                        $('#solConfPuesto').text(e.PuestoDesc || '-');
+                        
+                        $('#solDetallesPeriodico').show();
+                    } else {
+                        mostrarMsg('#solMsgPeriodico', 'error', resp.message || 'Empleado no encontrado.');
+                    }
+                },
+                error: function () {
+                    mostrarMsg('#solMsgPeriodico', 'error', 'Error de conexión con el servidor.');
+                }
+            });
+        }
+
+        function enviarPeriodicoGeneral() {
+            var num = parseInt($('#solNumEmpleado').val());
+            var tipoServicio = $('#solTipoServicioPer').val();
+            var tipoServicioText = $('#solTipoServicioPer option:selected').text();
+
+            if (!tipoServicio) {
+                mostrarMsg('#solMsgPeriodico', 'error', 'Seleccione un tipo de servicio (Periódico o Antidoping).');
+                return;
+            }
+
+            if (!_empleadoActual) {
+                mostrarMsg('#solMsgPeriodico', 'error', 'Debe buscar un empleado primero.');
+                return;
+            }
+
+            mostrarMsg('#solMsgPeriodico', 'info', 'Enviando solicitud...');
+
+            $.ajax({
+                url: '/ServicioMedico/CrearSolicitud',
+                type: 'POST',
+                data: { 
+                    Modalidad: 'PERIODICO', 
+                    NumeroEmpleado: num, 
+                    FkTipoServicio: tipoServicio, 
+                    FkProyecto: 0 
+                },
+                success: function (resp) {
+                    if (resp.success) {
+                        // Preprar formato de impresión
+                        _datosFormatoIngreso = {
+                            folio: 'GCI-SOL-SM-' + String(resp.pkOrdenMedico).padStart(3, '0'),
+                            nombre: _empleadoActual.NombreCompleto || '-',
+                            empresa: _empleadoActual.EmpresaDesc || '-',
+                            proyecto: _empleadoActual.ProyectoDesc || '-',
+                            puesto: _empleadoActual.PuestoDesc || '-',
+                            fecha: new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
+                        };
+                        
+                        mostrarExito(resp.pkOrdenMedico, true);
+                    } else {
+                        mostrarMsg('#solMsgPeriodico', 'error', resp.message);
+                    }
+                },
+                error: function () {
+                    mostrarMsg('#solMsgPeriodico', 'error', 'Error de conexión con el servidor.');
+                }
+            });
+        }
+
+        // --- Enviar Ingreso ---
+        function enviarIngreso() {
+            var nombre = $('#solNombreIng').val().trim();
+            var apellido = $('#solApellidoIng').val().trim();
+            var fkEmpresa = parseInt($('#solEmpresaIng').val());
+            var fkProyecto = parseInt($('#solProyectoIng').val());
+            var fkPuesto = parseInt($('#solPuestoIng').val());
+
+            // Validaciones
+            if (!nombre) {
+                mostrarMsg('#solMsgIngreso', 'error', 'Ingrese el nombre del candidato.');
+                return;
+            }
+            if (!fkEmpresa) {
+                mostrarMsg('#solMsgIngreso', 'error', 'Seleccione una empresa.');
+                return;
+            }
+            if (!fkProyecto) {
+                mostrarMsg('#solMsgIngreso', 'error', 'Seleccione un proyecto.');
+                return;
+            }
+            if (!fkPuesto) {
+                mostrarMsg('#solMsgIngreso', 'error', 'Seleccione un puesto.');
+                return;
+            }
+
+            // Obtener textos de los dropdowns
+            var empresaDesc = $('#solEmpresaIng option:selected').text();
+            var proyectoDesc = $('#solProyectoIng option:selected').text();
+            var puestoDesc = $('#solPuestoIng option:selected').text();
+
+            mostrarMsg('#solMsgIngreso', 'info', 'Enviando solicitud...');
+
+            $.ajax({
+                url: '@Url.Action("CrearSolicitud", "ServicioMedico")',
+                type: 'POST',
+                data: {
+                    Modalidad: 'INGRESO',
+                    NombreCandidato: nombre,
+                    ApellidoCandidato: apellido,
+                    PuestoDeseado: puestoDesc,
+                    FkTipoServicio: 1,
+                    FkProyecto: fkProyecto,
+                    FkEmpresa: fkEmpresa,
+                    FkPuesto: fkPuesto,
+                    EmpresaDesc: empresaDesc,
+                    ProyectoDesc: proyectoDesc,
+                    PuestoDesc: puestoDesc
+                },
+                success: function (resp) {
+                    if (resp.success) {
+                        _datosFormatoIngreso = {
+                            folio: 'GCI-SOL-SM-' + String(resp.pkOrdenMedico).padStart(3, '0'),
+                            nombre: resp.nombreCandidato || (nombre + ' ' + apellido).trim(),
+                            empresa: resp.empresaDesc || empresaDesc,
+                            proyecto: resp.proyectoDesc || proyectoDesc,
+                            puesto: resp.puestoDesc || puestoDesc,
+                            fecha: new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
+                        };
+                        mostrarExito(resp.pkOrdenMedico, true);
+                    } else {
+                        mostrarMsg('#solMsgIngreso', 'error', resp.message);
+                    }
+                },
+                error: function () {
+                    mostrarMsg('#solMsgIngreso', 'error', 'Error de conexión con el servidor.');
+                }
+            });
+        }
+
+        function mostrarExito(pkOrden, mostrarBotonImprimir) {
+            var folio = 'GCI-SOL-SM-' + String(pkOrden).padStart(3, '0');
+            $('#solFolioExito').text('Folio: ' + folio);
+            $('#solPaso1, #solPasoPeriodico, #solPasoIngreso').hide();
+            if (mostrarBotonImprimir) {
+                $('#btnImprimirFormato').show();
+            } else {
+                $('#btnImprimirFormato').hide();
+            }
+            $('#solPasoExito').show();
+        }
+
+        function imprimirFormato() {
+            if (!_datosFormatoIngreso) return;
+
+            // Llenar datos del formato
+            $('#printEmpresa').text(_datosFormatoIngreso.empresa);
+            $('#printFecha').text(_datosFormatoIngreso.fecha);
+            $('#printProyecto').text(_datosFormatoIngreso.proyecto);
+            $('#printNombre').text(_datosFormatoIngreso.nombre);
+            $('#printPuesto').text(_datosFormatoIngreso.puesto);
+
+            // Mostrar formato e imprimir
+            $('#formatoImpresion').show();
+            window.print();
+            setTimeout(function() { $('#formatoImpresion').hide(); }, 500);
+        }
+
+        function mostrarMsg(selector, tipo, msg) {
+            var $el = $(selector);
+            var bg = tipo === 'error' ? '#f8d7da' : (tipo === 'info' ? '#d1ecf1' : '#d4edda');
+            var color = tipo === 'error' ? '#721c24' : (tipo === 'info' ? '#0c5460' : '#155724');
+            $el.css({ background: bg, color: color, border: '1px solid ' + bg }).text(msg).show();
+        }
+
+        // Cerrar modal al hacer clic fuera
+        $(document).on('click', '#modalSolicitud', function (e) {
+            if (e.target === this) cerrarModalSol();
+        });
+
+        // ═══════════════════════════════════════
+        // Flyout menu (para otros menús con submenu)
+        // ═══════════════════════════════════════
+        $(document).ready(function () {
+            var hideTimer = null;
+            var currentSubmenu = null;
+
+            $('#gciMainMenu > li').each(function () {
+                var $li = $(this);
+                var $submenu = $li.children('.gci-submenu');
+                if ($submenu.length === 0) return;
+
+                $submenu.detach().appendTo('body');
+
+                $li.on('mouseenter', function () {
+                    clearTimeout(hideTimer);
+                    if (currentSubmenu && currentSubmenu[0] !== $submenu[0]) {
+                        currentSubmenu.removeClass('flyout-visible');
+                    }
+                    var rect = $li[0].getBoundingClientRect();
+                    $submenu.css({ top: rect.top + 'px', left: rect.right + 'px' });
+                    $submenu.addClass('flyout-visible');
+                    var subRect = $submenu[0].getBoundingClientRect();
+                    if (subRect.bottom > window.innerHeight) {
+                        $submenu.css('top', (window.innerHeight - subRect.height - 8) + 'px');
+                    }
+                    currentSubmenu = $submenu;
+                });
+
+                $li.on('mouseleave', function () {
+                    var sub = $submenu;
+                    hideTimer = setTimeout(function () {
+                        sub.removeClass('flyout-visible');
+                        if (currentSubmenu && currentSubmenu[0] === sub[0]) currentSubmenu = null;
+                    }, 200);
+                });
+
+                $submenu.on('mouseenter', function () { clearTimeout(hideTimer); });
+                $submenu.on('mouseleave', function () {
+                    var sub = $submenu;
+                    hideTimer = setTimeout(function () {
+                        sub.removeClass('flyout-visible');
+                        if (currentSubmenu && currentSubmenu[0] === sub[0]) currentSubmenu = null;
+                    }, 150);
+                });
+            });
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

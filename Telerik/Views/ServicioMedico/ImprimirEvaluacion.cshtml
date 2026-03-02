@@ -1,0 +1,611 @@
+@model Telerik.Models.ViewModels.EvaluacionMedicaVm
+@{
+    Layout = null;
+    var orden = ViewBag.Orden as Telerik.Models.ViewModels.OrdenServicioMedicoVm;
+    var paciente = ViewBag.Paciente as Telerik.Models.ViewModels.PacienteInfoVm;
+    bool isCandidato = paciente.Tipo == "CANDIDATO";
+
+    Func<string, string> CheckAnt = (condicion) =>
+    {
+        if (Model.Antecedentes == null) return "";
+        var ant = Model.Antecedentes.FirstOrDefault(x => x.NombreCondicion != null && x.NombreCondicion.ToUpper() == condicion.ToUpper());
+        return (ant != null && ant.EsPositivo) ? "X" : "";
+    };
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Examen Médico - @orden.FolioDisplay</title>
+    <style>
+        @@page { size: letter; margin: 10mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 8pt; line-height: 1.2; color: #000; background: #fff; }
+        
+        .page-container { width: 100%; max-width: 800px; margin: 0 auto; padding: 0; page-break-after: always; }
+        .page-container:last-child { page-break-after: auto; }
+        
+        /* Main Header Table */
+        .top-header { width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 2px; }
+        .top-header td { border: 1px solid #000; text-align: center; vertical-align: middle; }
+        .logo-cell { width: 25%; padding: 5px; }
+        .logo-cell img { max-width: 120px; height: auto; }
+        .title-cell { width: 50%; font-weight: bold; font-size: 10pt; background: #fff; }
+        .hse-cell { width: 25%; padding: 5px; }
+        .hse-cell img { max-width: 100px; height: auto; }
+        
+        .hoja-count { text-align: right; font-weight: bold; font-size: 8pt; margin: 2px 0 5px 0; }
+        
+        /* Form Inputs & Lines */
+        .field-row { display: flex; margin-bottom: 4px; align-items: flex-end; }
+        .field-label { font-weight: bold; margin-right: 5px; white-space: nowrap; }
+        .field-value { border-bottom: 1px solid #000; flex-grow: 1; min-height: 14px; padding-bottom: 1px; }
+        .field-value-fixed { border-bottom: 1px solid #000; display: inline-block; padding: 0 5px; min-height: 14px; }
+        
+        /* Checkboxes */
+        .chk-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 4px; vertical-align: middle;text-align:center;line-height:10px;font-weight:bold;font-size:10px;}
+        .chk-container { display: inline-flex; align-items: center; margin-right: 15px; }
+        
+        /* Section Bars */
+        .section-bar { width: 100%; background: #e6e6e6; border: 1px solid #000; padding: 2px 0; text-align: center; font-weight: bold; font-size: 8pt; letter-spacing: 0.5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 5px 0;}
+        
+        /* Grids & Tables */
+        .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; border: 1px solid #000; border-top:none; }
+        .grid-4col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border: 1px solid #000; border-top:none; }
+        .grid-item { padding: 4px; border-right: 1px solid #000; font-size: 8pt; }
+        .grid-item:last-child { border-right: none; }
+        
+        .col-list { display: flex; flex-direction: column; gap: 4px; }
+        
+        /* Tables */
+        .data-table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
+        .data-table th, .data-table td { border: 1px solid #000; padding: 3px 5px; text-align: left; }
+        .data-table th { background: #e6e6e6; text-align: center; font-weight: block; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        
+        .text-area-box { width: 100%; border: 1px solid #000; min-height: 50px; padding: 5px; margin-bottom: 5px; }
+        
+        .signature-area { margin-top: 40px; display: flex; justify-content: space-around; text-align: center; }
+        .signature-line { border-top: 1px solid #000; width: 250px; margin: 0 auto; padding-top: 2px; }
+        
+        /* Small fixes */
+        .footer-rev { font-weight: bold; font-size: 10pt; margin-top: 10px; }
+        
+        @@media print { 
+            .no-print { display: none !important; } 
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+        .print-btn { position: fixed; top: 10px; right: 10px; padding: 8px 15px; background: #333; color: white; border: none; cursor: pointer; border-radius: 4px; z-index: 1000;}
+    </style>
+</head>
+<body>
+    <!-- Botón removido (Impresión externa) -->
+
+    <!-- PAGE 1 -->
+    <div class="page-container">
+        <!-- HEADER ROW -->
+        <table class="top-header">
+            <tr>
+                <td class="logo-cell" rowspan="2">
+                    <img src="@Url.Content("~/Content/Images/logo GCI.png")" alt="GCI" />
+                </td>
+                <td class="title-cell" style="font-size:9pt;">SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
+                <td class="hse-cell" rowspan="2">
+                    <img src="@Url.Content("~/Content/Images/HSE.png")" alt="HSE" style="max-height: 40px;" />
+                </td>
+            </tr>
+            <tr>
+                <td class="title-cell" style="padding: 4px;">
+                    EXAMEN MÉDICO<br/>
+                    <span style="font-size: 8pt; font-weight: normal;">GRUPO CONSTRUCTOR INDUSTRIAL OÍL & GAS S.A. DE C.V.</span>
+                </td>
+            </tr>
+        </table>
+        
+        <div class="hoja-count">HOJA: &nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp; DE &nbsp;&nbsp;&nbsp;&nbsp;2</div>
+
+        <!-- Datos demograficos del Empleado -->
+        <div class="field-row">
+            <span class="field-label">Lugar y fecha del Examen:</span>
+            <span class="field-value">Tula de Allende, @DateTime.Now.ToString("dd/MM/yyyy")</span>
+            <span class="field-label" style="margin-left: 10px;">Cargo:</span>
+            <span class="field-value" style="width: 150px; flex-grow:0;">@paciente.Puesto</span>
+        </div>
+        
+        <div class="field-row">
+            <span class="field-label">Nombre:</span>
+            <span class="field-value">@paciente.NombreCompleto</span>
+            <span class="field-label" style="margin-left: 10px;">No. IMSS:</span>
+            <span class="field-value" style="width: 150px; flex-grow:0;">@Model.Nss</span>
+        </div>
+        
+        <div class="field-row">
+            <span class="field-label">Fecha de Nacimiento:</span>
+            <span class="field-value" style="flex-grow:0; width: 120px;">@(Model.FechaNacimiento.HasValue ? Model.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "")</span>
+            <span class="field-label" style="margin-left: 10px;">Edad:</span>
+            <span class="field-value" style="flex-grow:0; width: 50px; text-align:center;">@paciente.Edad</span>
+            <span class="field-label" style="margin-left:5px;">años</span>
+            <span class="field-label" style="margin-left: 15px;">Lugar de nacimiento:</span>
+            <span class="field-value">@Model.LugarNacimiento</span>
+        </div>
+        
+        <div class="field-row">
+            <span class="field-label">RFC:</span>
+            <span class="field-value" style="flex-grow:0; width: 150px;">@paciente.Rfc</span>
+            <span class="field-label" style="margin-left: 10px;">CURP:</span>
+            <span class="field-value">@paciente.Curp</span>
+        </div>
+        
+        <div class="field-row" style="margin-top: 5px;">
+            <span class="field-label">Estado Civil:</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Soltero" ? "X" : "")</span> soltero</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Casado" ? "X" : "")</span> casado</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Unión Libre" ? "X" : "")</span> union libre</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Divorciado" || Model.EstadoCivil == "Viudo" ? "X" : "")</span> separado/otro</span>
+            
+            <span class="field-label" style="margin-left: 10px;">Mano dominante:</span>
+            <span class="field-value" style="flex-grow:0; width: 120px; text-align:center;">@Model.ManoDominante</span>
+            
+            <span class="field-label" style="margin-left: 10px;">Teléfono:</span>
+            <span class="field-value">@Model.Telefono</span>
+        </div>
+        
+        <div class="field-row">
+            <span class="field-label">Domicilio:</span>
+            <span class="field-value">@Model.Domicilio</span>
+        </div>
+        
+        <div class="field-row" style="margin-top:5px;">
+            <span class="field-label">Nivel Académico:</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Primaria" ? "X" : "")</span> Primaria</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Secundaria" ? "X" : "")</span> Secundaria</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Preparatoria" ? "X" : "")</span> Media Sup.</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Universidad" ? "X" : "")</span> Universidad</span>
+            <span class="field-label" style="margin-left: 10px;">Profesión:</span>
+            <span class="field-value">@Model.Profesion</span>
+        </div>
+        
+        <div class="field-row" style="margin-top:5px;">
+            <span class="field-label">Examen de:</span>
+            <span class="chk-container"><span class="chk-box">@(isCandidato ? "X" : "")</span> Ingreso</span>
+            <span class="chk-container"><span class="chk-box">@(!isCandidato ? "X" : "")</span> Periódico</span>
+            
+            <span class="field-label" style="margin-left: 20px;">Sexo:</span>
+            <span class="chk-container"><span class="chk-box">@(paciente.Sexo == "M" ? "X" : "")</span> Masc</span>
+            <span class="chk-container"><span class="chk-box">@(paciente.Sexo == "F" ? "X" : "")</span> Fem</span>
+            
+            <span class="field-label" style="margin-left: 20px;">Tipo de Sangre:</span>
+            <span class="field-value" style="width: 100px; flex-grow:0; text-align:center;">@Model.TipoSangre</span>
+        </div>
+
+        <!-- Antecentdes Herederos Familiarias -->
+        <div class="section-bar">ANTECEDENTE HEREDO FAMILIARES</div>
+        <div class="grid-4col" style="border-top:1px solid #000;">
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("HTA")</span> HTA</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ENF CORONARIA")</span> ENF CORONARIA</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ACV")</span> ACV</div>
+            </div>
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("DIABETES")</span> DIABETES</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("TIROIDES")</span> TIROIDES</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ASMA")</span> ASMA</div>
+            </div>
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ALERGIA")</span> ALERGIA</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("TBC")</span> TBC</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ALCOHOL")</span> ALCOHOL</div>
+            </div>
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("EPILEPSIA")</span> EPILEPSIA</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("MENTALES")</span> MENTALES</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("CONGÉNITAS")</span> CONGÉNITAS</div>
+                
+                <div class="field-row" style="margin-top:-38px; margin-left:110px;"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("CÁNCER")</span> CÁNCER</div>
+                <div class="field-row" style="margin-left:110px;"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("VARICES")</span> VARICES</div>
+            </div>
+        </div>
+
+        <!-- Antecedentes Patologicos -->
+        <div class="section-bar">ANTECEDENTES PERSONALES Patológicos</div>
+        <div class="grid-3col" style="border-top:1px solid #000; grid-template-columns: 1.2fr 1fr 1.2fr;">
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("HIPERTENSIÓN")</span> HIPERTENSIÓN</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("QUIRÚRGICOS")</span> QUIRÚRGICOS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("TRAUMÁTICOS")</span> TRAUMÁTICOS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ALÉRGICOS")</span> ALÉRGICOS</div>
+            </div>
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("CONGÉNITOS")</span> CONGÉNITOS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("METABÓLICOS")</span> METABÓLICOS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("INFECCIOSOS")</span> INFECCIOSOS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("TUMORALES")</span> TUMORALES</div>
+            </div>
+            <div class="grid-item col-list">
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ENF. RESPIRATORIAS")</span> ENF. RESPIRATORIAS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("MEDICAMENTOS")</span> MEDICAMENTOS</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("TRANSFUSIONALES")</span> TRANSFUSIONALES</div>
+                <div class="field-row"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("LITIASIS")</span> LITIASIS</div>
+                
+                <div class="field-row" style="margin-top:-52px; margin-left:130px;"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("HACINAMIENTO")</span> HACINAMIENTO</div>
+                <div class="field-row" style="margin-left:130px;"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("AGUA POTABLE")</span> AGUA POTABLE</div>
+                <div class="field-row" style="margin-left:130px;"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("ALCANTARILLADO")</span> ALCANTARILLADO</div>
+                <div class="field-row" style="margin-left:130px;"><span class="field-value-fixed" style="width:30px; text-align:center; font-weight:bold;">@CheckAnt("OTROS")</span> OTROS:</div>
+            </div>
+        </div>
+        <div style="border: 1px solid #000; border-top:none; padding: 2px 4px;">
+            <span class="field-label">Observaciones:</span>
+        </div>
+        
+        <div class="section-bar" style="text-align:left; padding-left:5px;">ANTECEDENTES PERSONALES NO PATOLÓGICOS:</div>
+
+        <!-- Antecendestes Labores del Empleado -->
+        <div class="section-bar">ANTECEDENTES LABORALES</div>
+        <table class="data-table" style="border-top:none;">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">EMPRESA</th>
+                    <th style="width: 15%;">TIEMPO</th>
+                    <th style="width: 25%;">PUESTO</th>
+                    <th style="width: 20%;">AGENTES EXPUESTOS</th>
+                    <th style="width: 15%;">ACCIDENTES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.AntecedentesLaborales != null && Model.AntecedentesLaborales.Any())
+                {
+                    foreach(var al in Model.AntecedentesLaborales)
+                    {
+                        <tr>
+                            <td>@al.Empresa</td>
+                            <td>@al.TiempoLaborado</td>
+                            <td>@al.Puesto</td>
+                            <td>@al.AgentesExpuesto</td>
+                            <td>@al.AccidentesPrevios</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Habitos mas comunes del empleado -->
+        <div class="section-bar">HÁBITOS</div>
+        <div style="border: 1px solid #000; border-top:none; padding: 4px;">
+            <div class="field-row">
+                <span style="width:75px; border-right:1px solid #000; border-left:1px solid #000; padding-left:4px;">Fuma: <span style="font-weight:bold;">@(Model.Habitos != null && Model.Habitos.Fuma ? "[X]" : "[ ]")</span></span>
+                <span class="field-label" style="margin-left:5px;">Años de hábito</span>
+                <span class="field-value-fixed" style="width:100px; text-align:center;">@(Model.Habitos != null ? Model.Habitos.AnosFumando : null)</span>
+                <span class="field-label" style="margin-left:10px;">No. De Cigarros/día:</span>
+                <span class="field-value-fixed" style="width:80px; text-align:center;">@(Model.Habitos != null ? Model.Habitos.CigarrosDiarios : null)</span>
+                <span class="field-label" style="margin-left:20px;">EX</span>
+                <span class="field-value" style="padding-left:10px;">@(Model.Habitos != null && Model.Habitos.EsExFumador ? "Sí" : "")</span>
+            </div>
+            <div class="field-row">
+                <span style="width:75px; border-right:1px solid #000; border-left:1px solid #000; border-bottom:1px solid #fff; padding-left:4px;">Drogas: <span style="font-weight:bold;">@(Model.Habitos != null && Model.Habitos.UsaDrogas ? "[X]" : "[ ]")</span></span>
+                <span class="field-label" style="margin-left:5px;">Tipo de droga:</span>
+                <span class="field-value">@(Model.Habitos != null ? Model.Habitos.TipoDrogas : "")</span>
+            </div>
+            <div class="field-row">
+                <span style="width:75px; border-right:1px solid #000; border-left:1px solid #000; padding-left:4px;">Alcohol: <span style="font-weight:bold;">@(Model.Habitos != null && Model.Habitos.BebeAlcohol ? "[X]" : "[ ]")</span></span>
+                <span class="field-value">@(Model.Habitos != null ? Model.Habitos.FrecuenciaAlcohol : "")</span>
+            </div>
+            <div class="field-row">
+                <span style="width:75px; border-right:1px solid #000; border-left:1px solid #000; padding-left:4px;">Deporte: <span style="font-weight:bold;">@(Model.Habitos != null && Model.Habitos.HaceDeporte ? "[X]" : "[ ]")</span></span>
+                <span class="field-label" style="margin-left:10px;">Frecuencia</span>
+                <span class="field-value"></span>
+            </div>
+            <div class="field-row">
+                <span style="width:75px; border-right:1px solid #000; border-left:1px solid #000; padding-left:4px; border-bottom:1px solid #000;">Tiempo Libre:</span>
+                <span class="field-value">@(Model.Habitos != null ? Model.Habitos.DescripcionTiempoLibre : "")</span>
+            </div>
+            <div class="field-row" style="margin-top:5px;">
+                <span class="field-label">VACUNAS</span>
+                <span class="field-label" style="margin-left:40px;">TÉTANOS</span>
+                <span class="field-value-fixed" style="width:20px;"></span> 1
+                <span class="field-value-fixed" style="width:20px;"></span> 2
+                <span class="field-value-fixed" style="width:20px;"></span> 3
+                
+                <span class="field-label" style="margin-left:20px;">Hepatitis</span>
+                <span class="field-value-fixed" style="width:20px;"></span> 1
+                <span class="field-value-fixed" style="width:20px;"></span> 2
+                
+                <span class="field-label" style="margin-left:20px;">H1N1:</span>
+                <span class="field-value" style="width:50px; flex-grow:0;"></span>
+            </div>
+        </div>
+
+        <!-- Exploracion de Fisica del empleado -->
+        <div class="section-bar">EXPLORACION FISICA</div>
+        <div style="border: 1px solid #000; border-top:none; padding: 4px;">
+            <div class="field-row">
+                <span class="field-label">TA:</span>
+                <span class="field-value" style="flex-grow:0; width:60px; text-align:center;">
+                    @Model.PresionSistolica / @Model.PresionDiastolica
+                </span> mmHg
+                
+                <span class="field-label" style="margin-left:20px;">FC:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.FrecuenciaCardiaca</span> x min
+                
+                <span class="field-label" style="margin-left:20px;">FR:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.FrecuenciaRespiratoria</span> x min
+                
+                <span class="field-label" style="margin-left:20px;">Peso:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.PesoKg</span> kgs
+                
+                <span class="field-label" style="margin-left:20px;">Estatura:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.AlturaMetros</span> m
+            </div>
+            <div class="field-row" style="margin-top:4px;">
+                <span class="field-label">IMC:</span>
+                <span class="field-value" style="flex-grow:0; width:60px; text-align:center;">@Model.Imc</span>
+                
+                <span class="field-label" style="margin-left:20px;">Temp:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.Temperatura</span>
+                
+                <span class="field-label" style="margin-left:20px;">Aparatos y sistemas:</span>
+                <span class="field-value">@Model.AparatosSistemas</span>
+            </div>
+            <div class="field-row" style="margin-top:4px;">
+                <span class="field-label">Síntomas:</span>
+                <span class="field-value">@Model.SintomasPaciente</span>
+            </div>
+        </div>
+        
+        <table class="data-table" style="border-top:none; font-size: 8pt;">
+            <thead>
+                <tr>
+                    <th style="width: 20%;"></th>
+                    <th style="width: 10%;">Normal</th>
+                    <th style="width: 10%;">Anormal</th>
+                    <th style="width: 60%;">Descripción de Hallazgos</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    string[] sistemas = { 
+                        "1. Cabeza:", "2. Ojos:", "3. Nariz:", "4. Boca:", "5. Dentadura:", 
+                        "6. Faringe:", "7. Amígdalas:", "8. Otoscopia:", "9. Cuello:", 
+                        "10. Columna-espalda:", "11. Extremidades:", "12. Piel:", "13. Ap. Respiratorio",
+                        "14. Cardiaco:", "15. Vascular periférico", "16. Abdomen:", "17. Neurológico:",
+                        "18. Genitales:", "19. Hernias:", "20. Otro:"
+                    };
+                    
+                    var exFisicoMap = new Dictionary<string, Telerik.Models.ViewModels.ExamenFisicoVm>();
+                    if (Model.ExamenFisico != null) {
+                         foreach(var x in Model.ExamenFisico) {
+                             if (!exFisicoMap.ContainsKey(x.SistemaCuerpo)) {
+                                 exFisicoMap.Add(x.SistemaCuerpo, x);
+                             }
+                         }
+                    }
+
+                    foreach(var s in sistemas)
+                    {
+                        string normalMarker = "X";
+                        string anormalMarker = "";
+                        string hallazgosTx = "";
+
+                        if (exFisicoMap.ContainsKey(s)) {
+                            var ef = exFisicoMap[s];
+                            if (ef.EsNormal) {
+                                normalMarker = "X";
+                                anormalMarker = "";
+                                hallazgosTx = ef.Hallazgos;
+                            } else {
+                                normalMarker = "";
+                                anormalMarker = "X";
+                                hallazgosTx = ef.Hallazgos;
+                            }
+                        }
+
+                        <tr>
+                            <td>@s</td>
+                            <td style="text-align:center;">@normalMarker</td>
+                            <td style="text-align:center;">@anormalMarker</td>
+                            <td>@hallazgosTx</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        <div class="footer-rev">GCI-FOR-SYM-45 REV. 0</div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page-container" style="padding-top: 20px;">
+        <!-- HEADER ROW PAGE 2 -->
+        <table class="top-header" style="margin-bottom: 20px;">
+            <tr>
+                <td class="logo-cell" rowspan="2">
+                    <img src="@Url.Content("~/Content/Images/logo GCI.png")" alt="GCI" />
+                </td>
+                <td class="title-cell" style="font-size:9pt;">SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
+                <td class="hse-cell" rowspan="2">
+                    <img src="@Url.Content("~/Content/Images/HSE.png")" alt="HSE" style="max-height: 40px;" />
+                </td>
+            </tr>
+            <tr>
+                <td class="title-cell" style="padding: 4px;">
+                    EXAMEN MEDICO<br/>
+                    <span style="font-size: 8pt; font-weight: normal;">GRUPO CONSTRUCTOR INDUSTRIAL OIL & GAS S.A DE C.V.</span>
+                </td>
+            </tr>
+        </table>
+        
+        <div class="hoja-count" style="margin-top:-15px;">HOJA: &nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp; DE &nbsp;&nbsp;&nbsp;&nbsp;2</div>
+
+        <!-- GINECO OBST -->
+        @if (paciente.Sexo == "F" && Model.DetalleFemenino != null) {
+            <div class="field-row">
+                <span class="field-label">GINECO-OBSTÉTRICOS:</span>
+                <span class="field-label" style="margin-left: 20px;">Menarca:</span>
+                <span class="field-value" style="width: 80px; flex-grow:0;">@Model.DetalleFemenino.EdadMenarca</span>
+                
+                <span class="field-label" style="margin-left: 20px;">Ciclos:</span>
+                <span class="field-value" style="width: 80px; flex-grow:0;">@Model.DetalleFemenino.Ciclos</span>
+                
+                <span class="field-label" style="margin-left: 20px;">FUM:</span>
+                <span class="field-value" style="width: 80px; flex-grow:0;">@(Model.DetalleFemenino.FechaUltimaMenstruacion?.ToString("dd/MM/yyyy"))</span>
+                
+                <span class="field-label" style="margin-left: 20px;">No. Hijos/Edades:</span>
+                <span class="field-value">@(paciente.TieneHijos ? paciente.NumeroHijos : "Ninguno")</span>
+            </div>
+            <div class="field-row">
+                <span class="field-label">Planificación:</span>
+                <span class="field-value">@Model.DetalleFemenino.MetodoPlanificacion</span>
+                
+                <span class="field-label" style="margin-left: 20px;">IVSA:</span>
+                <span class="field-value" style="width: 80px; flex-grow:0;">@Model.DetalleFemenino.Ivsa</span>
+                
+                <span class="field-label" style="margin-left: 20px;">Cit. Vag:</span>
+                <span class="field-value" style="width: 100px; flex-grow:0;">@(Model.DetalleFemenino.FechaUltimoPapanicolau?.ToString("dd/MM/yyyy"))</span>
+                
+                <span class="field-label" style="margin-left: 20px;">ETS:</span>
+                <span class="field-value">@Model.DetalleFemenino.Ets</span>
+            </div>
+            <div class="field-row">
+                <span class="field-label">Gestas:</span>
+                <span class="field-value" style="width: 50px; flex-grow:0; text-align:center;">@Model.DetalleFemenino.Gestas</span>
+                
+                <span class="field-label" style="margin-left: 10px;">P:</span>
+                <span class="field-value" style="width: 50px; flex-grow:0; text-align:center;">@Model.DetalleFemenino.Partos</span>
+                
+                <span class="field-label" style="margin-left: 10px;">A:</span>
+                <span class="field-value" style="width: 50px; flex-grow:0; text-align:center;">@Model.DetalleFemenino.Abortos</span>
+                
+                <span class="field-label" style="margin-left: 10px;">C:</span>
+                <span class="field-value" style="width: 50px; flex-grow:0; text-align:center;">@Model.DetalleFemenino.Cesareas</span>
+            </div>
+        } else {
+             <div class="field-row"><span class="field-label">GINECO-OBSTÉTRICOS:</span> <span class="field-value">N/A</span></div>
+        }
+
+        <!-- APARATO GENITOURINARIO -->
+        <br/>
+        <div class="field-row">
+            <span class="field-label">ANTECEDENTES DE APARATO GENITOURINARIO MASCULINO:</span>
+        </div>
+        <div class="field-row" style="margin-top:10px;">
+            <span class="field-label">Examen Clínico:</span> Prepicio retráctil 
+            <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            
+            <span style="margin-left: 30px;">Testículos: Descendidos:</span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            
+             <span style="margin-left: 30px;">Fimosis:</span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            
+             <span style="margin-left: 10px;">Criptorquidia:</span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            
+            <span style="margin-left: 10px;">Varicocele:</span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+        </div>
+        <div class="field-row" style="margin-top:4px;">
+             <span style="margin-left: 75px;">Hidrocele:</span>
+             <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             
+             <span style="margin-left: 30px;">Hernia:</span>
+             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             
+             <span style="margin-left: 30px;">IVSA:</span>
+             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             
+             <span style="margin-left: 10px;">PSA:</span>
+             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             
+              <span style="margin-left: 10px;">MPF:</span>
+             <span class="field-value" style="width:40px; flex-grow:0;"></span>
+        </div>
+        <div class="field-row" style="margin-top:4px;">
+            <span style="margin-left: 75px;">No: de Hijos/Edades:</span>
+            <span class="field-value" style="width:200px; flex-grow:0;">@(paciente.TieneHijos ? paciente.NumeroHijos : "Ninguno")</span>
+        </div>
+
+        <!-- COLUMNA -->
+        <br/>
+        <div class="field-row">
+            <span class="field-label">COLUMNA VERTEBRAL:</span>
+            <span style="margin-left: 50px;">N: Normal</span>
+            <span style="margin-left: 50px;">A: Aumentada</span>
+            <span style="margin-left: 50px;">D: Disminuida</span>
+        </div>
+        <table class="data-table" style="margin-top:5px; text-align:center;">
+            <tr>
+                <th style="width: 25%; background:none; text-align:center;">CURVA</th>
+                <th style="width: 25%; background:none; text-align:center;">CERVICAL</th>
+                <th style="width: 25%; background:none; text-align:center;">DORSAL</th>
+                <th style="width: 25%; background:none; text-align:center;">LUMBAR</th>
+            </tr>
+            <tr><td>LORDOSIS</td><td></td><td style="background:#a0a0a0;"></td><td></td></tr>
+            <tr><td>CIFOSIS</td><td style="background:#a0a0a0;"></td><td></td><td style="background:#a0a0a0;"></td></tr>
+        </table>
+        
+        <table class="data-table" style="margin-top:10px; text-align:center;">
+            <tr>
+                <th style="width: 25%; background:none; text-align:center;">ESCOLIOSIS</th>
+                <th style="width: 25%; background:none; text-align:center;">DORSAL</th>
+                <th style="width: 25%; background:none; text-align:center;">LUMBAR</th>
+                <th style="width: 25%; background:none; text-align:center;">DOBLE</th>
+            </tr>
+            <tr><td style="text-align:left;">DERECHA</td><td></td><td></td><td></td></tr>
+            <tr><td style="text-align:left;">IZQUIERDA</td><td></td><td></td><td></td></tr>
+        </table>
+        
+        <br/><br/>
+        <!-- DIAGNOSTIC -->
+        <div class="field-row" style="margin-bottom: 20px;">
+            <span class="field-label" style="width: 120px;">DIAGNÓSTICO</span>
+            <span class="field-value"></span>
+        </div>
+        
+        <div class="field-row" style="margin-bottom: 30px;">
+            <span class="field-label" style="width: 120px;">RESULTADO:</span>
+            
+            <span class="field-label">APTO:</span>
+            <span class="field-value" style="width: 80px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 1 ? "X" : "")</span>
+            
+            <span class="field-label" style="margin-left: 30px;">NO APTO:</span>
+            <span class="field-value" style="width: 80px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 3 ? "X" : "")</span>
+            
+            <span class="field-label" style="margin-left: 30px;">CON RESTRICCIONES:</span>
+            <span class="field-value" style="width: 80px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 2 ? "X" : "")</span>
+        </div>
+        
+        <div class="field-row" style="margin-bottom: 8px;">
+             <span class="field-label" style="width: 120px;">RECOMENDACIONES:</span>
+             <span class="field-value"></span>
+        </div>
+        <div class="field-row" style="margin-bottom: 8px;"><span class="field-value" style="width:100%;"></span></div>
+        <div class="field-row" style="margin-bottom: 8px;"><span class="field-value" style="width:100%;"></span></div>
+        <div class="field-row" style="margin-bottom: 30px;"><span class="field-value" style="width:100%;"></span></div>
+        
+        
+        <div class="field-row" style="margin-bottom: 20px;">
+            <span class="field-label" style="width: 80px;">REALIZÓ:</span>
+            <span class="field-value" style="text-align:center;"></span>
+        </div>
+        <div style="text-align:center; font-size: 8pt;">NOMBRE Y FIRMA</div>
+        
+        <br/><br/>
+        
+        <div style="font-size: 7.5pt; text-align: justify; border:none; padding: 10px 0;">
+            Declaro que toda la información suministrada es verídica y que no he ocultado ningún dato sobre mis antecedentes y/o estado de salud y estoy consciente que cualquier 
+            omisión o falsificación la empresa tendrá la facultad de anular cualquier tramite relacionado conmigo y autorizo al servicio médico (salud ocupacional) de la empresa para 
+            que realice los exámenes necesarios con motivo de mi trabajo y sean utilizados con fines estadísticos y epidemiológicos. Así mismo autorizo al medico referente para 
+            poner en conocimiento de la empresa todo lo referente a los resultados del examen físico y de las pruebas auxiliares de diagnóstico.
+        </div>
+        
+        <div class="field-row" style="margin-top: 20px;">
+            <span class="field-label">NOMBRE Y FIRMA DEL TRABAJADOR (A):</span>
+            <span class="field-value" style="margin-left:40px;"></span>
+        </div>
+        
+        <div class="footer-rev" style="margin-top: 40px; font-size: 11pt;">GCI-FOR-SYM-45 REV. 0</div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36908.2 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telerik", "Telerik\Telerik.csproj", "{1F67CF56-82DA-4739-9E0A-B5F7DAA259F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telerik.Tests", "Telerik.Tests\Telerik.Tests.csproj", "{1CA10A3B-C77D-4631-B340-C9D02660BC31}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1F67CF56-82DA-4739-9E0A-B5F7DAA259F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F67CF56-82DA-4739-9E0A-B5F7DAA259F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F67CF56-82DA-4739-9E0A-B5F7DAA259F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F67CF56-82DA-4739-9E0A-B5F7DAA259F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA10A3B-C77D-4631-B340-C9D02660BC31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA10A3B-C77D-4631-B340-C9D02660BC31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA10A3B-C77D-4631-B340-C9D02660BC31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA10A3B-C77D-4631-B340-C9D02660BC31}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8BD1BF9A-9F81-451B-88DF-0D9E052CA6C6}
+	EndGlobalSection
+EndGlobal
