@@ -75,8 +75,8 @@ namespace Telerik.Models.Dal
                             ResultadoOpiaceos = dr["resultadoOpiaceos"] != DBNull.Value && Convert.ToBoolean(dr["resultadoOpiaceos"]),
                             ResultadoCocaina = dr["resultadoCocaina"] != DBNull.Value && Convert.ToBoolean(dr["resultadoCocaina"]),
                             ResultadoTHC = dr["resultadoTHC"] != DBNull.Value && Convert.ToBoolean(dr["resultadoTHC"]),
-                            ResultadoAnfetaminas = HasColumn(dr, "resultadoAnfetaminas") && dr["resultadoAnfetaminas"] != DBNull.Value ? Convert.ToBoolean(dr["resultadoAnfetaminas"]) : false,
-                            ResultadoMetanfetaminas = HasColumn(dr, "resultadoMetanfetaminas") && dr["resultadoMetanfetaminas"] != DBNull.Value ? Convert.ToBoolean(dr["resultadoMetanfetaminas"]) : false,
+                            ResultadoAnfetaminas = HasColumn(dr, "resultadoAnfetaminas") ? (dr["resultadoAnfetaminas"] != DBNull.Value ? Convert.ToBoolean(dr["resultadoAnfetaminas"]) : false) : false,
+                            ResultadoMetanfetaminas = HasColumn(dr, "resultadoMetanfetaminas") ? (dr["resultadoMetanfetaminas"] != DBNull.Value ? Convert.ToBoolean(dr["resultadoMetanfetaminas"]) : false) : false,
                             VeredictoFinal = dr["veredictoFinal"].ToString(), 
                             Comentarios = dr["comentarios"] != DBNull.Value ? dr["comentarios"].ToString() : "",
                             UrlFotoEvidencia = dr["urlFotoEvidencia"] != DBNull.Value ? dr["urlFotoEvidencia"].ToString() : ""

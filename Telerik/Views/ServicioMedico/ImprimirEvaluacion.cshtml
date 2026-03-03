@@ -304,16 +304,16 @@
             <div class="field-row" style="margin-top:5px;">
                 <span class="field-label">VACUNAS</span>
                 <span class="field-label" style="margin-left:40px;">TÉTANOS</span>
-                <span class="field-value-fixed" style="width:20px;"></span> 1
-                <span class="field-value-fixed" style="width:20px;"></span> 2
-                <span class="field-value-fixed" style="width:20px;"></span> 3
+                <span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@(Model.Habitos != null && Model.Habitos.VacunaTetanos >= 1 ? "X" : "")</span> 1
+                <span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@(Model.Habitos != null && Model.Habitos.VacunaTetanos >= 2 ? "X" : "")</span> 2
+                <span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@(Model.Habitos != null && Model.Habitos.VacunaTetanos >= 3 ? "X" : "")</span> 3
                 
                 <span class="field-label" style="margin-left:20px;">Hepatitis</span>
-                <span class="field-value-fixed" style="width:20px;"></span> 1
-                <span class="field-value-fixed" style="width:20px;"></span> 2
+                <span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@(Model.Habitos != null && Model.Habitos.VacunaHepatitis >= 1 ? "X" : "")</span> 1
+                <span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@(Model.Habitos != null && Model.Habitos.VacunaHepatitis >= 2 ? "X" : "")</span> 2
                 
                 <span class="field-label" style="margin-left:20px;">H1N1:</span>
-                <span class="field-value" style="width:50px; flex-grow:0;"></span>
+                <span class="field-value" style="width:50px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.Habitos != null && Model.Habitos.VacunaH1N1 ? "X" : "")</span>
             </div>
         </div>
 
@@ -490,32 +490,32 @@
         </div>
         <div class="field-row" style="margin-top:10px;">
             <span class="field-label">Examen Clínico:</span> Prepicio retráctil 
-            <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.PrepucioRetractil ? "X" : "")</span>
             
             <span style="margin-left: 30px;">Testículos: Descendidos:</span>
-            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.TesticulosDescendidos ? "X" : "")</span>
             
              <span style="margin-left: 30px;">Fimosis:</span>
-            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.Fimosis ? "X" : "")</span>
             
              <span style="margin-left: 10px;">Criptorquidia:</span>
-            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.Criptorquidia ? "X" : "")</span>
             
             <span style="margin-left: 10px;">Varicocele:</span>
-            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+            <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.Varicocele ? "X" : "")</span>
         </div>
         <div class="field-row" style="margin-top:4px;">
              <span style="margin-left: 75px;">Hidrocele:</span>
-             <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.Hidrocele ? "X" : "")</span>
              
              <span style="margin-left: 30px;">Hernia:</span>
-             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino != null && Model.DetalleMasculino.Hernia ? "X" : "")</span>
              
              <span style="margin-left: 30px;">IVSA:</span>
-             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino != null ? Model.DetalleMasculino.Ivsa : "")</span>
              
              <span style="margin-left: 10px;">PSA:</span>
-             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px;"></span>
+             <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino != null ? Model.DetalleMasculino.Psa : "")</span>
              
               <span style="margin-left: 10px;">MPF:</span>
              <span class="field-value" style="width:40px; flex-grow:0;"></span>
@@ -540,8 +540,18 @@
                 <th style="width: 25%; background:none; text-align:center;">DORSAL</th>
                 <th style="width: 25%; background:none; text-align:center;">LUMBAR</th>
             </tr>
-            <tr><td>LORDOSIS</td><td></td><td style="background:#a0a0a0;"></td><td></td></tr>
-            <tr><td>CIFOSIS</td><td style="background:#a0a0a0;"></td><td></td><td style="background:#a0a0a0;"></td></tr>
+            <tr>
+                <td>LORDOSIS</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisCervical.HasValue ? (Model.Columna.LordosisCervical == 1 ? "N" : (Model.Columna.LordosisCervical == 2 ? "A" : "D")) : "")</td>
+                <td style="background:#a0a0a0; font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisDorsal.HasValue ? (Model.Columna.LordosisDorsal == 1 ? "N" : (Model.Columna.LordosisDorsal == 2 ? "A" : "D")) : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisLumbar.HasValue ? (Model.Columna.LordosisLumbar == 1 ? "N" : (Model.Columna.LordosisLumbar == 2 ? "A" : "D")) : "")</td>
+            </tr>
+            <tr>
+                <td>CIFOSIS</td>
+                <td style="background:#a0a0a0; font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisCervical.HasValue ? (Model.Columna.CifosisCervical == 1 ? "N" : (Model.Columna.CifosisCervical == 2 ? "A" : "D")) : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisDorsal.HasValue ? (Model.Columna.CifosisDorsal == 1 ? "N" : (Model.Columna.CifosisDorsal == 2 ? "A" : "D")) : "")</td>
+                <td style="background:#a0a0a0; font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisLumbar.HasValue ? (Model.Columna.CifosisLumbar == 1 ? "N" : (Model.Columna.CifosisLumbar == 2 ? "A" : "D")) : "")</td>
+            </tr>
         </table>
         
         <table class="data-table" style="margin-top:10px; text-align:center;">
@@ -551,15 +561,25 @@
                 <th style="width: 25%; background:none; text-align:center;">LUMBAR</th>
                 <th style="width: 25%; background:none; text-align:center;">DOBLE</th>
             </tr>
-            <tr><td style="text-align:left;">DERECHA</td><td></td><td></td><td></td></tr>
-            <tr><td style="text-align:left;">IZQUIERDA</td><td></td><td></td><td></td></tr>
+            <tr>
+                <td style="text-align:left;">DERECHA</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDorsalDerecha ? "X" : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisLumbarDerecha ? "X" : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDoboDerecha ? "X" : "")</td>
+            </tr>
+            <tr>
+                <td style="text-align:left;">IZQUIERDA</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDorsalIzquierda ? "X" : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisLumbarIzquierda ? "X" : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDoboIzquierda ? "X" : "")</td>
+            </tr>
         </table>
         
         <br/><br/>
         <!-- DIAGNOSTIC -->
         <div class="field-row" style="margin-bottom: 20px;">
             <span class="field-label" style="width: 120px;">DIAGNÓSTICO</span>
-            <span class="field-value"></span>
+            <span class="field-value">@Model.Observaciones</span>
         </div>
         
         <div class="field-row" style="margin-bottom: 30px;">
@@ -577,31 +597,34 @@
         
         <div class="field-row" style="margin-bottom: 8px;">
              <span class="field-label" style="width: 120px;">RECOMENDACIONES:</span>
+             <span class="field-value">@Model.Recomendaciones</span>
+        </div>
+        <div class="field-row" style="margin-bottom: 8px;">
              <span class="field-value"></span>
         </div>
-        <div class="field-row" style="margin-bottom: 8px;"><span class="field-value" style="width:100%;"></span></div>
-        <div class="field-row" style="margin-bottom: 8px;"><span class="field-value" style="width:100%;"></span></div>
-        <div class="field-row" style="margin-bottom: 30px;"><span class="field-value" style="width:100%;"></span></div>
-        
-        
         <div class="field-row" style="margin-bottom: 20px;">
+             <span class="field-value"></span>
+        </div>
+        
+        <div class="field-row">
             <span class="field-label" style="width: 80px;">REALIZÓ:</span>
-            <span class="field-value" style="text-align:center;"></span>
-        </div>
-        <div style="text-align:center; font-size: 8pt;">NOMBRE Y FIRMA</div>
-        
-        <br/><br/>
-        
-        <div style="font-size: 7.5pt; text-align: justify; border:none; padding: 10px 0;">
-            Declaro que toda la información suministrada es verídica y que no he ocultado ningún dato sobre mis antecedentes y/o estado de salud y estoy consciente que cualquier 
-            omisión o falsificación la empresa tendrá la facultad de anular cualquier tramite relacionado conmigo y autorizo al servicio médico (salud ocupacional) de la empresa para 
-            que realice los exámenes necesarios con motivo de mi trabajo y sean utilizados con fines estadísticos y epidemiológicos. Así mismo autorizo al medico referente para 
-            poner en conocimiento de la empresa todo lo referente a los resultados del examen físico y de las pruebas auxiliares de diagnóstico.
+            <span class="field-value" style="text-align:center; padding-top: 15px;">
+                <span style="font-size:8pt; border-top:1px solid #000; padding:0 20px;">NOMBRE Y FIRMA</span>
+            </span>
         </div>
         
-        <div class="field-row" style="margin-top: 20px;">
-            <span class="field-label">NOMBRE Y FIRMA DEL TRABAJADOR (A):</span>
-            <span class="field-value" style="margin-left:40px;"></span>
+        <div style="font-size: 7.5pt; text-align: justify; margin-top:20px; line-height:1.2;">
+            Declaro que toda la información suministrada es verídica y que no he ocultado ningún dato sobre mis antecedentes y/o estado de salud y estoy consciente que
+            cualquier omisión o falsificación la empresa tendrá la facultad de anular cualquier tramite relacionado conmigo y autorizo al servicio médico (salud ocupacional) de la
+            empresa para que realice los exámenes necesarios con motivo de mi trabajo y sean utilizados con fines estadísticos y epidemiológicos. Así mismo autorizo al medico
+            referente para poner en conocimiento de la empresa todo lo referente a los resultados del examen físico y de las pruebas auxiliares de diagnóstico.
+        </div>
+        
+        <div class="field-row" style="margin-top: 30px;">
+            <span class="field-label" style="width: 250px;">NOMBRE Y FIRMA DEL TRABAJADOR (A):</span>
+            <span class="field-value" style="text-align:center; font-weight:bold; text-transform:uppercase;">
+                 @paciente.NombreCompleto
+            </span>
         </div>
         
         <div class="footer-rev" style="margin-top: 40px; font-size: 11pt;">GCI-FOR-SYM-45 REV. 0</div>
