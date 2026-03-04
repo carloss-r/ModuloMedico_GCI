@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+ï»¿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -115,6 +115,12 @@
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
       <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -123,12 +129,32 @@
     <Compile Include="Controllers\ServicioMedicoController.cs" />
     <Compile Include="Controllers\SolicitudController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Models\dal\conexion_bd.cs" />
+    <Compile Include="Models\ApplicationDbContext.cs" />
+    <Compile Include="Models\Empleado.cs" />
+    <Compile Include="Models\PruebaToxicologica.cs" />
+    <Compile Include="Models\OrdenServicioMedico.cs" />
+    <Compile Include="Models\Candidato.cs" />
+    <Compile Include="Models\EvaluacionClinica.cs" />
+    <Compile Include="Models\HabitoPersonal.cs" />
+    <Compile Include="Models\HistoriaMedica.cs" />
+    <Compile Include="Models\AntecedenteLaboral.cs" />
+    <Compile Include="Models\ExamenFisico.cs" />
+    <Compile Include="Models\EvaluacionColumna.cs" />
+    <Compile Include="Models\DetalleGineco.cs" />
+    <Compile Include="Models\DetalleMasculino.cs" />
+    <Compile Include="Models\TipoServicio.cs" />
+    <Compile Include="Models\EstatusSolicitud.cs" />
+    <Compile Include="Models\Proyecto.cs" />
+    <Compile Include="Models\Empresa.cs" />
+    <Compile Include="Models\Puesto.cs" />
+    <Compile Include="Models\Area.cs" />
+    <Compile Include="Models\Vacunacion.cs" />
     <Compile Include="Models\dal\orden_servicio_medico_dal.cs" />
     <Compile Include="Models\dal\empleado_dal.cs" />
     <Compile Include="Models\dal\candidato_dal.cs" />
     <Compile Include="Models\dal\catalogo_dal.cs" />
     <Compile Include="Models\view_models\orden_servicio_medico_vm.cs" />
+    <Compile Include="Models\view_models\catalogo_item.cs" />
     <Compile Include="Models\view_models\empleado_vm.cs" />
     <Compile Include="Models\view_models\candidato_vm.cs" />
     <Compile Include="Models\view_models\nueva_solicitud_vm.cs" />
@@ -260,14 +286,8 @@
   </ProjectExtensions>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
+      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauraciï¿½n de paquetes NuGet para descargarlos. Para obtener mï¿½s informaciï¿½n, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
   </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target> -->
 </Project>

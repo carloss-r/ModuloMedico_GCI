@@ -189,8 +189,9 @@
                 <label>Tipo Solicitud</label>
                 <select id="filtroModalidad">
                     <option value="">Todos</option>
+                    <option value="INGRESO">Ingreso / Pre-Empleo</option>
                     <option value="PERIODICO">Peri&oacute;dico</option>
-                    <option value="INGRESO">Nuevo Ingreso</option>
+                    <option value="ANTIDOPING">Antidoping</option>
                 </select>
             </div>
             <div class="filtro-group">
@@ -211,7 +212,7 @@
                 <input type="date" id="filtroFechaHasta" />
             </div>
             <div class="filtro-group" style="flex-direction:row; gap:6px; flex:0 0 auto; align-items:flex-end;">
-                <button class="btn-filtrar" onclick="aplicarFiltros()"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-filtrar" onclick="aplicarFiltros(true)"><i class="fas fa-search"></i> Buscar</button>
                 <button class="btn-limpiar" onclick="limpiarFiltros()"><i class="fas fa-times"></i> Limpiar</button>
             </div>
         </div>
@@ -394,115 +395,82 @@
         });
     });
 
-    // Carga inicial combinada: solicitudes + catálogos en 1 sola llamada HTTP
+    // Variables globales
+    var registrosPorPagina = 10;
+    var paginaActual = 1;
+    var totalRegistrosGlobal = 0;
+    var currentOrdenId = null;
+
+    // Carga inicial combinada: catálogos y primera página
     function cargarInicial() {
         $.getJSON('@Url.Action("CargarInicial", "ServicioMedico")', function (resp) {
             if (resp.success) {
-                todasLasSolicitudes = resp.data;
-                aplicarFiltros();
+                // Parsear catálogos si es necesario
+                totalRegistrosGlobal = resp.total;
+                renderPagina(resp.data);
             } else {
                 $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">Error al cargar datos.</td></tr>');
             }
         });
     }
 
-    // Recarga solo solicitudes (después de crear/eliminar)
+    // Recarga la página actual aplicando los filtros
     function cargarSolicitudes() {
-        $.getJSON('@Url.Action("ObtenerSolicitudes", "ServicioMedico")', function (resp) {
-            if (resp.success) {
-                todasLasSolicitudes = resp.data;
-                aplicarFiltros();
-            } else {
-                $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">Error al cargar solicitudes.</td></tr>');
+        aplicarFiltros();
+    }
+
+    function aplicarFiltros(resetPage) {
+        if (resetPage) paginaActual = 1;
+        
+        var req = {
+            pagina: paginaActual,
+            tamanoPagina: registrosPorPagina,
+            filtroNumEmpleado: $('#filtroNumEmp').val() ? parseInt($('#filtroNumEmp').val()) : null,
+            filtroModalidad: $('#filtroModalidad').val() || null,
+            filtroEstatus: $('#filtroEstatus').val() ? parseInt($('#filtroEstatus').val()) : null,
+            fechaDesde: $('#filtroFechaDesde').val() || null,
+            fechaHasta: $('#filtroFechaHasta').val() || null
+        };
+
+        $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data"><i class="fas fa-spinner fa-spin"></i> Cargando datos...</td></tr>');
+
+        $.ajax({
+            url: '@Url.Action("CargarPagina", "ServicioMedico")',
+            type: 'POST',
+            data: JSON.stringify(req),
+            contentType: 'application/json; charset=utf-8',
+            success: function(resp) {
+                if (resp.success) {
+                    totalRegistrosGlobal = resp.total;
+                    renderPagina(resp.data);
+                } else {
+                    $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">' + resp.message + '</td></tr>');
+                }
+            },
+            error: function() {
+                $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">Error de conexi\u00f3n.</td></tr>');
             }
         });
     }
 
-    function aplicarFiltros() {
-        var filtroEmp = $('#filtroNumEmp').val() ? parseInt($('#filtroNumEmp').val()) : null;
-        var filtroMod = $('#filtroModalidad').val();
-        var filtroEst = $('#filtroEstatus').val();
-        var filtroDesde = $('#filtroFechaDesde').val();
-        var filtroHasta = $('#filtroFechaHasta').val();
-
-        var filtradas = todasLasSolicitudes.filter(function (s) {
-            // Filtro por número de empleado
-            if (filtroEmp && s.FkEmpleado !== filtroEmp) return false;
-            // Filtro por modalidad
-            if (filtroMod && s.Modalidad !== filtroMod) return false;
-            
-            // Filtro por estatus
-            if (filtroEst) {
-                var estLow = (s.EstatusDesc || '').toUpperCase();
-                // We use includes instead of direct equality since sometimes the DB might say "COMPLETADO" or "COMPLETADAS"
-                if (estLow.indexOf(filtroEst) < 0) return false;
-            }
-            
-            if (filtroDesde && s.FechaOrdenFormateada) {
-                var fechaSol = parseFecha(s.FechaOrdenFormateada);
-                if (fechaSol && fechaSol < new Date(filtroDesde)) return false;
-            }
-
-            if (filtroHasta && s.FechaOrdenFormateada) {
-                var fechaSol2 = parseFecha(s.FechaOrdenFormateada);
-                var hasta = new Date(filtroHasta);
-                hasta.setHours(23, 59, 59);
-                if (fechaSol2 && fechaSol2 > hasta) return false;
-            }
-
-            return true;
-        });
-
-
-
-        // Ordenar: Pendiente (1) -> Proceso (2) -> Completada (3)
-        filtradas.sort(function(a, b) {
-            function getWeight(s) {
-                var d = (s.EstatusDesc || '').toLowerCase();
-                if (d.indexOf('complet') >= 0) return 3;
-                if (d.indexOf('proceso') >= 0) return 2;
-                return 1; // Pendiente
-            }
-            return getWeight(a) - getWeight(b);
-        });
-
-        renderTabla(filtradas);
-    }
-
-    function parseFecha(fechaStr) {
-        if (!fechaStr) return null;
-        var partes = fechaStr.split(' ');
-        var fecha = partes[0].split('/');
-        if (fecha.length === 3) {
-            return new Date(fecha[2], fecha[1] - 1, fecha[0]);
-        }
-        return new Date(fechaStr);
-    }
-
-    function renderTabla(data) {
-        datosFiltrados = data;
-        paginaActual = 1;
-        renderPagina();
-    }
-
-    function renderPagina() {
+    function renderPagina(paginaDatos) {
         var $tbody = $('#tbodySolicitudes');
-        var totalPaginas = Math.max(1, Math.ceil(datosFiltrados.length / registrosPorPagina));
-        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
-
+        var totalPaginas = Math.max(1, Math.ceil(totalRegistrosGlobal / registrosPorPagina));
+        
         var inicio = (paginaActual - 1) * registrosPorPagina;
-        var fin = Math.min(inicio + registrosPorPagina, datosFiltrados.length);
-        var pagina = datosFiltrados.slice(inicio, fin);
+        var fin = Math.min(inicio + registrosPorPagina, totalRegistrosGlobal);
 
-        if (datosFiltrados.length > 0) {
-            $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + datosFiltrados.length + ' solicitudes.');
+        if (paginaDatos.length > 0) {
+            $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + totalRegistrosGlobal + ' solicitudes.');
 
             var html = [];
-            for (var i = 0; i < pagina.length; i++) {
-                var s = pagina[i];
-                var badgeMod = s.Modalidad === 'PERIODICO'
-                    ? '<span class="badge-sm badge-periodico">Peri\u00f3dico</span>'
-                    : '<span class="badge-sm badge-ingreso">Ingreso</span>';
+            for (var i = 0; i < paginaDatos.length; i++) {
+                var s = paginaDatos[i];
+                var modUpper = (s.Modalidad || '').toUpperCase();
+                var badgeMod = '<span class="badge-sm badge-ingreso">' + s.Modalidad + '</span>';
+                if (modUpper.indexOf('PERI') >= 0) badgeMod = '<span class="badge-sm badge-periodico">' + s.Modalidad + '</span>';
+                else if (modUpper.indexOf('ANTIDOPING') >= 0) badgeMod = '<span class="badge-sm" style="background:#d35400; color:#fff;">' + s.Modalidad + '</span>';
+
                 var estLow = (s.EstatusDesc || '').toLowerCase();
                 var badgeEst = 'badge-pendiente';
                 if (estLow.indexOf('proceso') >= 0) badgeEst = 'badge-proceso';
@@ -513,12 +481,12 @@
                 html.push(
                     '<tr data-pk="' + s.PkOrdenMedico + '" data-status="' + (s.EstatusDesc || '') + '" style="cursor:pointer;">' +
                     '<td><strong>' + s.FolioDisplay + '</strong></td>' +
-                    '<td>' + s.FechaOrdenFormateada + '</td>' +
+                    '<td>' + (s.FechaOrdenFormateada || '-') + '</td>' +
                     '<td>' + badgeMod + '</td>' +
                     '<td>' + (s.NombrePersona || '-') + '</td>' +
                     '<td>' + numEmp + '</td>' +
                     '<td>' + (s.TipoServicioDesc || '-') + '</td>' +
-                    '<td>' + (s.ProyectoDesc || '-') + '</td>' +
+                    '<td><div style="font-weight:600; font-size:0.8rem; color:#2c3e50; margin-bottom:2px;">' + (s.EmpresaNombre || 'Sin Empresa') + '</div><div style="font-size:0.75rem; color:#666;">' + (s.ProyectoDesc ? s.ProyectoDesc : '<i>N/A</i>') + '</div></td>' +
                     '<td><span class="badge-sm ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span></td>' +
                     '<td style="text-align:center;">' +
                     '<div class="row-actions">' +
@@ -549,7 +517,7 @@
 
     function cambiarPagina(dir) {
         paginaActual += dir;
-        renderPagina();
+        aplicarFiltros(false);
     }
 
     function limpiarFiltros() {
@@ -558,7 +526,7 @@
         $('#filtroEstatus').val('');
         $('#filtroFechaDesde').val('');
         $('#filtroFechaHasta').val('');
-        aplicarFiltros();
+        aplicarFiltros(true);
     }
 
     function verDetalle(pkOrden) {
@@ -574,12 +542,13 @@
             $('#modalFolio').text(o.FolioDisplay);
             $('#detFolio').text(o.FolioDisplay);
             $('#detFecha').text(o.FechaOrdenFormateada);
-            $('#detModalidad').text(o.Modalidad === 'PERIODICO' ? 'Examen Peri\u00f3dico' : 'Nuevo Ingreso');
+            var modUpper = (o.Modalidad || '').toUpperCase();
+            $('#detModalidad').text(o.Modalidad || '-');
             $('#detTipoServicio').text(o.TipoServicioDesc || '-');
             $('#detEstatus').text(o.EstatusDesc || 'Pendiente');
             $('#detProyecto').text(o.ProyectoDesc || '-');
 
-            if (o.Modalidad === 'PERIODICO' && resp.empleado) {
+            if (modUpper.indexOf('PERI') >= 0 && resp.empleado) {
                 var emp = resp.empleado;
                 $('#detEmpNum').text(emp.PkEmpleado);
                 $('#detEmpNombre').text(emp.NombreCompleto || '-');

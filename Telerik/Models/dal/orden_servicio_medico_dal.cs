@@ -1,168 +1,248 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
+using System.Linq;
+using System.Data.Entity;
+using Telerik.Models;
 using Telerik.Models.ViewModels;
 
 namespace Telerik.Models.Dal
 {
     public class OrdenServicioMedicoDal
     {
-        public static List<OrdenServicioMedicoVm> ObtenerTodas()
+        /// <summary>
+        /// Obtiene la lista paginada de todas las órdenes con datos de paciente, tipo, estatus y empresa.
+        /// El JOIN con Empresa se hace desde Proyectos (no encadenado desde pr null-able)
+        /// para evitar NullReferenceException en LINQ to EF.
+        /// </summary>
+        public static List<OrdenServicioMedicoVm> ObtenerTodas(
+            out int totalRegistros,
+            int pagina = 1, 
+            int tamanoPagina = 10,
+            int? filtroNumEmpleado = null,
+            string filtroModalidad = null,
+            int? filtroEstatus = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null)
         {
-            string query = @"
-                SELECT TOP 50 
-                    o.pkOrdenMedico,
-                    o.fkEmpleado,
-                    o.fkCandidato,
-                    o.fkProyecto,
-                    o.fkTipoServicio,
-                    o.fkEstatus,
-                    o.fechaOrden,
-                    CASE 
-                        WHEN o.fkEmpleado IS NOT NULL THEN e.nombre + ' ' + ISNULL(e.aPaterno, '') + ' ' + ISNULL(e.aMaterno, '')
-                        WHEN o.fkCandidato IS NOT NULL THEN c.nombre + ' ' + ISNULL(c.aPaterno, '') + ' ' + ISNULL(c.aMaterno, '')
-                        ELSE ''
-                    END AS nombrePersona,
-                    CASE 
-                        WHEN o.fkEmpleado IS NOT NULL THEN 'PERIODICO'
-                        ELSE 'INGRESO'
-                    END AS modalidad,
-                    ts.descripcion AS tipoServicioDesc,
-                    es.descripcion AS estatusDesc,
-                    COALESCE(p.descripcion, pEmp.descripcion) AS proyectoDesc
-                FROM OrdenServicioMedico o
-                LEFT JOIN Empleados e ON o.fkEmpleado = e.pkEmpleado
-                LEFT JOIN Candidatos c ON o.fkCandidato = c.pkCandidato
-                LEFT JOIN TiposServicio ts ON o.fkTipoServicio = ts.pkTipoServicio
-                LEFT JOIN EstatusSolicitud es ON o.fkEstatus = es.pkEstatus
-                LEFT JOIN Proyectos p ON o.fkProyecto = p.pkProyecto
-                LEFT JOIN Proyectos pEmp ON e.fkProyecto = pEmp.pkProyecto
-                ORDER BY o.fechaOrden DESC";
-
-            DataTable dt = ConexionBd.EjecutarConsulta(query);
-            var lista = new List<OrdenServicioMedicoVm>();
-
-            foreach (DataRow row in dt.Rows)
+            using (var db = new ApplicationDbContext())
             {
-                lista.Add(MapearDesdeRow(row));
-            }
+                var query = from o in db.OrdenesMedicas
+                            // Tipo de servicio (INNER JOIN, siempre existe)
+                            join ts in db.TiposServicio on o.fkTipoServicio equals ts.pkTipoServicio
+                            // Estatus (LEFT JOIN)
+                            join es in db.EstatusSolicitudes on o.fkEstatus equals es.pkEstatus into esjoin
+                            from es in esjoin.DefaultIfEmpty()
+                            // Empleado (LEFT JOIN)
+                            join emp in db.Empleados on o.fkEmpleado equals emp.pkEmpleado into empjoin
+                            from emp in empjoin.DefaultIfEmpty()
+                            // Candidato (LEFT JOIN)
+                            join cand in db.Candidatos on o.fkCandidato equals cand.pkCandidato into candjoin
+                            from cand in candjoin.DefaultIfEmpty()
+                            // Proyecto (LEFT JOIN)
+                            join pr in db.Proyectos on o.fkProyecto equals pr.pkProyecto into prjoin
+                            from pr in prjoin.DefaultIfEmpty()
+                            select new { o, ts, es, emp, cand, pr };
 
-            return lista;
+                // IQueryable dinámico. No evaluado aún.
+                var q = query.AsQueryable();
+
+                // Aplicar Filtros SERVER-SIDE
+                if (filtroNumEmpleado.HasValue)
+                    q = q.Where(x => x.o.fkEmpleado == filtroNumEmpleado.Value);
+
+                if (!string.IsNullOrEmpty(filtroModalidad))
+                {
+                    if (filtroModalidad == "PERIODICO")
+                        q = q.Where(x => x.o.fkEmpleado != null);
+                    else if (filtroModalidad == "INGRESO")
+                        q = q.Where(x => x.o.fkEmpleado == null && x.o.fkTipoServicio != 3); // 3=Antidoping
+                    else if (filtroModalidad == "ANTIDOPING")
+                        q = q.Where(x => x.o.fkTipoServicio == 3);
+                }
+
+                if (filtroEstatus.HasValue)
+                    q = q.Where(x => x.o.fkEstatus == filtroEstatus.Value);
+
+                if (fechaDesde.HasValue)
+                {
+                    var fh = fechaDesde.Value.Date;
+                    q = q.Where(x => x.o.fechaOrden >= fh);
+                }
+                
+                if (fechaHasta.HasValue)
+                {
+                    var fh = fechaHasta.Value.Date.AddDays(1).AddTicks(-1);
+                    q = q.Where(x => x.o.fechaOrden <= fh);
+                }
+
+                // Ejecuta COUNT de acuerdo a los filtros aplicados y devuelve el total AL CONTROLADOR
+                totalRegistros = q.Count();
+
+                // Aplicar Proyección y Paginación, y ejecutar en Base de Datos
+                var resultados = q
+                    .OrderByDescending(x => x.o.fechaOrden)
+                    .ThenByDescending(x => x.o.pkOrdenMedico)
+                    .Skip((pagina - 1) * tamanoPagina)
+                    .Take(tamanoPagina)
+                    .AsNoTracking() // LIBERAR de memoria. Ultra rápido
+                    .Select(x => new OrdenServicioMedicoVm
+                    {
+                        PkOrdenMedico    = x.o.pkOrdenMedico,
+                        FechaOrden       = x.o.fechaOrden,
+                        FkEstatus        = x.o.fkEstatus,
+                        EstatusDesc      = x.es != null ? x.es.descripcion : "Sin Estatus",
+                        FkTipoServicio   = x.o.fkTipoServicio,
+                        TipoServicioDesc = x.ts.descripcion,
+                        Modalidad        = x.ts.descripcion,
+                        FkEmpleado       = x.o.fkEmpleado,
+                        FkCandidato      = x.o.fkCandidato,
+                        NombrePersona    = x.emp != null
+                            ? (x.emp.nombre + " " + x.emp.aPaterno + " " + x.emp.aMaterno).Trim()
+                            : x.cand != null ? (x.cand.nombre + " " + x.cand.aPaterno).Trim() : "Sin Nombre",
+                        ProyectoDesc     = x.pr != null ? x.pr.descripcion : null,
+                        FkProyecto       = x.o.fkProyecto,
+                        _FkEmpresa       = x.pr != null ? (int?)x.pr.fkEmpresa : (x.emp != null ? x.emp.fkEmpresa : null),
+                        PuestoCandidato  = x.cand != null ? x.cand.puestoDeseado : null,
+                        AreaCandidato    = x.cand != null ? x.cand.area : null,
+                        EmpresaCandidato = x.cand != null ? x.cand.empresa : null,
+                        SexoCandidato    = x.emp != null ? x.emp.fkSexo : (x.cand != null ? x.cand.fkSexo : null)
+                    })
+                    .ToList();
+
+                // Resolver nombre de empresa desde los resultados (en memoria, evita un JOIN encadenado nulo complejo)
+                var fkEmpresas = resultados
+                    .Where(r => r._FkEmpresa.HasValue)
+                    .Select(r => r._FkEmpresa.Value)
+                    .Distinct()
+                    .ToList();
+
+                if (fkEmpresas.Any())
+                {
+                    var empresas = db.Empresas
+                        .Where(e => fkEmpresas.Contains(e.pkEmpresa))
+                        .ToDictionary(e => e.pkEmpresa, e => e.nombre);
+
+                    foreach (var r in resultados.Where(r => r._FkEmpresa.HasValue))
+                    {
+                        if (empresas.TryGetValue(r._FkEmpresa.Value, out string nombre))
+                            r.EmpresaNombre = nombre;
+                    }
+                }
+
+                return resultados;
+            }
         }
 
-        public static OrdenServicioMedicoVm ObtenerPorId(int pkOrdenMedico)
+        public static int ContarTodas()
         {
-            string query = @"
-                SELECT 
-                    o.pkOrdenMedico,
-                    o.fkEmpleado,
-                    o.fkCandidato,
-                    o.fkProyecto,
-                    o.fkTipoServicio,
-                    o.fkEstatus,
-                    o.fechaOrden,
-                    CASE 
-                        WHEN o.fkEmpleado IS NOT NULL THEN e.nombre + ' ' + ISNULL(e.aPaterno, '') + ' ' + ISNULL(e.aMaterno, '')
-                        WHEN o.fkCandidato IS NOT NULL THEN c.nombre + ' ' + ISNULL(c.aPaterno, '') + ' ' + ISNULL(c.aMaterno, '')
-                        ELSE ''
-                    END AS nombrePersona,
-                    CASE 
-                        WHEN o.fkEmpleado IS NOT NULL THEN 'PERIODICO'
-                        ELSE 'INGRESO'
-                    END AS modalidad,
-                    ts.descripcion AS tipoServicioDesc,
-                    es.descripcion AS estatusDesc,
-                    p.descripcion AS proyectoDesc,
-                    emp2.nombre   AS empresaNombre,
-                    c.puestoDeseado,
-                    c.area AS areaCandidato,
-                    c.empresa AS empresaCandidato,
-                    c.fkSexo AS sexoCandidato,
-                    DATEDIFF(YEAR, c.fechaNacimiento, GETDATE()) AS edadCandidato
-                FROM OrdenServicioMedico o
-                LEFT JOIN Empleados e ON o.fkEmpleado = e.pkEmpleado
-                LEFT JOIN Candidatos c ON o.fkCandidato = c.pkCandidato
-                LEFT JOIN TiposServicio ts ON o.fkTipoServicio = ts.pkTipoServicio
-                LEFT JOIN EstatusSolicitud es ON o.fkEstatus = es.pkEstatus
-                LEFT JOIN Proyectos p ON o.fkProyecto = p.pkProyecto
-                LEFT JOIN Empresas emp2 ON ISNULL(p.fkEmpresa,
-                    (SELECT TOP 1 pr2.fkEmpresa FROM Proyectos pr2 WHERE pr2.pkProyecto = e.fkProyecto)
-                ) = emp2.pkEmpresa
-                WHERE o.pkOrdenMedico = @pk";
-
-            DataTable dt = ConexionBd.EjecutarConsulta(query, new SqlParameter("@pk", pkOrdenMedico));
-
-            if (dt.Rows.Count > 0)
+            using (var db = new ApplicationDbContext())
             {
-                return MapearDesdeRow(dt.Rows[0]);
+                return db.OrdenesMedicas.Count();
             }
+        }
 
-            return null;
+        public static OrdenServicioMedicoVm ObtenerPorId(int pkOrden)
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                var vm = (from o in db.OrdenesMedicas
+                          join ts in db.TiposServicio on o.fkTipoServicio equals ts.pkTipoServicio
+                          join es in db.EstatusSolicitudes on o.fkEstatus equals es.pkEstatus into esjoin
+                          from es in esjoin.DefaultIfEmpty()
+                          join emp in db.Empleados on o.fkEmpleado equals emp.pkEmpleado into empjoin
+                          from emp in empjoin.DefaultIfEmpty()
+                          join cand in db.Candidatos on o.fkCandidato equals cand.pkCandidato into candjoin
+                          from cand in candjoin.DefaultIfEmpty()
+                          join pr in db.Proyectos on o.fkProyecto equals pr.pkProyecto into prjoin
+                          from pr in prjoin.DefaultIfEmpty()
+                          where o.pkOrdenMedico == pkOrden
+                          select new OrdenServicioMedicoVm
+                          {
+                              PkOrdenMedico    = o.pkOrdenMedico,
+                              FechaOrden       = o.fechaOrden,
+                              FkEstatus        = o.fkEstatus,
+                              EstatusDesc      = es != null ? es.descripcion : "Sin Estatus",
+                              FkTipoServicio   = o.fkTipoServicio,
+                              TipoServicioDesc = ts.descripcion,
+                              Modalidad        = ts.descripcion, // Refleja el catálogo real (Ingreso, Periódico, Antidoping)
+                              FkEmpleado       = o.fkEmpleado,
+                              FkCandidato      = o.fkCandidato,
+                              NombrePersona    = emp != null
+                                  ? (emp.nombre + " " + emp.aPaterno + " " + emp.aMaterno).Trim()
+                                  : cand != null ? (cand.nombre + " " + cand.aPaterno).Trim() : "Sin Nombre",
+                              ProyectoDesc     = pr != null ? pr.descripcion : null,
+                              FkProyecto       = o.fkProyecto,
+                              _FkEmpresa       = pr != null ? (int?)pr.fkEmpresa : (emp != null ? emp.fkEmpresa : null),
+                              PuestoCandidato  = cand != null ? cand.puestoDeseado : null,
+                              AreaCandidato    = cand != null ? cand.area : null,
+                              EmpresaCandidato = cand != null ? cand.empresa : null,
+                              SexoCandidato    = emp != null ? emp.fkSexo : (cand != null ? cand.fkSexo : null)
+                          }).FirstOrDefault();
+
+                // Resolver nombre de empresa en memoria
+                if (vm != null && vm._FkEmpresa.HasValue)
+                {
+                    var empresa = db.Empresas.Find(vm._FkEmpresa.Value);
+                    if (empresa != null) vm.EmpresaNombre = empresa.nombre;
+                }
+
+                return vm;
+            }
         }
 
         public static int Insertar(int? fkEmpleado, int? fkCandidato, int? fkProyecto, int fkTipoServicio)
         {
-            string query = @"
-                INSERT INTO OrdenServicioMedico (fkEmpleado, fkCandidato, fkProyecto, fkTipoServicio, fkEstatus, fechaOrden)
-                VALUES (@fkEmpleado, @fkCandidato, @fkProyecto, @fkTipoServicio, 1, GETDATE());
-                SELECT SCOPE_IDENTITY();";
-
-            var parametros = new[]
+            using (var db = new ApplicationDbContext())
             {
-                new SqlParameter("@fkEmpleado", (object)fkEmpleado ?? DBNull.Value),
-                new SqlParameter("@fkCandidato", (object)fkCandidato ?? DBNull.Value),
-                new SqlParameter("@fkProyecto", (object)fkProyecto ?? DBNull.Value),
-                new SqlParameter("@fkTipoServicio", fkTipoServicio)
-            };
-
-            object resultado = ConexionBd.EjecutarEscalar(query, parametros);
-            return Convert.ToInt32(resultado);
+                var orden = new OrdenServicioMedico
+                {
+                    fkEmpleado     = fkEmpleado,
+                    fkCandidato    = fkCandidato,
+                    fkTipoServicio = fkTipoServicio,
+                    fkProyecto     = fkProyecto,
+                    fkEstatus      = 1,
+                    fechaOrden     = DateTime.Now
+                };
+                db.OrdenesMedicas.Add(orden);
+                db.SaveChanges();
+                return orden.pkOrdenMedico;
+            }
         }
 
-        public static void ActualizarEstatus(int pkOrdenMedico, int fkEstatus)
+        public static int CrearParaEmpleado(int pkEmpleado, int fkTipoServicio, int? fkProyecto)
         {
-            string query = "UPDATE OrdenServicioMedico SET fkEstatus = @fkEstatus WHERE pkOrdenMedico = @pk";
-
-            var parametros = new[]
-            {
-                new SqlParameter("@fkEstatus", fkEstatus),
-                new SqlParameter("@pk", pkOrdenMedico)
-            };
-
-            ConexionBd.EjecutarComando(query, parametros);
+            return Insertar(pkEmpleado, null, fkProyecto, fkTipoServicio);
         }
 
-        private static OrdenServicioMedicoVm MapearDesdeRow(DataRow row)
+        public static int CrearParaCandidato(int pkCandidato, int fkTipoServicio, int? fkProyecto)
         {
-            return new OrdenServicioMedicoVm
-            {
-                PkOrdenMedico = Convert.ToInt32(row["pkOrdenMedico"]),
-                FkEmpleado = row["fkEmpleado"] != DBNull.Value ? (int?)Convert.ToInt32(row["fkEmpleado"]) : null,
-                FkCandidato = row["fkCandidato"] != DBNull.Value ? (int?)Convert.ToInt32(row["fkCandidato"]) : null,
-                FkProyecto = row["fkProyecto"] != DBNull.Value ? (int?)Convert.ToInt32(row["fkProyecto"]) : null,
-                FkTipoServicio = Convert.ToInt32(row["fkTipoServicio"]),
-                FkEstatus = row["fkEstatus"] != DBNull.Value ? (int?)Convert.ToInt32(row["fkEstatus"]) : null,
-                FechaOrden = row["fechaOrden"] != DBNull.Value ? (DateTime?)Convert.ToDateTime(row["fechaOrden"]) : null,
-                NombrePersona = row["nombrePersona"].ToString().Trim(),
-                Modalidad = row["modalidad"].ToString(),
-                TipoServicioDesc = row["tipoServicioDesc"].ToString(),
-                EstatusDesc = row["estatusDesc"].ToString(),
-                ProyectoDesc = row["proyectoDesc"] != DBNull.Value ? row["proyectoDesc"].ToString() : "",
-                EmpresaNombre = row.Table.Columns.Contains("empresaNombre") && row["empresaNombre"] != DBNull.Value ? row["empresaNombre"].ToString().Trim() : "",
-                
-                PuestoCandidato = row.Table.Columns.Contains("puestoDeseado") && row["puestoDeseado"] != DBNull.Value ? row["puestoDeseado"].ToString() : "",
-                AreaCandidato = row.Table.Columns.Contains("areaCandidato") && row["areaCandidato"] != DBNull.Value ? row["areaCandidato"].ToString() : "",
-                EmpresaCandidato = row.Table.Columns.Contains("empresaCandidato") && row["empresaCandidato"] != DBNull.Value ? row["empresaCandidato"].ToString() : "",
-                SexoCandidato = row.Table.Columns.Contains("sexoCandidato") && row["sexoCandidato"] != DBNull.Value ? row["sexoCandidato"].ToString() : "",
-                EdadCandidato = row.Table.Columns.Contains("edadCandidato") && row["edadCandidato"] != DBNull.Value ? row["edadCandidato"].ToString() : ""
-        };
+            return Insertar(null, pkCandidato, fkProyecto, fkTipoServicio);
         }
 
-        public static void Eliminar(int pkOrdenMedico)
+        public static void ActualizarEstatus(int pkOrden, int nuevoEstatus)
         {
-            string query = "DELETE FROM OrdenServicioMedico WHERE pkOrdenMedico = @pk";
-            ConexionBd.EjecutarComando(query, new SqlParameter("@pk", pkOrdenMedico));
+            using (var db = new ApplicationDbContext())
+            {
+                var orden = db.OrdenesMedicas.Find(pkOrden);
+                if (orden != null)
+                {
+                    orden.fkEstatus = nuevoEstatus;
+                    db.SaveChanges();
+                }
+            }
+        }
+
+        public static void Eliminar(int pkOrden)
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                var orden = db.OrdenesMedicas.Find(pkOrden);
+                if (orden != null)
+                {
+                    db.OrdenesMedicas.Remove(orden);
+                    db.SaveChanges();
+                }
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
-    using System;
-using System.Data.SqlClient;
+using System;
+using Telerik.Models;
 
 namespace Telerik.Models.Dal
 {
@@ -7,20 +7,21 @@ namespace Telerik.Models.Dal
     {
         public static int Insertar(string nombre, string aPaterno, string puestoDeseado)
         {
-            string query = @"
-                INSERT INTO Candidatos (nombre, aPaterno, puestoDeseado, fechaRegistro)
-                VALUES (@nombre, @aPaterno, @puestoDeseado, GETDATE());
-                SELECT SCOPE_IDENTITY();";
-
-            var parametros = new[]
+            using (var db = new ApplicationDbContext())
             {
-                new SqlParameter("@nombre", (object)nombre ?? DBNull.Value),
-                new SqlParameter("@aPaterno", (object)aPaterno ?? DBNull.Value),
-                new SqlParameter("@puestoDeseado", (object)puestoDeseado ?? DBNull.Value)
-            };
+                var candidato = new Candidato
+                {
+                    nombre         = nombre,
+                    aPaterno       = aPaterno,
+                    puestoDeseado  = puestoDeseado,
+                    fechaRegistro  = DateTime.Now
+                };
 
-            object resultado = ConexionBd.EjecutarEscalar(query, parametros);
-            return Convert.ToInt32(resultado);
+                db.Candidatos.Add(candidato);
+                db.SaveChanges();
+
+                return candidato.pkCandidato;
+            }
         }
     }
 }

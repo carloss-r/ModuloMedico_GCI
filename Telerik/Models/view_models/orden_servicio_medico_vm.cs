@@ -20,6 +20,9 @@ namespace Telerik.Models.ViewModels
         public string ProyectoDesc { get; set; }
         public string EmpresaNombre { get; set; }   // Empresa padre del proyecto
 
+        // Propiedad auxiliar interna para resolver EmpresaNombre en 2 pasos (evita JOIN encadenado nullable)
+        public int? _FkEmpresa { get; set; }
+
         // Candidate Specific
         public string PuestoCandidato { get; set; }
         public string AreaCandidato { get; set; }

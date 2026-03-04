@@ -55,7 +55,8 @@ namespace Telerik.Controllers
         {
             try
             {
-                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas();
+                int total;
+                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out total, 1, 10, null, null, null, null, null);
                 return Json(new { success = true, data = solicitudes }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -472,7 +473,8 @@ namespace Telerik.Controllers
         {
             try
             {
-                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas();
+                int totalRegistros;
+                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out totalRegistros, 1, 10, null, null, null, null, null);
 
                 List<CatalogoItem> tiposServicio;
                 List<CatalogoItem> empresas;
@@ -482,13 +484,48 @@ namespace Telerik.Controllers
                 {
                     success = true,
                     data = solicitudes,
+                    total = totalRegistros,
                     tiposServicio = tiposServicio,
                     empresas = empresas
                 }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error al cargar datos: " + ex.Message }, JsonRequestBehavior.AllowGet);
+                System.IO.File.WriteAllText(Server.MapPath("~/error.txt"), ex.ToString());
+                return Json(new { success = false, message = "Error al cargar datos iniciales: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpPost]
+        public JsonResult CargarPagina(
+            int pagina,
+            int tamanoPagina,
+            int? filtroNumEmpleado,
+            string filtroModalidad,
+            int? filtroEstatus,
+            DateTime? fechaDesde,
+            DateTime? fechaHasta)
+        {
+            try
+            {
+                int totalRegistros;
+                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(
+                    out totalRegistros,
+                    pagina, 
+                    tamanoPagina, 
+                    filtroNumEmpleado, 
+                    filtroModalidad, 
+                    filtroEstatus, 
+                    fechaDesde, 
+                    fechaHasta
+                );
+
+                return Json(new { success = true, data = solicitudes, total = totalRegistros });
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.WriteAllText(Server.MapPath("~/error_pagina.txt"), ex.ToString());
+                return Json(new { success = false, message = "Error al cargar la página: " + ex.Message });
             }
         }
 
