@@ -60,8 +60,14 @@ namespace Telerik.Models.Dal
                         q = q.Where(x => x.o.fkTipoServicio == 3);
                 }
 
+                // -1 es el filtro especial "Activas" = Pendiente(1) + En Proceso(2)
                 if (filtroEstatus.HasValue)
-                    q = q.Where(x => x.o.fkEstatus == filtroEstatus.Value);
+                {
+                    if (filtroEstatus.Value == -1)
+                        q = q.Where(x => x.o.fkEstatus == 1 || x.o.fkEstatus == 2);
+                    else
+                        q = q.Where(x => x.o.fkEstatus == filtroEstatus.Value);
+                }
 
                 if (fechaDesde.HasValue)
                 {

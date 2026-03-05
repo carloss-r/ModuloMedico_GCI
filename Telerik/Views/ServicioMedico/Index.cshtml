@@ -186,21 +186,22 @@
                 <input type="number" id="filtroNumEmp" placeholder="Ej: 1001" />
             </div>
             <div class="filtro-group">
-                <label>Tipo Solicitud</label>
+                <label>Tipo de Servicio</label>
                 <select id="filtroModalidad">
                     <option value="">Todos</option>
-                    <option value="INGRESO">Ingreso / Pre-Empleo</option>
-                    <option value="PERIODICO">Peri&oacute;dico</option>
+                    <option value="INGRESO">Ingreso</option>
+                    <option value="PERIODICO">Periódico</option>
                     <option value="ANTIDOPING">Antidoping</option>
                 </select>
             </div>
             <div class="filtro-group">
                 <label>Estatus</label>
                 <select id="filtroEstatus">
-                    <option value="">Todos</option>
-                    <option value="PENDIENTE">Pendiente</option>
-                    <option value="EN PROCESO">En Proceso</option>
-                    <option value="COMPLETADA">Completada</option>
+                    <option value="-1">Activas (Pend. + En Proceso)</option>
+                    <option value="1">Pendiente</option>
+                    <option value="2">En Proceso</option>
+                    <option value="3">Completada</option>
+                    <option value="">Todas</option>
                 </select>
             </div>
             <div class="filtro-group">
@@ -363,23 +364,23 @@
             var pk = $(this).data('pk');
             var status = $(this).data('status') || '';
             var statusLower = status.toLowerCase();
-            
+
             // Si está completa, previene menú default y no muestra nada
             if (statusLower.indexOf('complet') >= 0) {
-                return; 
+                return;
             }
-            
+
             if(!pk) return;
 
             e.preventDefault(); // Prevenir menú del navegador
-            
+
             var evalUrl = '@Url.Action("IniciarEvaluacion", "ServicioMedico")/' + pk;
             $('#ctxEvaluar').attr('href', evalUrl);
-            
+
             // Mostrar Eliminar solo si es Pendiente (no proceso, no completa)
             // Asumimos que si no es proceso ni completa, es pendiente
             var isProceso = statusLower.indexOf('proceso') >= 0;
-            
+
             if (!isProceso) {
                 $('#ctxEliminar').show().off('click').on('click', function() {
                     if(confirm('\u00bfEst\u00e1 seguro de eliminar esta solicitud?')) {
@@ -390,7 +391,7 @@
             } else {
                 $('#ctxEliminar').hide();
             }
-            
+
             $('#ctxMenu').css({ top: e.pageY, left: e.pageX }).show();
         });
     });
@@ -401,17 +402,12 @@
     var totalRegistrosGlobal = 0;
     var currentOrdenId = null;
 
-    // Carga inicial combinada: catálogos y primera página
+    // Carga inicial combinada: catálogos y primera página con filtro 'Activas' por defecto
     function cargarInicial() {
-        $.getJSON('@Url.Action("CargarInicial", "ServicioMedico")', function (resp) {
-            if (resp.success) {
-                // Parsear catálogos si es necesario
-                totalRegistrosGlobal = resp.total;
-                renderPagina(resp.data);
-            } else {
-                $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">Error al cargar datos.</td></tr>');
-            }
-        });
+        // Pre-seleccionar 'Activas' en el filtro de estatus
+        $('#filtroEstatus').val('-1');
+        // Cargar primera página con ese filtro
+        aplicarFiltros(true);
     }
 
     // Recarga la página actual aplicando los filtros
@@ -421,13 +417,18 @@
 
     function aplicarFiltros(resetPage) {
         if (resetPage) paginaActual = 1;
-        
+
+        var estatusVal = $('#filtroEstatus').val();
+        // -1 significa 'Activas' = mostrar solo Pendiente (1) y En Proceso (2)
+        var filtroEstatus = (estatusVal && estatusVal !== '-1') ? parseInt(estatusVal) : null;
+        var soloActivas   = (estatusVal === '-1'); // flag especial para el servidor
+
         var req = {
             pagina: paginaActual,
             tamanoPagina: registrosPorPagina,
             filtroNumEmpleado: $('#filtroNumEmp').val() ? parseInt($('#filtroNumEmp').val()) : null,
             filtroModalidad: $('#filtroModalidad').val() || null,
-            filtroEstatus: $('#filtroEstatus').val() ? parseInt($('#filtroEstatus').val()) : null,
+            filtroEstatus: soloActivas ? -1 : filtroEstatus,
             fechaDesde: $('#filtroFechaDesde').val() || null,
             fechaHasta: $('#filtroFechaHasta').val() || null
         };
@@ -453,10 +454,19 @@
         });
     }
 
+    function limpiarFiltros() {
+        $('#filtroNumEmp').val('');
+        $('#filtroModalidad').val('');
+        $('#filtroEstatus').val('-1'); // Volver al filtro 'Activas' por defecto
+        $('#filtroFechaDesde').val('');
+        $('#filtroFechaHasta').val('');
+        aplicarFiltros(true);
+    }
+
     function renderPagina(paginaDatos) {
         var $tbody = $('#tbodySolicitudes');
         var totalPaginas = Math.max(1, Math.ceil(totalRegistrosGlobal / registrosPorPagina));
-        
+
         var inicio = (paginaActual - 1) * registrosPorPagina;
         var fin = Math.min(inicio + registrosPorPagina, totalRegistrosGlobal);
 
@@ -653,7 +663,7 @@
     // ═══════ Funciones de Impresión Embebida ═══════
     function abrirImpresion(url) {
         if (!url) return;
-        
+
         // Cierra el modal de detalle para que no se empalme con el de impresión
         if ($('#modalDetalle').hasClass('active')) {
             cerrarModal();
