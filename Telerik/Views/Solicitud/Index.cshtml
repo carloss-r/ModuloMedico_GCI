@@ -58,12 +58,20 @@
     .modal-alert.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6c3; }
 
     /* Paginación */
-    .paginacion { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 0; }
-    .paginacion button { padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .paginacion { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 14px 0; flex-wrap: wrap; }
+    .paginacion button { padding: 5px 11px; font-size: 0.8rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-family: inherit; transition: all 0.15s; min-width: 32px; }
     .paginacion button:hover:not(:disabled) { background: #2471a3; color: #fff; border-color: #2471a3; }
     .paginacion button:disabled { opacity: 0.4; cursor: default; }
-    .paginacion .pag-info { font-size: 0.82rem; color: #555; font-weight: 500; }
+    .paginacion button.pag-active { background: #1a5276; color: #fff; border-color: #1a5276; pointer-events: none; }
+    .paginacion .pag-dots { font-size: 0.85rem; color: #999; padding: 5px 4px; }
+    .paginacion .pag-info { font-size: 0.78rem; color: #555; font-weight: 500; white-space: nowrap; }
     .resultados-info { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
+
+    /* Spinner de carga */
+    .loading-spinner-row td { text-align:center; padding: 40px !important; }
+    .gci-spinner { display: inline-block; width: 38px; height: 38px; border: 4px solid #e0e7ef; border-top-color: #1a5276; border-radius: 50%; animation: gciSpin 0.75s linear infinite; margin-bottom: 10px; }
+    @@keyframes gciSpin { to { transform: rotate(360deg); } }
+    .gci-loading-text { font-size: 0.85rem; color: #666; font-weight: 500; display: block; }
 
     /* Modal de Impresión Embebida */
     .print-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
@@ -89,7 +97,17 @@
     <div class="solicitudes-panel">
         <div class="sp-title">
             <span><i class="fas fa-inbox"></i> Solicitudes Recientes</span>
-            <button class="btn-gci btn-gci-secondary" style="padding: 5px 12px; font-size: 0.75rem;" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">Mostrar:
+                    <select id="selectTamanoPaginaRH" onchange="onCambioTamanoPaginaRH()" style="margin-left:5px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem;">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select> por página
+                </label>
+                <button class="btn-gci btn-gci-secondary" style="padding: 5px 12px; font-size: 0.75rem;" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            </div>
         </div>
         <div class="resultados-info" id="resultsInfo"></div>
         <table class="solicitudes-table">
@@ -224,41 +242,45 @@
 
 @section scripts {
 <script>
-    var catalogosLoaded = false;
-    var tiposServicioGlobal = [];
     var datosSolicitudes = [];
-    var registrosPorPagina = 10;
-    var paginaActual = 1;
+    var registrosPorPaginaRH = 25;
+    var paginaActualRH = 1;
+    var totalRegistrosRH = 0;
 
     $(document).ready(function () {
         cargarCatalogosYTabla();
-        
-        // Permitir buscar empleado presionando Enter
         $('#txtNumEmpleado').on('keypress', function (e) {
-            if(e.which === 13) {
-                buscarEmpleadoParaSolicitud();
-            }
+            if(e.which === 13) buscarEmpleadoParaSolicitud();
         });
     });
+
+    function onCambioTamanoPaginaRH() {
+        registrosPorPaginaRH = parseInt($('#selectTamanoPaginaRH').val());
+        paginaActualRH = 1;
+        cargarSolicitudes();
+    }
 
     function cargarCatalogosYTabla() {
         $.getJSON('@Url.Action("CargarInicial", "ServicioMedico")', function (resp) {
             if (resp.success) {
+                tiposServicioGlobal = resp.tiposServicio || [];
                 llenarCatalogos(resp.tiposServicio, resp.empresas);
-                cargarSolicitudes(); // Update table initially
+                cargarSolicitudes();
             }
         });
     }
 
     function cargarSolicitudes() {
-        $.getJSON('@Url.Action("ObtenerSolicitudes", "ServicioMedico")', function (resp) {
+        $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="7"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
+        $('#paginacionControles').empty();
+        $('#resultsInfo').text('');
+        $.getJSON('@Url.Action("ObtenerSolicitudes", "ServicioMedico")', { pagina: paginaActualRH, tamanoPagina: registrosPorPaginaRH }, function (resp) {
             if (resp.success) {
                 datosSolicitudes = resp.data || [];
-                paginaActual = 1;
+                totalRegistrosRH = resp.total || datosSolicitudes.length;
                 renderPagina();
             } else {
-                var $tbody = $('#tbodySolicitudes');
-                $tbody.empty().append('<tr><td colspan="7" class="no-data">Error al cargar solicitudes.</td></tr>');
+                $('#tbodySolicitudes').empty().append('<tr><td colspan="7" class="no-data">Error al cargar solicitudes.</td></tr>');
             }
         });
     }
@@ -266,7 +288,7 @@
     function renderPagina() {
         var $tbody = $('#tbodySolicitudes');
         $tbody.empty();
-        
+
         if (!datosSolicitudes || datosSolicitudes.length === 0) {
             $tbody.append('<tr><td colspan="7" class="no-data">No hay solicitudes registradas.</td></tr>');
             $('#resultsInfo').text('0 resultados.');
@@ -274,18 +296,13 @@
             return;
         }
 
-        var totalPaginas = Math.ceil(datosSolicitudes.length / registrosPorPagina);
-        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
-
-        var inicio = (paginaActual - 1) * registrosPorPagina;
-        var fin = Math.min(inicio + registrosPorPagina, datosSolicitudes.length);
-        var pagina = datosSolicitudes.slice(inicio, fin);
-
-        $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + datosSolicitudes.length + ' solicitudes.');
+        var inicio = (paginaActualRH - 1) * registrosPorPaginaRH;
+        var fin = inicio + datosSolicitudes.length;
+        $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + totalRegistrosRH + ' solicitudes.');
 
         var html = [];
-        for (var i = 0; i < pagina.length; i++) {
-            var s = pagina[i];
+        for (var i = 0; i < datosSolicitudes.length; i++) {
+            var s = datosSolicitudes[i];
             var badgeMod = s.Modalidad === 'PERIODICO'
                 ? '<span class="badge-sm badge-periodico">PERIÓDICO</span>'
                 : '<span class="badge-sm badge-ingreso">INGRESO</span>';
@@ -296,8 +313,6 @@
 
             var accionesHtml = '<div style="display:flex; justify-content:center; gap:5px;">';
             accionesHtml += '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="abrirImpresion(\'@Url.Action("ImprimirSolicitud", "ServicioMedico")/' + s.PkOrdenMedico + '\')" title="Ver Forma de Solicitud"><i class="fas fa-file-alt"></i></button>';
-            
-            // Logica del negocio - no mostrar botones medicos en RH. (El dashboard RH no revisa expediente)
             accionesHtml += '</div>';
 
             html.push(
@@ -314,15 +329,39 @@
         }
         $tbody.html(html.join(''));
 
-        var pagHtml = '<button ' + (paginaActual <= 1 ? 'disabled' : '') + ' onclick="cambiarPagina(-1)">&laquo; Anterior</button>' +
-                      '<span class="pag-info">P\u00e1gina ' + paginaActual + ' de ' + totalPaginas + '</span>' +
-                      '<button ' + (paginaActual >= totalPaginas ? 'disabled' : '') + ' onclick="cambiarPagina(1)">Siguiente &raquo;</button>';
-        $('#paginacionControles').html(pagHtml);
+        var totalPaginas = Math.max(1, Math.ceil(totalRegistrosRH / registrosPorPaginaRH));
+        $('#paginacionControles').html(buildPaginacionRH(paginaActualRH, totalPaginas));
     }
 
-    function cambiarPagina(dir) {
-        paginaActual += dir;
-        renderPagina();
+    function buildPaginacionRH(actual, total) {
+        if (total <= 1) return '';
+        var html = [];
+        html.push('<button ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPaginaRH(' + (actual-1) + ')">&laquo;</button>');
+        var rango = [];
+        if (total <= 7) {
+            for (var i = 1; i <= total; i++) rango.push(i);
+        } else {
+            rango.push(1);
+            if (actual > 3) rango.push('...');
+            for (var p = Math.max(2, actual-1); p <= Math.min(total-1, actual+1); p++) rango.push(p);
+            if (actual < total - 2) rango.push('...');
+            rango.push(total);
+        }
+        for (var j = 0; j < rango.length; j++) {
+            var v = rango[j];
+            if (v === '...') html.push('<span class="pag-dots">&hellip;</span>');
+            else html.push('<button class="' + (v === actual ? 'pag-active' : '') + '" onclick="irAPaginaRH(' + v + ')">' + v + '</button>');
+        }
+        html.push('<button ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPaginaRH(' + (actual+1) + ')">&raquo;</button>');
+        html.push('<span class="pag-info" style="margin-left:8px;">Pág. ' + actual + ' / ' + total + ' (' + totalRegistrosRH + ' total)</span>');
+        return html.join('');
+    }
+
+    function irAPaginaRH(num) {
+        var totalPaginas = Math.max(1, Math.ceil(totalRegistrosRH / registrosPorPaginaRH));
+        if (num < 1 || num > totalPaginas) return;
+        paginaActualRH = num;
+        cargarSolicitudes();
     }
 
     function abrirNuevaSolicitud() {

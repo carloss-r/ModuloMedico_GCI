@@ -49,15 +49,17 @@ namespace Telerik.Controllers
             return View();
         }
 
-        // GET: /ServicioMedico/ObtenerSolicitudes
+        // GET: /ServicioMedico/ObtenerSolicitudes?pagina=1&tamanoPagina=25
         [HttpGet]
-        public JsonResult ObtenerSolicitudes()
+        public JsonResult ObtenerSolicitudes(int pagina = 1, int tamanoPagina = 25)
         {
             try
             {
+                // Clamp para evitar abuso: máximo 100 por página
+                tamanoPagina = Math.Min(tamanoPagina, 100);
                 int total;
-                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out total, 1, 10, null, null, null, null, null);
-                return Json(new { success = true, data = solicitudes }, JsonRequestBehavior.AllowGet);
+                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out total, pagina, tamanoPagina, null, null, null, null, null);
+                return Json(new { success = true, data = solicitudes, total = total }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

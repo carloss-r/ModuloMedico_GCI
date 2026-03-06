@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "Evaluación Médica";
     int idOrden = ViewBag.IdOrden;
 }
@@ -107,18 +107,574 @@
             <i class="fas fa-user-circle"></i> Datos Generales
         </div>
         <div class="wizard-step" onclick="goToStep(2)" id="step2">
-            <i class="fas fa-heartbeat"></i> Signos Vitales
-        </div>
-        <div class="wizard-step" onclick="goToStep(3)" id="step3">
-            <i class="fas fa-stethoscope"></i> Examen F&iacute;sico
-        </div>
-        <div class="wizard-step" onclick="goToStep(4)" id="step4">
             <i class="fas fa-history"></i> Antecedentes
         </div>
+        <div class="wizard-step" onclick="goToStep(3)" id="step3">
+            <i class="fas fa-running"></i> H&aacute;bitos
+        </div>
+        <div class="wizard-step" onclick="goToStep(4)" id="step4">
+            <i class="fas fa-stethoscope"></i> Exploraci&oacute;n F&iacute;sica
+        </div>
         <div class="wizard-step" onclick="goToStep(5)" id="step5">
+            <i class="fas fa-venus-mars"></i> Gineco / Genitourin.
+        </div>
+        <div class="wizard-step" onclick="goToStep(6)" id="step6">
             <i class="fas fa-clipboard-check"></i> Diagn&oacute;stico
         </div>
     </div>
+
+    <div class="wizard-content">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PASO 1 — DATOS GENERALES (igual a hoja 1 del GCI-FOR-SYM-45)
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="step-panel active" id="panel1">
+            <h3 class="section-title">Datos Generales del Paciente</h3>
+            <div class="form-grid">
+
+                <!-- Fila: Lugar de Evaluación / Fecha / Cargo -->
+                <div class="form-group">
+                    <label>Lugar de Evaluaci&oacute;n</label>
+                    <input type="text" id="txtLugarEvaluacion" class="form-control" placeholder="Ej. Monterrey, N.L. / Obra Torre Centro" />
+                </div>
+                <div class="form-group">
+                    <label>Fecha del Examen</label>
+                    <input type="date" id="txtFechaExamen" class="form-control"
+                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="form-group">
+                    <label>Cargo</label>
+                    <input type="text" id="txtPuesto" class="form-control" readonly />
+                </div>
+
+                <!-- Fila: Nombre / No. IMSS -->
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="txtNombre" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label>No. IMSS</label>
+                    <input type="text" id="txtNss" class="form-control" maxlength="11" placeholder="11 d&iacute;gitos" />
+                </div>
+
+                <!-- Fila: Fecha Nac / Edad / Lugar Nac -->
+                <div class="form-group">
+                    <label>Fecha de Nacimiento</label>
+                    <input type="date" id="txtFechaNacimiento" class="form-control" onchange="calcularEdad()" />
+                </div>
+                <div class="form-group">
+                    <label>Edad (a&ntilde;os)</label>
+                    <input type="text" id="txtEdad" class="form-control" readonly />
+                </div>
+                <div class="form-group full-width">
+                    <label>Lugar de Nacimiento</label>
+                    <input type="text" id="txtLugarNacimiento" class="form-control" placeholder="Ciudad, Estado" />
+                </div>
+
+                <!-- Estado Civil / Mano Dominante / Teléfono -->
+                <div class="form-group">
+                    <label>Estado Civil</label>
+                    <select id="ddlEstadoCivil" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        <option value="Soltero">Soltero(a)</option>
+                        <option value="Casado">Casado(a)</option>
+                        <option value="Union Libre">Uni&oacute;n Libre</option>
+                        <option value="Separado">Separado(a)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mano Dominante</label>
+                    <select id="ddlManoDominante" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        <option value="Diestro">Diestro(a)</option>
+                        <option value="Zurdo">Zurdo(a)</option>
+                        <option value="Ambidextro">Ambidextro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tel&eacute;fono</label>
+                    <input type="tel" id="txtTelefono" class="form-control" placeholder="10 d&iacute;gitos" maxlength="15" />
+                </div>
+                <div class="form-group">
+                    <label>&Aacute;rea / Proyecto</label>
+                    <input type="text" id="txtArea" class="form-control" readonly />
+                </div>
+
+                <!-- Domicilio -->
+                <div class="form-group full-width">
+                    <label>Domicilio</label>
+                    <textarea id="txtDomicilio" class="form-control" rows="2" readonly></textarea>
+                </div>
+
+                <!-- Nivel Académico / Profesión -->
+                <div class="form-group">
+                    <label>Nivel Acad&eacute;mico</label>
+                    <select id="ddlEscolaridad" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        <option value="Primaria">Primaria</option>
+                        <option value="Secundaria">Secundaria</option>
+                        <option value="Media Superior">Media Sup.</option>
+                        <option value="Universidad">Universidad</option>
+                        <option value="Posgrado">Posgrado</option>
+                        <option value="Técnico">T&eacute;cnico</option>
+                        <option value="Ninguno">Ninguno</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Profesi&oacute;n</label>
+                    <input type="text" id="txtProfesion" class="form-control" />
+                </div>
+
+                <!-- Examen de / Sexo / Tipo de Sangre -->
+                <div class="form-group">
+                    <label>Examen de</label>
+                    <input type="text" id="txtExamenDe" class="form-control" readonly
+                           value="@(ViewBag.TipoServicio == 2 ? "Periódico" : "Ingreso")" />
+                </div>
+                <div class="form-group">
+                    <label>Sexo</label>
+                    <select id="ddlSexo" class="form-control" disabled>
+                        <option value="">-- Seleccione --</option>
+                        <option value="M">Masculino (Masc)</option>
+                        <option value="F">Femenino (Fem)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Sangre</label>
+                    <select id="ddlTipoSangre" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                    </select>
+                </div>
+                <!-- Empresa (oculta pero necesaria para guardar) -->
+                <div class="form-group" style="display:none;">
+                    <input type="text" id="txtEmpresa" class="form-control" readonly />
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PASO 2 — ANTECEDENTES
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="step-panel" id="panel2">
+
+            <h3 class="section-title">Antecedente Heredo Familiares</h3>
+            <table class="exam-grid" style="margin-bottom:15px;">
+                <thead><tr><th>Condici&oacute;n</th><th>Si/No</th><th>Detalles</th></tr></thead>
+                <tbody id="tbAntecedentesHF"><!-- JS generated --></tbody>
+            </table>
+
+            <h3 class="section-title">Antecedentes Personales Patol&oacute;gicos</h3>
+            <table class="exam-grid" style="margin-bottom:15px;">
+                <thead><tr><th>Condici&oacute;n</th><th>Si/No</th><th>Detalles</th></tr></thead>
+                <tbody id="tbAntecedentesPP"><!-- JS generated --></tbody>
+            </table>
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Observaciones (Antecedentes Patol&oacute;gicos)</label>
+                    <textarea id="txtAlergias" class="form-control" rows="2" placeholder="Observaciones generales, alergias, otros..."></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>Antecedentes Personales No Patol&oacute;gicos</label>
+                    <textarea id="txtAparatosSistemas" class="form-control" rows="2" placeholder="Vivienda, servicios, condiciones generales de vida..."></textarea>
+                </div>
+            </div>
+
+            <!-- Antecedentes Laborales (visible para todos) -->
+            <div id="secLaborales" style="margin-top:15px;">
+
+                <h3 class="section-title">Antecedentes Laborales</h3>
+                <table class="exam-grid" style="margin-bottom:10px;">
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Tiempo</th>
+                            <th>Puesto</th>
+                            <th>Agentes Expuestos</th>
+                            <th>Accidentes</th>
+                            <th style="width:40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbAntecedentesLaborales"><!-- JS generated --></tbody>
+                </table>
+                <button class="btn-primary" style="padding:5px 10px; font-size:0.8rem;" onclick="addLaboralRow()">+ A&ntilde;adir Fila</button>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PASO 3 — HÁBITOS + VACUNAS
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="step-panel" id="panel3">
+            <h3 class="section-title">H&aacute;bitos</h3>
+            <div class="form-grid">
+                <!-- Tabaquismo -->
+                <div class="form-group">
+                    <label class="check-item">
+                        <input type="checkbox" id="chkFuma" onchange="$('#divFuma').toggle(this.checked)" />
+                        Fuma
+                    </label>
+                    <div id="divFuma" style="display:none; margin-top:8px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">
+                            <div class="form-group" style="flex:1; min-width:120px;">
+                                <label>A&ntilde;os de h&aacute;bito</label>
+                                <input type="number" id="txtAnosFuma" class="form-control val-num" />
+                            </div>
+                            <div class="form-group" style="flex:1; min-width:120px;">
+                                <label>No. de Cigarros/d&iacute;a</label>
+                                <input type="number" id="txtCigarrillos" class="form-control val-num" />
+                            </div>
+                            <div class="form-group" style="flex:0 0 auto; padding-top:22px;">
+                                <label class="check-item"><input type="checkbox" id="chkExFumador" /> EX</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drogas -->
+                <div class="form-group">
+                    <label class="check-item">
+                        <input type="checkbox" id="chkDrogas" onchange="$('#divDrogas').toggle(this.checked)" />
+                        Drogas
+                    </label>
+                    <div id="divDrogas" style="display:none; margin-top:8px;">
+                        <label>Tipo de droga</label>
+                        <input type="text" id="txtTipoDrogas" class="form-control val-text" />
+                    </div>
+                </div>
+
+                <!-- Alcohol -->
+                <div class="form-group">
+                    <label class="check-item">
+                        <input type="checkbox" id="chkAlcohol" onchange="$('#divAlcohol').toggle(this.checked)" />
+                        Alcohol
+                    </label>
+                    <div id="divAlcohol" style="display:none; margin-top:8px;">
+                        <label>Frecuencia</label>
+                        <select id="txtFrecAlcohol" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Ocasional">Ocasional</option>
+                            <option value="Social">Social</option>
+                            <option value="Semanal">Semanal</option>
+                            <option value="Frecuente">Frecuente</option>
+                            <option value="Diario">Diario</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Deporte -->
+                <div class="form-group">
+                    <label class="check-item">
+                        <input type="checkbox" id="chkDeporte" />
+                        Deporte
+                    </label>
+                </div>
+
+                <!-- Tiempo Libre -->
+                <div class="form-group full-width">
+                    <label>Tiempo Libre</label>
+                    <textarea id="txtTiempoLibre" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+
+            <h3 class="section-title" style="margin-top:10px;">Vacunas</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>T&eacute;tanos (Dosis)</label>
+                    <select id="ddlTetanos" class="form-control">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Hepatitis (Dosis)</label>
+                    <select id="ddlHepatitis" class="form-control">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="form-group" style="padding-top:22px;">
+                    <label class="check-item">
+                        <input type="checkbox" id="chkH1N1" /> H1N1 Aplicada
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PASO 4 — EXPLORACIÓN FÍSICA
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="step-panel" id="panel4">
+            <h3 class="section-title">Signos Vitales y Somatometr&iacute;a</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>TA (mmHg) Sist&oacute;lica</label>
+                    <input type="number" id="txtSistolica" class="form-control val-num" placeholder="120" />
+                </div>
+                <div class="form-group">
+                    <label>TA (mmHg) Diast&oacute;lica</label>
+                    <input type="number" id="txtDiastolica" class="form-control val-num" placeholder="80" />
+                </div>
+                <div class="form-group">
+                    <label>FC (x min)</label>
+                    <input type="number" id="txtFrecCardiaca" class="form-control val-num" placeholder="72" />
+                </div>
+                <div class="form-group">
+                    <label>FR (x min)</label>
+                    <input type="number" id="txtFrecRespiratoria" class="form-control val-num" placeholder="16" />
+                </div>
+                <div class="form-group">
+                    <label>Peso (kgs)</label>
+                    <input type="text" id="txtPeso" class="form-control val-dec" onchange="calcImc()" />
+                </div>
+                <div class="form-group">
+                    <label>Estatura (m)</label>
+                    <input type="text" id="txtEstatura" class="form-control val-dec" onchange="calcImc()" />
+                </div>
+                <div class="form-group">
+                    <label>IMC</label>
+                    <input type="text" id="txtImc" class="form-control" readonly />
+                </div>
+                <div class="form-group">
+                    <label>Temp (&deg;C)</label>
+                    <input type="text" id="txtTemperatura" class="form-control val-dec" placeholder="36.5" />
+                </div>
+                <div class="form-group full-width">
+                    <label>S&iacute;ntomas</label>
+                    <textarea id="txtSintomas" class="form-control" rows="2" placeholder="S&iacute;ntomas referidos por el paciente..."></textarea>
+                </div>
+            </div>
+
+            <h3 class="section-title" style="margin-top:10px;">Exploraci&oacute;n F&iacute;sica por Sistemas</h3>
+            <table class="exam-grid">
+                <thead>
+                    <tr>
+                        <th style="width:30%;">Sistema</th>
+                        <th style="width:10%; text-align:center;">Normal</th>
+                        <th style="width:10%; text-align:center;">Anormal</th>
+                        <th>Descripci&oacute;n de Hallazgos</th>
+                    </tr>
+                </thead>
+                <tbody id="tbExamenFisico"><!-- JS generated --></tbody>
+            </table>
+            <div class="form-group" style="margin-top:10px;">
+                <label>Aparatos y Sistemas (observaci&oacute;n general)</label>
+                <textarea id="txtObservaciones" class="form-control" rows="2"></textarea>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PASO 5 — GINECO-OBSTÉTRICOS / GENITOURINARIO MASCULINO
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="step-panel" id="panel5">
+            <!-- Sección Femenina -->
+            <div id="secGineco" style="display:none;">
+                <h3 class="section-title">Gineco-Obst&eacute;tricos</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>Menarca (Edad)</label><input type="number" id="txtMenarca" class="form-control val-num" /></div>
+                    <div class="form-group">
+                        <label>Ciclos</label>
+                        <select id="txtCiclos" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Regular">Regular (21-35 d&iacute;as)</option>
+                            <option value="Irregular">Irregular</option>
+                            <option value="Oligomenorrea">Oligomenorrea (+35 d&iacute;as)</option>
+                            <option value="Polimenorrea">Polimenorrea (-21 d&iacute;as)</option>
+                            <option value="Amenorrea">Amenorrea</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>FUM</label><input type="date" id="txtFum" class="form-control" /></div>
+                    <div class="form-group full-width"><label>No. Hijos / Edades</label><input type="text" id="txtNoHijosEdades" class="form-control" placeholder="Ej. 2 hijos (5 y 8 a&ntilde;os)" /></div>
+                    <div class="form-group">
+                        <label>Planificaci&oacute;n Familiar</label>
+                        <select id="txtPlanificacion" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Ninguno">Ninguno</option>
+                            <option value="Hormonal oral">Hormonal oral</option>
+                            <option value="Inyectable">Inyectable</option>
+                            <option value="DIU">DIU</option>
+                            <option value="Implante">Implante subd&eacute;rmico</option>
+                            <option value="Cond&oacute;n">Cond&oacute;n</option>
+                            <option value="Ligadura">Ligadura de trompas</option>
+                            <option value="Vasectom&iacute;a">Vasectom&iacute;a</option>
+                            <option value="Ritmo">M&eacute;todo del ritmo</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>IVSA (Edad inicio vida sexual)</label><input type="number" id="txtIvsaFem" class="form-control val-num" /></div>
+                    <div class="form-group"><label>Cit. Vag. (&uacute;ltima cita vaginal)</label><input type="date" id="txtPap" class="form-control" /></div>
+                    <div class="form-group"><label>ETS</label><input type="text" id="txtEts" class="form-control" /></div>
+                    <div class="form-group"><label>Gestas</label><input type="number" id="txtGestas" class="form-control val-num" /></div>
+                    <div class="form-group"><label>P (Partos)</label><input type="number" id="txtPartos" class="form-control val-num" /></div>
+                    <div class="form-group"><label>A (Abortos)</label><input type="number" id="txtAbortos" class="form-control val-num" /></div>
+                    <div class="form-group"><label>C (Ces&aacute;reas)</label><input type="number" id="txtCesareas" class="form-control val-num" /></div>
+                </div>
+                <div id="formFem"></div>
+            </div>
+
+            <!-- Sección Masculina -->
+            <div id="secGenito" style="display:none;">
+                <h3 class="section-title">Antecedentes de Aparato Genitourinario Masculino</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Examen Cl&iacute;nico</label>
+                        <div class="check-grid" style="grid-template-columns: 1fr 1fr;">
+                            <label class="check-item"><input type="checkbox" id="chkPrepucio" /> Prepucio retr&aacute;ctil</label>
+                            <label class="check-item"><input type="checkbox" id="chkHidrocele" /> Hidrocele</label>
+                            <label class="check-item"><input type="checkbox" id="chkTesticulos" /> Test&iacute;culos Descendidos</label>
+                            <label class="check-item"><input type="checkbox" id="chkHernia" /> Hernia</label>
+                            <label class="check-item"><input type="checkbox" id="chkFimosis" /> Fimosis</label>
+                            <label class="check-item"><input type="checkbox" id="chkCriptorquidia" /> Criptorquidia</label>
+                            <label class="check-item"><input type="checkbox" id="chkVaricocele" /> Varicocele</label>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>No. de Hijos / Edades</label><input type="text" id="txtTieneHijos" class="form-control" /></div>
+                    <div class="form-group"><label>IVSA (Edad inicio vida sexual)</label><input type="number" id="txtIvsaMasc" class="form-control val-num" /></div>
+                    <div class="form-group"><label>PSA (Ant&iacute;geno Prost&aacute;tico)</label><input type="text" id="txtPsa" class="form-control" /></div>
+                    <div class="form-group"><label>MPF (M&eacute;todo Planificaci&oacute;n Familiar)</label><input type="text" id="txtMpf" class="form-control" /></div>
+                    <div class="form-group"><label>IVSA Femenino (oculto)</label><input type="text" id="txtIvsaFem" class="form-control" style="display:none;" /></div>
+                </div>
+                <div id="formMasc"></div>
+            </div>
+
+            <p id="msgSexoPendiente" style="color:#999; font-style:italic; margin-top:20px; display:none;">
+                <i class="fas fa-info-circle"></i> El sexo del paciente se determinar&aacute; autom&aacute;ticamente al cargar los datos.
+            </p>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             PASO 6 — COLUMNA VERTEBRAL + DIAGNÓSTICO
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="step-panel" id="panel6">
+            <h3 class="section-title">Columna Vertebral</h3>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:0.9rem;">
+                <thead>
+                    <tr style="background:#f0f4f8;">
+                        <th style="border:1px solid #ddd; padding:8px;">Curva</th>
+                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Cervical</th>
+                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Dorsal</th>
+                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Lumbar</th>
+                    </tr>
+                    <tr style="background:#e8eef4; font-size:0.78rem;">
+                        <th style="border:1px solid #ddd; padding:4px 8px;"></th>
+                        <th style="border:1px solid #ddd; padding:4px; text-align:center;">N: Normal &nbsp; A: Aumentada &nbsp; D: Disminuida</th>
+                        <th style="border:1px solid #ddd; padding:4px; text-align:center;">N / A / D</th>
+                        <th style="border:1px solid #ddd; padding:4px; text-align:center;">N / A / D</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px; font-weight:600;">LORDOSIS</td>
+                        <td style="border:1px solid #ddd; padding:6px;">
+                            <select id="ddlLordosisCervical" class="form-control" style="padding:5px;">
+                                <option value="0">Sin dato</option><option value="1">Normal</option><option value="2">Aumentada</option><option value="3">Disminuida</option>
+                            </select>
+                        </td>
+                        <td style="border:1px solid #ddd; padding:6px;">
+                            <select id="ddlLordosisDorsal" class="form-control" style="padding:5px;">
+                                <option value="0">Sin dato</option><option value="1">Normal</option><option value="2">Aumentada</option><option value="3">Disminuida</option>
+                            </select>
+                        </td>
+                        <td style="border:1px solid #ddd; padding:6px;">
+                            <select id="ddlLordosisLumbar" class="form-control" style="padding:5px;">
+                                <option value="0">Sin dato</option><option value="1">Normal</option><option value="2">Aumentada</option><option value="3">Disminuida</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px; font-weight:600;">CIFOSIS</td>
+                        <td style="border:1px solid #ddd; padding:6px;">
+                            <select id="ddlCifosisCervical" class="form-control" style="padding:5px;">
+                                <option value="0">Sin dato</option><option value="1">Normal</option><option value="2">Aumentada</option><option value="3">Disminuida</option>
+                            </select>
+                        </td>
+                        <td style="border:1px solid #ddd; padding:6px;">
+                            <select id="ddlCifosisDorsal" class="form-control" style="padding:5px;">
+                                <option value="0">Sin dato</option><option value="1">Normal</option><option value="2">Aumentada</option><option value="3">Disminuida</option>
+                            </select>
+                        </td>
+                        <td style="border:1px solid #ddd; padding:6px;">
+                            <select id="ddlCifosisLumbar" class="form-control" style="padding:5px;">
+                                <option value="0">Sin dato</option><option value="1">Normal</option><option value="2">Aumentada</option><option value="3">Disminuida</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:0.9rem;">
+                <thead>
+                    <tr style="background:#f0f4f8;">
+                        <th style="border:1px solid #ddd; padding:8px;">Escoliosis</th>
+                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Dorsal</th>
+                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Lumbar</th>
+                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Doble</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px; font-weight:600;">Derecha</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDorsalDer" /></td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscLumbarDer" /></td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDoboDer" /></td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px; font-weight:600;">Izquierda</td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDorsalIzq" /></td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscLumbarIzq" /></td>
+                        <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDoboIzq" /></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="form-group" style="margin-bottom:20px;">
+                <label>Observaciones Columna</label>
+                <textarea id="txtObsColumna" class="form-control" rows="2"></textarea>
+            </div>
+
+            <h3 class="section-title">Diagn&oacute;stico</h3>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>DIAGN&Oacute;STICO</label>
+                    <textarea id="txtRecomendaciones" class="form-control" rows="3" placeholder="Diagn&oacute;stico m&eacute;dico..."></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>RESULTADO</label>
+                    <select id="ddlAptitud" class="form-control">
+                        <option value="">-- Seleccione --</option>
+                        <option value="1">APTO</option>
+                        <option value="2">CON RESTRICCIONES</option>
+                        <option value="3">NO APTO</option>
+                        <option value="4">Pendiente de Evaluaci&oacute;n</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>RECOMENDACIONES</label>
+                    <textarea id="txtSintomas" class="form-control" rows="3" placeholder="Recomendaciones al trabajador..."></textarea>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /wizard-content -->
+
+    <div class="actions">
+        <button class="btn-nav btn-prev" onclick="prevStep()" id="btnPrev" style="visibility:hidden;">Anterior</button>
+        <button class="btn-nav btn-next" onclick="nextStep()" id="btnNext">Siguiente</button>
+        <button class="btn-nav btn-finish" onclick="saveExam()" id="btnFinish" style="display:none;">Guardar Examen</button>
+    </div>
+</div>
+
 
     <div class="wizard-content">
         <!-- Paso 1: Datos Generales -->
@@ -665,7 +1221,7 @@
 @section scripts {
 <script>
     var currentStep = 1;
-    var totalSteps = 5;
+    var totalSteps = 6;
     var cambiosSinGuardar = false;
     var idOrden = @idOrden;
     var currentSexo = '';
@@ -684,9 +1240,11 @@
     ];
     
     var examSystems = [
-        "Cabeza", "Ojos", "O\u00eddos", "Nariz", "Boca/Garganta", 
-        "Cuello", "T\u00f3rax / Pulmones", "Coraz\u00f3n", "Abdomen", 
-        "Extremidades Sup.", "Extremidades Inf.", "Columna Vertebral", "Piel / Mucosas", "Neurol\u00f3gico"
+        "1. Cabeza", "2. Ojos", "3. Nariz", "4. Boca",
+        "5. Dentadura", "6. Faringe", "7. Am\u00edgdalas", "8. Otoscopia",
+        "9. Cuello", "10. Columna-espalda", "11. Extremidades", "12. Piel",
+        "13. Ap. Respiratorio", "14. Cardiaco", "15. Vascular perif\u00e9rico",
+        "16. Abdomen", "17. Neurol\u00f3gico", "18. Genitales", "19. Hernias", "20. Otro"
     ];
 
     $(document).ready(function() {
@@ -818,15 +1376,23 @@
             if (!isChecked) $row.find('.det-ant').val('');
         });
 
-        // Generate Physical Exam Rows
+        // Generate Physical Exam Rows (con columna Normal + Anormal)
         var $tbEx = $('#tbExamenFisico');
         examSystems.forEach(function(sys) {
             var row = `<tr>
                 <td>${sys}</td>
-                <td><input type="checkbox" class="chk-norm" checked data-sys="${sys}" /></td>
-                <td><input type="text" class="form-control hall-ex" placeholder="Observaciones" /></td>
+                <td style="text-align:center;"><input type="checkbox" class="chk-norm" checked data-sys="${sys}" /></td>
+                <td style="text-align:center;"><input type="checkbox" class="chk-anorm" data-sys="${sys}" /></td>
+                <td><input type="text" class="form-control hall-ex" placeholder="Descripci\u00f3n de hallazgos" /></td>
             </tr>`;
             $tbEx.append(row);
+        });
+        // Alternar Normal/Anormal mutuamente excluyentes
+        $tbEx.on('change', '.chk-norm', function() {
+            if(this.checked) $(this).closest('tr').find('.chk-anorm').prop('checked', false);
+        });
+        $tbEx.on('change', '.chk-anorm', function() {
+            if(this.checked) $(this).closest('tr').find('.chk-norm').prop('checked', false);
         });
         
         // Populate one empty row for laborales by default
@@ -972,9 +1538,175 @@
         window.scrollTo(0, 0);
     }
 
+
+    // ─── Helpers de validación ───────────────────────────────────────────
+    function markError($el, msg) {
+        $el.css({ 'border-color': '#e74c3c', 'background': '#fff8f8' });
+        if (!$el.next('.val-msg').length) {
+            $el.after('<span class="val-msg" style="color:#e74c3c; font-size:0.75rem; margin-top:3px; display:block;">' + msg + '</span>');
+        }
+    }
+    function clearError($el) {
+        $el.css({ 'border-color': '', 'background': '' });
+        $el.next('.val-msg').remove();
+    }
+    function isOnlyLetters(val) { return /^[a-zA-ZÀ-ÿ\s]+$/.test(val); }
+    function isOnlyNumbers(val) { return /^\d+$/.test(val); }
+    function isDecimal(val)     { return /^\d+(\.\d+)?$/.test(val); }
+
+    // Limpiar errores de un panel al entrar
+    function clearPanelErrors(panelId) {
+        $('#panel' + panelId + ' .val-msg').remove();
+        $('#panel' + panelId + ' .form-control').css({ 'border-color': '', 'background': '' });
+    }
+
+    // ─── Validación por paso ──────────────────────────────────────────────
+    function validateStep(step) {
+        clearPanelErrors(step);
+        var ok = true;
+
+        if (step === 1) {
+            // Nombre (readonly pero debe estar cargado)
+            var $nom = $('#txtNombre');
+            if (!$nom.val().trim()) { markError($nom, 'El nombre es obligatorio.'); ok = false; }
+
+            // Fecha de Nacimiento
+            var $fec = $('#txtFechaNacimiento');
+            if (!$fec.val()) { markError($fec, 'Ingrese la fecha de nacimiento.'); ok = false; }
+
+            // Estado Civil
+            var $ec = $('#ddlEstadoCivil');
+            if (!$ec.val()) { markError($ec, 'Seleccione el estado civil.'); ok = false; }
+
+            // Sexo
+            var $sx = $('#ddlSexo');
+            if (!$sx.val()) { markError($sx, 'Seleccione el sexo.'); ok = false; }
+
+            // No. IMSS — si se llenó debe ser 11 dígitos numéricos
+            var nss = $('#txtNss').val().trim();
+            if (nss && !(/^\d{11}$/.test(nss))) {
+                markError($('#txtNss'), 'El No. IMSS debe tener exactamente 11 dígitos numéricos.');
+                ok = false;
+            }
+
+            // Teléfono — si se llenó debe ser numérico 10 dígitos
+            var tel = $('#txtTelefono').val().trim();
+            if (tel && !(/^\d{10,15}$/.test(tel))) {
+                markError($('#txtTelefono'), 'El teléfono debe ser numérico (10-15 dígitos).');
+                ok = false;
+            }
+
+            // Lugar de Evaluación — requerido
+            var $lug = $('#txtLugarEvaluacion');
+            if (!$lug.val().trim()) { markError($lug, 'Ingrese el lugar de evaluación.'); ok = false; }
+        }
+
+        if (step === 2) {
+            // Sin campos obligatorios — Antecedentes es informativo
+            // Validar que los textos en la tabla laborales sean texto libre (sin restricción)
+        }
+
+        if (step === 3) {
+            // Hábitos: si fuma, años de hábito debe ser numérico
+            if ($('#chkFuma').is(':checked')) {
+                var anos = $('#txtAnosFuma').val().trim();
+                if (anos && !isOnlyNumbers(anos)) {
+                    markError($('#txtAnosFuma'), 'Solo se permiten números.');
+                    ok = false;
+                }
+                var cig = $('#txtCigarrillos').val().trim();
+                if (cig && !isOnlyNumbers(cig)) {
+                    markError($('#txtCigarrillos'), 'Solo se permiten números.');
+                    ok = false;
+                }
+            }
+        }
+
+        if (step === 4) {
+            // Signos vitales — todos obligatorios y numéricos
+            var vitals = [
+                { id: '#txtSistolica',       label: 'TA Sistólica',    type: 'num' },
+                { id: '#txtDiastolica',      label: 'TA Diastólica',   type: 'num' },
+                { id: '#txtFrecCardiaca',    label: 'FC',               type: 'num' },
+                { id: '#txtFrecRespiratoria',label: 'FR',               type: 'num' },
+                { id: '#txtPeso',            label: 'Peso',             type: 'dec' },
+                { id: '#txtEstatura',        label: 'Estatura',         type: 'dec' }
+            ];
+            vitals.forEach(function(v) {
+                var $el = $(v.id);
+                var val = $el.val().trim();
+                if (!val) {
+                    markError($el, v.label + ' es obligatorio.');
+                    ok = false;
+                } else if (v.type === 'num' && !isOnlyNumbers(val)) {
+                    markError($el, 'Solo se permiten números enteros.');
+                    ok = false;
+                } else if (v.type === 'dec' && !isDecimal(val)) {
+                    markError($el, 'Solo se permiten números (use punto decimal).');
+                    ok = false;
+                }
+            });
+
+            // Temperatura — opcional pero si se llena debe ser decimal
+            var temp = $('#txtTemperatura').val().trim();
+            if (temp && !isDecimal(temp)) {
+                markError($('#txtTemperatura'), 'Solo se permiten números decimales (ej. 36.5).');
+                ok = false;
+            }
+        }
+
+        if (step === 5) {
+            // Si es femenino: validar campos numéricos
+            if (currentSexo === 'F') {
+                var menarca = $('#txtMenarca').val().trim();
+                if (menarca && !isOnlyNumbers(menarca)) {
+                    markError($('#txtMenarca'), 'Solo se permiten números.');
+                    ok = false;
+                }
+                var ivsaF = $('#txtIvsaFem').val().trim();
+                if (ivsaF && !isOnlyNumbers(ivsaF)) {
+                    markError($('#txtIvsaFem'), 'Solo se permiten números.');
+                    ok = false;
+                }
+                ['#txtGestas','#txtPartos','#txtAbortos','#txtCesareas'].forEach(function(id) {
+                    var v = $(id).val().trim();
+                    if (v && !isOnlyNumbers(v)) {
+                        markError($(id), 'Solo se permiten números.');
+                        ok = false;
+                    }
+                });
+            }
+            // Si es masculino: IVSA numérico
+            if (currentSexo === 'M') {
+                var ivsaM = $('#txtIvsaMasc').val().trim();
+                if (ivsaM && !isOnlyNumbers(ivsaM)) {
+                    markError($('#txtIvsaMasc'), 'Solo se permiten números.');
+                    ok = false;
+                }
+            }
+        }
+
+        if (step === 6) {
+            // RESULTADO obligatorio
+            var $apt = $('#ddlAptitud');
+            if (!$apt.val()) { markError($apt, 'Debe seleccionar el RESULTADO.'); ok = false; }
+        }
+
+        if (!ok) {
+            // Scroll al primer error visible
+            var $first = $('#panel' + step + ' .val-msg').first();
+            if ($first.length) {
+                $('html, body').animate({ scrollTop: $first.offset().top - 120 }, 300);
+            }
+        }
+        return ok;
+    }
+
     function nextStep() {
+        if (!validateStep(currentStep)) return; // Bloquear si hay errores
         if(currentStep < totalSteps) goToStep(currentStep + 1);
     }
+
 
     function prevStep() {
         if(currentStep > 1) goToStep(currentStep - 1);

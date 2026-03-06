@@ -137,12 +137,21 @@
     .pm-btn-close:hover { background: rgba(255,255,255,0.3); }
     .print-iframe { flex: 1; border: none; width: 100%; }
 
+    /* ══════════ Spinner de carga ══════════ */
+    .loading-spinner-row td { text-align:center; padding: 40px !important; }
+    .gci-spinner { display: inline-block; width: 38px; height: 38px; border: 4px solid #e0e7ef; border-top-color: #1a5276; border-radius: 50%; animation: gciSpin 0.75s linear infinite; margin-bottom: 10px; }
+    @@keyframes gciSpin { to { transform: rotate(360deg); } }
+    .gci-loading-text { font-size: 0.85rem; color: #666; font-weight: 500; display: block; }
+
     /* ══════════ Paginación ══════════ */
-    .paginacion { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 0; }
-    .paginacion button { padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .paginacion { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 14px 0; flex-wrap: wrap; }
+    .paginacion button { padding: 5px 11px; font-size: 0.8rem; font-weight: 600; border: 1px solid #d0d0d0; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-family: inherit; transition: all 0.15s; min-width: 32px; }
     .paginacion button:hover:not(:disabled) { background: #2471a3; color: #fff; border-color: #2471a3; }
     .paginacion button:disabled { opacity: 0.4; cursor: default; }
-    .paginacion .pag-info { font-size: 0.82rem; color: #555; font-weight: 500; }
+    .paginacion button.pag-active { background: #1a5276; color: #fff; border-color: #1a5276; pointer-events: none; }
+    .paginacion .pag-dots { font-size: 0.85rem; color: #999; padding: 5px 4px; }
+    .paginacion .pag-info { font-size: 0.78rem; color: #555; font-weight: 500; white-space: nowrap; }
+    .resultados-info { font-size: 0.75rem; color: #888; margin-bottom: 6px; }
 
     /* Menu Contextual */
     .ctx-menu { 
@@ -197,11 +206,9 @@
             <div class="filtro-group">
                 <label>Estatus</label>
                 <select id="filtroEstatus">
-                    <option value="-1">Activas (Pend. + En Proceso)</option>
-                    <option value="1">Pendiente</option>
-                    <option value="2">En Proceso</option>
-                    <option value="3">Completada</option>
                     <option value="">Todas</option>
+                    <option value="1">Pendiente</option>
+                    <option value="3">Completada</option>
                 </select>
             </div>
             <div class="filtro-group">
@@ -223,7 +230,17 @@
     <div class="sm-panel">
         <div class="sp-title">
             <span><i class="fas fa-inbox"></i> Bandeja de Solicitudes</span>
-            <button class="btn-gci btn-gci-secondary btn-gci-sm" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">Mostrar:
+                    <select id="selectTamanoPagina" onchange="onCambioTamanoPagina()" style="margin-left:5px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem;">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select> por página
+                </label>
+                <button class="btn-gci btn-gci-secondary btn-gci-sm" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            </div>
         </div>
         <div class="resultados-info" id="resultsInfo"></div>
         <table class="sm-table">
@@ -397,16 +414,21 @@
     });
 
     // Variables globales
-    var registrosPorPagina = 10;
+    var registrosPorPagina = 25; // default — lo controla el selector
     var paginaActual = 1;
     var totalRegistrosGlobal = 0;
     var currentOrdenId = null;
 
-    // Carga inicial combinada: catálogos y primera página con filtro 'Activas' por defecto
+    function onCambioTamanoPagina() {
+        registrosPorPagina = parseInt($('#selectTamanoPagina').val());
+        paginaActual = 1;
+        aplicarFiltros();
+    }
+
+    // Carga inicial: muestra TODAS las solicitudes por defecto
     function cargarInicial() {
-        // Pre-seleccionar 'Activas' en el filtro de estatus
-        $('#filtroEstatus').val('-1');
-        // Cargar primera página con ese filtro
+        // Sin filtro de estatus — se muestran todas
+        $('#filtroEstatus').val('');
         aplicarFiltros(true);
     }
 
@@ -433,7 +455,9 @@
             fechaHasta: $('#filtroFechaHasta').val() || null
         };
 
-        $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data"><i class="fas fa-spinner fa-spin"></i> Cargando datos...</td></tr>');
+        $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="9"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
+        $('#paginacionControles').empty();
+        $('#resultsInfo').text('');
 
         $.ajax({
             url: '@Url.Action("CargarPagina", "ServicioMedico")',
@@ -476,10 +500,20 @@
             var html = [];
             for (var i = 0; i < paginaDatos.length; i++) {
                 var s = paginaDatos[i];
-                var modUpper = (s.Modalidad || '').toUpperCase();
-                var badgeMod = '<span class="badge-sm badge-ingreso">' + s.Modalidad + '</span>';
-                if (modUpper.indexOf('PERI') >= 0) badgeMod = '<span class="badge-sm badge-periodico">' + s.Modalidad + '</span>';
-                else if (modUpper.indexOf('ANTIDOPING') >= 0) badgeMod = '<span class="badge-sm" style="background:#d35400; color:#fff;">' + s.Modalidad + '</span>';
+                // Badge de modalidad inteligente:
+                // - ANTIDOPING  → naranja   (tipo servicio contiene 'antidoping')
+                // - PERIÓDICO   → morado    (tiene No. Empleado en sistema)
+                // - INGRESO     → verde     (candidato sin número, nuevo en sistema)
+                var tipoUpper = (s.TipoServicioDesc || '').toUpperCase();
+                var hasEmp = s.FkEmpleado && s.FkEmpleado > 0;
+                var badgeMod;
+                if (tipoUpper.indexOf('ANTIDOPING') >= 0) {
+                    badgeMod = '<span class="badge-sm" style="background:#d35400;color:#fff;">ANTIDOPING</span>';
+                } else if (hasEmp) {
+                    badgeMod = '<span class="badge-sm badge-periodico">PERIÓDICO</span>';
+                } else {
+                    badgeMod = '<span class="badge-sm badge-ingreso">INGRESO</span>';
+                }
 
                 var estLow = (s.EstatusDesc || '').toLowerCase();
                 var badgeEst = 'badge-pendiente';
@@ -512,10 +546,8 @@
             $('#resultsInfo').text('0 resultados.');
         }
 
-        // Paginación controles
-        var pagHtml = '<button ' + (paginaActual <= 1 ? 'disabled' : '') + ' onclick="cambiarPagina(-1)">&laquo; Anterior</button>' +
-                      '<span class="pag-info">P\u00e1gina ' + paginaActual + ' de ' + totalPaginas + '</span>' +
-                      '<button ' + (paginaActual >= totalPaginas ? 'disabled' : '') + ' onclick="cambiarPagina(1)">Siguiente &raquo;</button>';
+        // Paginación con numeración inteligente
+        var pagHtml = buildPaginacion(paginaActual, totalPaginas);
         $('#paginacionControles').html(pagHtml);
 
         // Delegated row click
@@ -523,6 +555,43 @@
             var pk = $(this).data('pk');
             if(pk) verDetalle(pk);
         });
+    }
+
+    function buildPaginacion(actual, total) {
+        if (total <= 1) return '';
+        var html = [];
+        html.push('<button ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPagina(' + (actual-1) + ')" title="Anterior">&laquo;</button>');
+
+        var rango = [];
+        if (total <= 7) {
+            for (var i = 1; i <= total; i++) rango.push(i);
+        } else {
+            rango.push(1);
+            if (actual > 3) rango.push('...');
+            for (var p = Math.max(2, actual-1); p <= Math.min(total-1, actual+1); p++) rango.push(p);
+            if (actual < total - 2) rango.push('...');
+            rango.push(total);
+        }
+
+        for (var j = 0; j < rango.length; j++) {
+            var v = rango[j];
+            if (v === '...') {
+                html.push('<span class="pag-dots">&hellip;</span>');
+            } else {
+                html.push('<button class="' + (v === actual ? 'pag-active' : '') + '" onclick="irAPagina(' + v + ')">' + v + '</button>');
+            }
+        }
+
+        html.push('<button ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPagina(' + (actual+1) + ')" title="Siguiente">&raquo;</button>');
+        html.push('<span class="pag-info" style="margin-left:8px;">P&aacute;g. ' + actual + ' / ' + total + ' (' + totalRegistrosGlobal + ' total)</span>');
+        return html.join('');
+    }
+
+    function irAPagina(num) {
+        var totalPaginas = Math.max(1, Math.ceil(totalRegistrosGlobal / registrosPorPagina));
+        if (num < 1 || num > totalPaginas) return;
+        paginaActual = num;
+        aplicarFiltros(false);
     }
 
     function cambiarPagina(dir) {
