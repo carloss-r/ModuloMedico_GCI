@@ -126,7 +126,7 @@
     <div class="wizard-content">
 
         <!-- ═══════════════════════════════════════════════════════════
-             PASO 1 — DATOS GENERALES (igual a hoja 1 del GCI-FOR-SYM-45)
+             PASO 1 — DATOS GENERALES 
              ═══════════════════════════════════════════════════════════ -->
         <div class="step-panel active" id="panel1">
             <h3 class="section-title">Datos Generales del Paciente</h3>
@@ -194,10 +194,6 @@
                 <div class="form-group">
                     <label>Tel&eacute;fono</label>
                     <input type="tel" id="txtTelefono" class="form-control" placeholder="10 d&iacute;gitos" maxlength="15" />
-                </div>
-                <div class="form-group">
-                    <label>&Aacute;rea / Proyecto</label>
-                    <input type="text" id="txtArea" class="form-control" readonly />
                 </div>
 
                 <!-- Domicilio -->
@@ -288,7 +284,7 @@
                 </div>
             </div>
 
-            <!-- Antecedentes Laborales (visible para todos) -->
+            <!-- Antecedentes Laborales -->
             <div id="secLaborales" style="margin-top:15px;">
 
                 <h3 class="section-title">Antecedentes Laborales</h3>
@@ -415,7 +411,7 @@
              PASO 4 — EXPLORACIÓN FÍSICA
              ═══════════════════════════════════════════════════════════ -->
         <div class="step-panel" id="panel4">
-            <h3 class="section-title">Signos Vitales y Somatometr&iacute;a</h3>
+            <h3 class="section-title">EXPLORACIÓN FISICA</h3>
             <div class="form-grid">
                 <div class="form-group">
                     <label>TA (mmHg) Sist&oacute;lica</label>
@@ -673,423 +669,7 @@
         <button class="btn-nav btn-next" onclick="nextStep()" id="btnNext">Siguiente</button>
         <button class="btn-nav btn-finish" onclick="saveExam()" id="btnFinish" style="display:none;">Guardar Examen</button>
     </div>
-</div>
-
-
-    <div class="wizard-content">
-        <!-- Paso 1: Datos Generales -->
-        <div class="step-panel active" id="panel1">
-            <h3 class="section-title">Informaci&oacute;n del Paciente</h3>
-            <div class="form-grid">
-                <div class="form-group full-width">
-                    <label>Nombre Completo</label>
-                    <input type="text" id="txtNombre" class="form-control" readonly />
-                </div>
-                <div class="form-group full-width">
-                    <label>Domicilio</label>
-                    <textarea id="txtDomicilio" class="form-control" rows="2" readonly></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Tiene Hijos</label>
-                    <input type="text" id="txtTieneHijos" class="form-control" readonly />
-                </div>
-                <div class="form-group">
-                    <label>Fecha de Nac.</label>
-                    <input type="date" id="txtFechaNacimiento" class="form-control" onchange="calcularEdad()" />
-                </div>
-                <div class="form-group">
-                    <label>Edad</label>
-                    <input type="text" id="txtEdad" class="form-control" readonly />
-                </div>
-                <div class="form-group">
-                    <label>Sexo</label>
-                    <select id="ddlSexo" class="form-control" disabled>
-                        <option value="">-- Seleccione --</option>
-                        <option value="M">Masculino</option>
-                        <option value="F">Femenino</option>                                                                                                 
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tipo de Sangre</label>
-                    <select id="ddlTipoSangre" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Puesto</label>
-                    <input type="text" id="txtPuesto" class="form-control" readonly />
-                </div>
-                <div class="form-group">
-                    <label>&Aacute;rea</label>
-                    <input type="text" id="txtArea" class="form-control" readonly />
-                </div>
-                <div class="form-group full-width">
-                    <label>Empresa/Proyecto</label>
-                    <input type="text" id="txtEmpresa" class="form-control" readonly />
-                </div>
-                
-                <!-- Campos Demograficos Adicionales -->
-                <div class="form-group">
-                    <label>NSS/IMSS</label>
-                    <input type="text" id="txtNss" class="form-control" maxlength="11" placeholder="11 dígitos (sin espacios)" />
-                </div>
-                <div class="form-group">
-                    <label>Lugar de Nac.</label>
-                    <input type="text" id="txtLugarNacimiento" class="form-control" placeholder="Ciudad, Estado" />
-                </div>
-                <div class="form-group">
-                    <label>Estado Civil</label>
-                    <select id="ddlEstadoCivil" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Soltero">Soltero(a)</option>
-                        <option value="Casado">Casado(a)</option>
-                        <option value="Unión Libre">Unión Libre</option>
-                        <option value="Divorciado">Divorciado(a)</option>
-                        <option value="Viudo">Viudo(a)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Mano Dominante</label>
-                    <select id="ddlManoDominante" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Diestro">Diestro(a)</option>
-                        <option value="Zurdo">Zurdo(a)</option>
-                        <option value="Ambidextro">Ambidextro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tel&eacute;fono</label>
-                    <input type="tel" id="txtTelefono" class="form-control" placeholder="10 dígitos" maxlength="15" />
-                </div>
-                <div class="form-group">
-                    <label>Escolaridad</label>
-                    <select id="ddlEscolaridad" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Primaria">Primaria</option>
-                        <option value="Secundaria">Secundaria</option>
-                        <option value="Preparatoria">Preparatoria / Bachillerato</option>
-                        <option value="Universidad">Universidad / Licenciatura</option>
-                        <option value="Posgrado">Posgrado</option>
-                        <option value="Técnico">Carrera Técnica</option>
-                        <option value="Ninguno">Ninguno</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Profesi&oacute;n u Oficio</label>
-                    <input type="text" id="txtProfesion" class="form-control" />
-                </div>
-                 <div class="form-group">
-                    <label>Alergias</label>
-                    <input type="text" id="txtAlergias" class="form-control" placeholder="Ej. Penicilina (vacío = Ninguna)" />
-                </div>
-            </div>
-            
-        </div>
-
-        <!-- Etapa 2 Signos Vitales del Empleado -->
-        <div class="step-panel" id="panel2">
-            <h3 class="section-title">Signos Vitales y Somatometr&iacute;a</h3>
-            <div class="form-grid">
-                <div class="form-group"><label>Peso (kg)</label><input type="text" id="txtPeso" class="form-control val-dec" onchange="calcImc()" /></div>
-                <div class="form-group"><label>Estatura (m)</label><input type="text" id="txtEstatura" class="form-control val-dec" onchange="calcImc()" /></div>
-                <div class="form-group"><label>IMC</label><input type="text" id="txtImc" class="form-control" readonly /></div>
-                <div class="form-group"><label>TA Sist&oacute;lica</label><input type="number" id="txtSistolica" class="form-control val-num" /></div>
-                <div class="form-group"><label>TA Diast&oacute;lica</label><input type="number" id="txtDiastolica" class="form-control val-num" /></div>
-                <div class="form-group"><label>Temperatura (&deg;C)</label><input type="text" id="txtTemperatura" class="form-control val-dec" placeholder="36.5" /></div>
-                <div class="form-group"><label>Frecuencia Card&iacute;aca (lpm)</label><input type="number" id="txtFrecCardiaca" class="form-control val-num" placeholder="72" /></div>
-                <div class="form-group"><label>Frecuencia Resp. (rpm)</label><input type="number" id="txtFrecRespiratoria" class="form-control val-num" placeholder="16" /></div>
-                <div class="form-group full-width"><label>Aparatos y Sistemas</label><input type="text" id="txtAparatosSistemas" class="form-control" placeholder="Describa anormalidades..." /></div>
-            </div>
-            
-            <h3 class="section-title">H&aacute;bitos Personales</h3>
-            <div class="check-grid">
-                <label class="check-item"><input type="checkbox" id="chkFuma" onchange="$('#divFuma').toggle(this.checked)" /> Tabaquismo</label>
-                <label class="check-item"><input type="checkbox" id="chkAlcohol" onchange="$('#divAlcohol').toggle(this.checked)" /> Alcoholismo</label>
-                <label class="check-item"><input type="checkbox" id="chkDrogas" onchange="$('#divDrogas').toggle(this.checked)" /> Drogas</label>
-                <label class="check-item"><input type="checkbox" id="chkDeporte" /> Deporte</label>
-            </div>
-            
-            <h4 style="margin-top: 15px; font-weight: 600; font-size: 14px; padding-bottom: 5px; border-bottom: 1px solid #ddd;">Vacunas</h4>
-            <div class="form-grid" style="align-items: center; margin-bottom: 15px;">
-                <div class="form-group">
-                    <label>T&eacute;tanos (Dosis)</label>
-                    <select id="ddlTetanos" class="form-control">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Hepatitis (Dosis)</label>
-                    <select id="ddlHepatitis" class="form-control">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                    </select>
-                </div>
-                <div class="form-group" style="padding-top: 25px;">
-                    <label class="check-item"><input type="checkbox" id="chkH1N1" /> H1N1 Aplicada</label>
-                </div>
-            </div>
-            <div id="divFuma" style="display:none; margin-top:10px;" class="form-grid">
-                <div class="form-group"><label>A&ntilde;os fumando</label><input type="number" id="txtAnosFuma" class="form-control val-num" /></div>
-                <div class="form-group"><label>Cigarrillos/d&iacute;a</label><input type="number" id="txtCigarrillos" class="form-control val-num" /></div>
-                <label class="check-item"><input type="checkbox" id="chkExFumador" /> Ex-fumador</label>
-            </div>
-            <div id="divAlcohol" style="display:none; margin-top:10px;" class="form-grid">
-                <div class="form-group">
-                    <label>Frecuencia de consumo</label>
-                    <select id="txtFrecAlcohol" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Ocasional">Ocasional (menos de 1 vez/semana)</option>
-                        <option value="Social">Social (fines de semana)</option>
-                        <option value="Semanal">Semanal (1-2 veces/semana)</option>
-                        <option value="Frecuente">Frecuente (3-4 veces/semana)</option>
-                        <option value="Diario">Diario</option>
-                    </select>
-                </div>
-            </div>
-            <div id="divDrogas" style="display:none; margin-top:10px;" class="form-grid">
-                <div class="form-group"><label>Tipo de sustancia</label><input type="text" id="txtTipoDrogas" class="form-control val-text" /></div>
-            </div>
-            <div class="form-group" style="margin-top:10px;">
-                <label>Tiempo Libre / Hobbies</label>
-                <textarea id="txtTiempoLibre" class="form-control" rows="2"></textarea>
-            </div>
-        </div>
-
-        <!-- Etapa 3 Examaen Fisico del empleado -->
-        <div class="step-panel" id="panel3">
-            <h3 class="section-title">Examen F&iacute;sico por Sistemas</h3>
-            <table class="exam-grid">
-                <thead><tr><th>Sistema</th><th>Normal</th><th>Hallazgos / Observaciones</th></tr></thead>
-                <tbody id="tbExamenFisico">
-                    <!-- JS generated rows -->
-                </tbody>
-            </table>
-            
-            <h3 class="section-title" style="margin-top:20px;">Evaluación de Columna Vertebral</h3>
-            <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:0.9rem;">
-                <thead>
-                    <tr style="background:#f0f4f8;">
-                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Curva</th>
-                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Cervical</th>
-                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Dorsal</th>
-                        <th style="border:1px solid #ddd; padding:8px; text-align:center;">Lumbar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="border:1px solid #ddd; padding:8px; font-weight:600;">LORDOSIS</td>
-                        <td style="border:1px solid #ddd; padding:6px;">
-                            <select id="ddlLordosisCervical" class="form-control" style="padding:5px;">
-                                <option value="0">Sin dato</option>
-                                <option value="1">Normal</option>
-                                <option value="2">Aumentada</option>
-                                <option value="3">Disminuida</option>
-                            </select>
-                        </td>
-                        <td style="border:1px solid #ddd; padding:6px;">
-                            <select id="ddlLordosisDorsal" class="form-control" style="padding:5px;">
-                                <option value="0">Sin dato</option>
-                                <option value="1">Normal</option>
-                                <option value="2">Aumentada</option>
-                                <option value="3">Disminuida</option>
-                            </select>
-                        </td>
-                        <td style="border:1px solid #ddd; padding:6px;">
-                            <select id="ddlLordosisLumbar" class="form-control" style="padding:5px;">
-                                <option value="0">Sin dato</option>
-                                <option value="1">Normal</option>
-                                <option value="2">Aumentada</option>
-                                <option value="3">Disminuida</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="border:1px solid #ddd; padding:8px; font-weight:600;">CIFOSIS</td>
-                        <td style="border:1px solid #ddd; padding:6px;">
-                            <select id="ddlCifosisCervical" class="form-control" style="padding:5px;">
-                                <option value="0">Sin dato</option>
-                                <option value="1">Normal</option>
-                                <option value="2">Aumentada</option>
-                                <option value="3">Disminuida</option>
-                            </select>
-                        </td>
-                        <td style="border:1px solid #ddd; padding:6px;">
-                            <select id="ddlCifosisDorsal" class="form-control" style="padding:5px;">
-                                <option value="0">Sin dato</option>
-                                <option value="1">Normal</option>
-                                <option value="2">Aumentada</option>
-                                <option value="3">Disminuida</option>
-                            </select>
-                        </td>
-                        <td style="border:1px solid #ddd; padding:6px;">
-                            <select id="ddlCifosisLumbar" class="form-control" style="padding:5px;">
-                                <option value="0">Sin dato</option>
-                                <option value="1">Normal</option>
-                                <option value="2">Aumentada</option>
-                                <option value="3">Disminuida</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="check-grid">
-                <label class="check-item"><input type="checkbox" id="chkEscDorsalDer" /> Escoliosis Dorsal Der</label>
-                <label class="check-item"><input type="checkbox" id="chkEscDorsalIzq" /> Escoliosis Dorsal Izq</label>
-                <label class="check-item"><input type="checkbox" id="chkEscLumbarDer" /> Escoliosis Lumbar Der</label>
-                <label class="check-item"><input type="checkbox" id="chkEscLumbarIzq" /> Escoliosis Lumbar Izq</label>
-                <label class="check-item"><input type="checkbox" id="chkEscDoboDer" /> Escoliosis Doble Der</label>
-                <label class="check-item"><input type="checkbox" id="chkEscDoboIzq" /> Escoliosis Doble Izq</label>
-            </div>
-            <div class="form-group" style="margin-top:10px;">
-                <label>Observaciones Columna</label>
-                <textarea id="txtObsColumna" class="form-control" rows="2"></textarea>
-            </div>
-        </div>
-
-        <!-- Etapa 4 Antecedentes Laborales del Empleado -->
-        <div class="step-panel" id="panel4">
-            
-            <div id="secLaborales" style="display:none; margin-bottom:20px;">
-                <h3 class="section-title">Antecedentes Laborales</h3>
-                <table class="exam-grid" style="margin-bottom: 10px;">
-                    <thead>
-                        <tr>
-                            <th>Empresa</th>
-                            <th>Puesto</th>
-                            <th>Tiempo Laborado</th>
-                            <th>Agentes Expuesto</th>
-                            <th>Accidentes/Enf. Previas</th>
-                            <th style="width: 40px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbAntecedentesLaborales">
-                        <!-- JS generated rows -->
-                    </tbody>
-                </table>
-                <button class="btn-primary" style="padding: 5px 10px; font-size: 0.8rem;" onclick="addLaboralRow()">+ Añadir Fila</button>
-            </div>
-
-            <h3 class="section-title">Antecedentes Heredo Familiares</h3>
-            <table class="exam-grid" style="margin-bottom: 15px;">
-                <thead><tr><th>Condici&oacute;n</th><th>Si/No</th><th>Detalles</th></tr></thead>
-                <tbody id="tbAntecedentesHF">
-                    <!-- JS generated rows -->
-                </tbody>
-            </table>
-
-            <h3 class="section-title">Antecedentes Personales Patol&oacute;gicos</h3>
-            <table class="exam-grid" style="margin-bottom: 30px;">
-                <thead><tr><th>Condici&oacute;n</th><th>Si/No</th><th>Detalles</th></tr></thead>
-                <tbody id="tbAntecedentesPP">
-                    <!-- JS generated rows -->
-                </tbody>
-            </table>
-            <h3 class="section-title" id="secGineco" style="display:none; margin-top:20px;">Antecedentes Gineco-Obst&eacute;tricos (Mujer)</h3>
-            <div class="form-grid" id="formFem" style="display:none;">
-                <div class="form-group"><label>Menarca (Edad)</label><input type="number" id="txtMenarca" class="form-control val-num" /></div>
-                <div class="form-group"><label>FUM</label><input type="date" id="txtFum" class="form-control" /></div>
-                <div class="form-group">
-                    <label>Ciclos</label>
-                    <select id="txtCiclos" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Regular">Regular (21-35 días)</option>
-                        <option value="Irregular">Irregular</option>
-                        <option value="Oligomenorrea">Oligomenorrea (+35 días)</option>
-                        <option value="Polimenorrea">Polimenorrea (-21 días)</option>
-                        <option value="Amenorrea">Amenorrea</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Gestas</label><input type="number" id="txtGestas" class="form-control val-num" /></div>
-                <div class="form-group"><label>Partos</label><input type="number" id="txtPartos" class="form-control val-num" /></div>
-                <div class="form-group"><label>Ces&aacute;reas</label><input type="number" id="txtCesareas" class="form-control val-num" /></div>
-                <div class="form-group"><label>Abortos</label><input type="number" id="txtAbortos" class="form-control val-num" /></div>
-                <div class="form-group"><label>IVSA</label><input type="number" id="txtIvsaFem" class="form-control val-num" /></div>
-                <div class="form-group">
-                    <label>Planificación Familiar</label>
-                    <select id="txtPlanificacion" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Ninguno">Ninguno</option>
-                        <option value="Hormonal oral">Hormonal oral (pastillas)</option>
-                        <option value="Inyectable">Inyectable</option>
-                        <option value="DIU">DIU</option>
-                        <option value="Implante">Implante subdérmico</option>
-                        <option value="Condón">Condón</option>
-                        <option value="Ligadura">Ligadura de trompas</option>
-                        <option value="Vasectomía">Vasectomía</option>
-                        <option value="Ritmo">Método del ritmo</option>
-                        <option value="Otro">Otro</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>&Uacute;ltimo PAP</label><input type="date" id="txtPap" class="form-control" /></div>
-                <div class="form-group full-width"><label>No. Hijos y Edades</label><input type="text" id="txtNoHijosEdades" class="form-control val-text" placeholder="Ej. 2 hijos (5 y 8 años)" /></div>
-            </div>
-
-            <h3 class="section-title" id="secGenito" style="display:none; margin-top:20px;">Antecedentes Genitourinarios (Hombre)</h3>
-            <div id="formMasc" style="display:none;">
-                <div class="check-grid" style="margin-bottom:15px;">
-                    <label class="check-item"><input type="checkbox" id="chkPrepucio" /> Prepucio Retráctil</label>
-                    <label class="check-item"><input type="checkbox" id="chkTesticulos" /> Testículos Descendidos</label>
-                    <label class="check-item"><input type="checkbox" id="chkFimosis" /> Fimosis</label>
-                    <label class="check-item"><input type="checkbox" id="chkCriptorquidia" /> Criptorquidia</label>
-                    <label class="check-item"><input type="checkbox" id="chkVaricocele" /> Varicocele</label>
-                    <label class="check-item"><input type="checkbox" id="chkHidrocele" /> Hidrocele</label>
-                    <label class="check-item"><input type="checkbox" id="chkHernia" /> Hernia Inguinal</label>
-                </div>
-                <div class="form-grid" style="grid-template-columns:1fr 1fr;">
-                    <div class="form-group"><label>IVSA (Edad inicio vida sexual)</label><input type="number" id="txtIvsaMasc" class="form-control" min="0" max="99" placeholder="Edad en años" /></div>
-                    <div class="form-group"><label>PSA (Antígeno Prostático)</label><input type="text" id="txtPsa" class="form-control" placeholder="Resultado" /></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Etapa 5 Diagnostico Final del Empleado -->
-        <div class="step-panel" id="panel5">
-            <h3 class="section-title">Dictamen Final</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Aptitud M&eacute;dica</label>
-                    <select id="ddlAptitud" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="1">Apto</option>
-                        <option value="2">Apto con Restricciones</option>
-                        <option value="3">No Apto</option>
-                        <option value="4">Pendiente de Evaluaci&oacute;n</option>
-                    </select>
-                </div>
-                <div class="form-group full-width">
-                    <label>Diagn&oacute;stico (Observaciones)</label>
-                    <textarea id="txtObservaciones" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="form-group full-width">
-                    <label>Recomendaciones</label>
-                    <textarea id="txtRecomendaciones" class="form-control" rows="3"></textarea>
-                </div>
-                 <div class="form-group full-width">
-                    <label>S&iacute;ntomas Referidos por el Paciente</label>
-                    <textarea id="txtSintomas" class="form-control" rows="2"></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="actions">
-        <button class="btn-nav btn-prev" onclick="prevStep()" id="btnPrev" style="visibility:hidden;">Anterior</button>
-        <button class="btn-nav btn-next" onclick="nextStep()" id="btnNext">Siguiente</button>
-        <button class="btn-nav btn-finish" onclick="saveExam()" id="btnFinish" style="display:none;">Guardar Examen</button>
-    </div>
+</div>                                              
 </div>
 <div class="antidoping-section" id="secAntidoping" style="@(ViewBag.TipoServicio == 3 ? "display:block;" : "")">
     <div class="ad-container">
@@ -1416,14 +996,13 @@
             if(resp.success) {
                 var p = resp.paciente;
                 currentTipo = p.Tipo;
-
+                
                 $('#txtNombre').val(p.NombreCompleto);
                 $('#txtEdad').val(p.Edad);
                 $('#txtPuesto').val(p.Puesto);
                 $('#txtArea').val(p.Area);
                 $('#txtEmpresa').val(p.Empresa || '');
-                
-                // Map new demographic fields from patient info
+               
                 if(p.Nss) $('#txtNss').val(p.Nss);
                 if(p.Rfc) $('#txtRfc').val(p.Rfc);
                 if(p.Curp) $('#txtCurp').val(p.Curp);
