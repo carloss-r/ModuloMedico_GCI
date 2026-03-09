@@ -30,17 +30,22 @@
     .form-grid { 
         display: grid; 
         grid-template-columns: 1fr 1fr; /* Force 2 columns */
-        gap: 20px 30px; 
+        gap: 15px 25px; /* Reduced gap to bring elements closer */
         margin-bottom: 25px; 
     }
     
     .form-group { display: flex; flex-direction: column; }
     .form-group.full-width { grid-column: 1 / -1; } /* Span across both columns */
 
-    .form-group label { display: block; font-size: 0.8rem; color: #555; margin-bottom: 6px; font-weight: 600; }
-    .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; transition: border-color 0.2s; box-sizing: border-box; }
+    .form-group label { display: block; font-size: 0.8rem; color: #555; margin-bottom: 4px; font-weight: 600; white-space: nowrap; text-align: center;}
+    .form-control { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; transition: border-color 0.2s; box-sizing: border-box; text-align: center;}
     .form-control:focus { border-color: #1a5276; outline: none; }
     .form-control:read-only { background: #f9f9f9; color: #777; }
+
+    /* Helper for grouping items inside a single column */
+    .flex-row { display: flex; gap: 10px; align-items: flex-end; width: 100%; justify-content: space-between; }
+    .flex-row .form-group { flex: 1; margin: 0; min-width: 0; } /* min-width:0 allows flex children to shrink below their content size to fit container */
+    .flex-row .form-group.small { flex: 0.35; }
 
     .check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; grid-column: 1 / -1; }
     .check-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #444; }
@@ -132,22 +137,23 @@
             <h3 class="section-title">Datos Generales del Paciente</h3>
             <div class="form-grid">
 
-                <!-- Fila: Lugar de Evaluación / Fecha / Cargo -->
-                <div class="form-group">
-                    <label>Lugar de Evaluaci&oacute;n</label>
-                    <input type="text" id="txtLugarEvaluacion" class="form-control" placeholder="Ej. Monterrey, N.L. / Obra Torre Centro" />
-                </div>
-                <div class="form-group">
-                    <label>Fecha del Examen</label>
-                    <input type="date" id="txtFechaExamen" class="form-control"
-                           value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <!-- Row 1: Lugar Evaluación + Fecha | Cargo -->
+                <div class="flex-row">
+                    <div class="form-group" style="flex:2;">
+                        <label>Lugar y fecha del Examen:</label>
+                        <input type="text" id="txtLugarEvaluacion" class="form-control" placeholder="Ej. Monterrey, N.L. / Obra Torre Centro" />
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <input type="date" id="txtFechaExamen" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Cargo</label>
                     <input type="text" id="txtPuesto" class="form-control" readonly />
                 </div>
 
-                <!-- Fila: Nombre / No. IMSS -->
+                <!-- Row 2: Nombre | No. IMSS -->
                 <div class="form-group">
                     <label>Nombre</label>
                     <input type="text" id="txtNombre" class="form-control" readonly />
@@ -157,21 +163,23 @@
                     <input type="text" id="txtNss" class="form-control" maxlength="11" placeholder="11 d&iacute;gitos" />
                 </div>
 
-                <!-- Fila: Fecha Nac / Edad / Lugar Nac -->
-                <div class="form-group">
-                    <label>Fecha de Nacimiento</label>
-                    <input type="date" id="txtFechaNacimiento" class="form-control" onchange="calcularEdad()" />
+                <!-- Row 3: Fecha Nac + Edad | Lugar Nac -->
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Fecha de Nacimiento</label>
+                        <input type="date" id="txtFechaNacimiento" class="form-control" onchange="calcularEdad()" />
+                    </div>
+                    <div class="form-group small">
+                        <label>Edad</label>
+                        <input type="text" id="txtEdad" class="form-control" readonly />
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Edad (a&ntilde;os)</label>
-                    <input type="text" id="txtEdad" class="form-control" readonly />
-                </div>
-                <div class="form-group full-width">
                     <label>Lugar de Nacimiento</label>
                     <input type="text" id="txtLugarNacimiento" class="form-control" placeholder="Ciudad, Estado" />
                 </div>
 
-                <!-- Estado Civil / Mano Dominante / Teléfono -->
+                <!-- Row 4: Estado Civil | Mano Dominante + Teléfono -->
                 <div class="form-group">
                     <label>Estado Civil</label>
                     <select id="ddlEstadoCivil" class="form-control">
@@ -182,27 +190,29 @@
                         <option value="Separado">Separado(a)</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Mano Dominante</label>
-                    <select id="ddlManoDominante" class="form-control">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Diestro">Diestro(a)</option>
-                        <option value="Zurdo">Zurdo(a)</option>
-                        <option value="Ambidextro">Ambidextro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tel&eacute;fono</label>
-                    <input type="tel" id="txtTelefono" class="form-control" placeholder="10 d&iacute;gitos" maxlength="15" />
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Mano Dominante</label>
+                        <select id="ddlManoDominante" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            <option value="Diestro">Diestro(a)</option>
+                            <option value="Zurdo">Zurdo(a)</option>
+                            <option value="Ambidextro">Ambidextro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tel&eacute;fono</label>
+                        <input type="tel" id="txtTelefono" class="form-control" placeholder="10 d&iacute;gitos" maxlength="15" />
+                    </div>
                 </div>
 
-                <!-- Domicilio -->
+                <!-- Row 5: Domicilio -->
                 <div class="form-group full-width">
                     <label>Domicilio</label>
                     <textarea id="txtDomicilio" class="form-control" rows="2" readonly></textarea>
                 </div>
 
-                <!-- Nivel Académico / Profesión -->
+                <!-- Row 6: Nivel Académico | Profesión -->
                 <div class="form-group">
                     <label>Nivel Acad&eacute;mico</label>
                     <select id="ddlEscolaridad" class="form-control">
@@ -221,19 +231,21 @@
                     <input type="text" id="txtProfesion" class="form-control" />
                 </div>
 
-                <!-- Examen de / Sexo / Tipo de Sangre -->
-                <div class="form-group">
-                    <label>Examen de</label>
-                    <input type="text" id="txtExamenDe" class="form-control" readonly
-                           value="@(ViewBag.TipoServicio == 2 ? "Periódico" : "Ingreso")" />
-                </div>
-                <div class="form-group">
-                    <label>Sexo</label>
-                    <select id="ddlSexo" class="form-control" disabled>
-                        <option value="">-- Seleccione --</option>
-                        <option value="M">Masculino (Masc)</option>
-                        <option value="F">Femenino (Fem)</option>
-                    </select>
+                <!-- Row 7: Examen de + Sexo | Tipo Sangre -->
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Examen de</label>
+                        <input type="text" id="txtExamenDe" class="form-control" readonly
+                               value="@(ViewBag.TipoServicio == 2 ? "Periódico" : "Ingreso")" />
+                    </div>
+                    <div class="form-group">
+                        <label>Sexo</label>
+                        <select id="ddlSexo" class="form-control" disabled>
+                            <option value="">-- Seleccione --</option>
+                            <option value="M">Masculino (Masc)</option>
+                            <option value="F">Femenino (Fem)</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Tipo de Sangre</label>
@@ -249,6 +261,7 @@
                         <option value="AB-">AB-</option>
                     </select>
                 </div>
+
                 <!-- Empresa (oculta pero necesaria para guardar) -->
                 <div class="form-group" style="display:none;">
                     <input type="text" id="txtEmpresa" class="form-control" readonly />
@@ -310,8 +323,8 @@
              ═══════════════════════════════════════════════════════════ -->
         <div class="step-panel" id="panel3">
             <h3 class="section-title">H&aacute;bitos</h3>
-            <div class="form-grid">
-                <!-- Tabaquismo -->
+            <div class="form-grid" style="align-items: start;">
+                <!-- Row 1: Tabaquismo | Drogas -->
                 <div class="form-group">
                     <label class="check-item">
                         <input type="checkbox" id="chkFuma" onchange="$('#divFuma').toggle(this.checked)" />
@@ -334,7 +347,6 @@
                     </div>
                 </div>
 
-                <!-- Drogas -->
                 <div class="form-group">
                     <label class="check-item">
                         <input type="checkbox" id="chkDrogas" onchange="$('#divDrogas').toggle(this.checked)" />
@@ -346,7 +358,7 @@
                     </div>
                 </div>
 
-                <!-- Alcohol -->
+                <!-- Row 2: Alcohol | Deporte -->
                 <div class="form-group">
                     <label class="check-item">
                         <input type="checkbox" id="chkAlcohol" onchange="$('#divAlcohol').toggle(this.checked)" />
@@ -365,7 +377,6 @@
                     </div>
                 </div>
 
-                <!-- Deporte -->
                 <div class="form-group">
                     <label class="check-item">
                         <input type="checkbox" id="chkDeporte" />
@@ -382,27 +393,29 @@
 
             <h3 class="section-title" style="margin-top:10px;">Vacunas</h3>
             <div class="form-grid">
-                <div class="form-group">
-                    <label>T&eacute;tanos (Dosis)</label>
-                    <select id="ddlTetanos" class="form-control">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Hepatitis (Dosis)</label>
-                    <select id="ddlHepatitis" class="form-control">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                    </select>
-                </div>
-                <div class="form-group" style="padding-top:22px;">
-                    <label class="check-item">
-                        <input type="checkbox" id="chkH1N1" /> H1N1 Aplicada
-                    </label>
+                <div class="flex-row" style="grid-column: 1 / -1; justify-content: flex-start;">
+                    <div class="form-group" style="max-width: 200px;">
+                        <label>T&eacute;tanos (Dosis)</label>
+                        <select id="ddlTetanos" class="form-control">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="max-width: 200px;">
+                        <label>Hepatitis (Dosis)</label>
+                        <select id="ddlHepatitis" class="form-control">
+                            <option value="0">0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="padding-top:22px; max-width: 200px;">
+                        <label class="check-item">
+                            <input type="checkbox" id="chkH1N1" /> H1N1 Aplicada
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -413,38 +426,51 @@
         <div class="step-panel" id="panel4">
             <h3 class="section-title">EXPLORACIÓN FISICA</h3>
             <div class="form-grid">
-                <div class="form-group">
-                    <label>TA (mmHg) Sist&oacute;lica</label>
-                    <input type="number" id="txtSistolica" class="form-control val-num" placeholder="120" />
+                <!-- Row 1: TA Sistólica + Diastólica | FC + FR -->
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>TA (mmHg) Sist&oacute;lica</label>
+                        <input type="number" id="txtSistolica" class="form-control val-num" placeholder="120" />
+                    </div>
+                    <div class="form-group">
+                        <label>TA (mmHg) Diast&oacute;lica</label>
+                        <input type="number" id="txtDiastolica" class="form-control val-num" placeholder="80" />
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>TA (mmHg) Diast&oacute;lica</label>
-                    <input type="number" id="txtDiastolica" class="form-control val-num" placeholder="80" />
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>FC (x min)</label>
+                        <input type="number" id="txtFrecCardiaca" class="form-control val-num" placeholder="72" />
+                    </div>
+                    <div class="form-group">
+                        <label>FR (x min)</label>
+                        <input type="number" id="txtFrecRespiratoria" class="form-control val-num" placeholder="16" />
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>FC (x min)</label>
-                    <input type="number" id="txtFrecCardiaca" class="form-control val-num" placeholder="72" />
+
+                <!-- Row 2: Peso + Estatura | IMC + Temp -->
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Peso (kgs)</label>
+                        <input type="text" id="txtPeso" class="form-control val-dec" onchange="calcImc()" />
+                    </div>
+                    <div class="form-group">
+                        <label>Estatura (m)</label>
+                        <input type="text" id="txtEstatura" class="form-control val-dec" onchange="calcImc()" />
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>FR (x min)</label>
-                    <input type="number" id="txtFrecRespiratoria" class="form-control val-num" placeholder="16" />
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>IMC</label>
+                        <input type="text" id="txtImc" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Temp (&deg;C)</label>
+                        <input type="text" id="txtTemperatura" class="form-control val-dec" placeholder="36.5" />
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Peso (kgs)</label>
-                    <input type="text" id="txtPeso" class="form-control val-dec" onchange="calcImc()" />
-                </div>
-                <div class="form-group">
-                    <label>Estatura (m)</label>
-                    <input type="text" id="txtEstatura" class="form-control val-dec" onchange="calcImc()" />
-                </div>
-                <div class="form-group">
-                    <label>IMC</label>
-                    <input type="text" id="txtImc" class="form-control" readonly />
-                </div>
-                <div class="form-group">
-                    <label>Temp (&deg;C)</label>
-                    <input type="text" id="txtTemperatura" class="form-control val-dec" placeholder="36.5" />
-                </div>
+
+                <!-- Síntomas -->
                 <div class="form-group full-width">
                     <label>S&iacute;ntomas</label>
                     <textarea id="txtSintomas" class="form-control" rows="2" placeholder="S&iacute;ntomas referidos por el paciente..."></textarea>
@@ -477,43 +503,58 @@
             <div id="secGineco" style="display:none;">
                 <h3 class="section-title">Gineco-Obst&eacute;tricos</h3>
                 <div class="form-grid">
-                    <div class="form-group"><label>Menarca (Edad)</label><input type="number" id="txtMenarca" class="form-control val-num" /></div>
-                    <div class="form-group">
-                        <label>Ciclos</label>
-                        <select id="txtCiclos" class="form-control">
-                            <option value="">-- Seleccione --</option>
-                            <option value="Regular">Regular (21-35 d&iacute;as)</option>
-                            <option value="Irregular">Irregular</option>
-                            <option value="Oligomenorrea">Oligomenorrea (+35 d&iacute;as)</option>
-                            <option value="Polimenorrea">Polimenorrea (-21 d&iacute;as)</option>
-                            <option value="Amenorrea">Amenorrea</option>
-                        </select>
+                    <!-- Row 1 -->
+                    <div class="flex-row">
+                        <div class="form-group"><label>Menarca (Edad)</label><input type="number" id="txtMenarca" class="form-control val-num" /></div>
+                        <div class="form-group">
+                            <label>Ciclos</label>
+                            <select id="txtCiclos" class="form-control">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Regular">Regular (21-35 d&iacute;as)</option>
+                                <option value="Irregular">Irregular</option>
+                                <option value="Oligomenorrea">Oligomenorrea (+35 d&iacute;as)</option>
+                                <option value="Polimenorrea">Polimenorrea (-21 d&iacute;as)</option>
+                                <option value="Amenorrea">Amenorrea</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group"><label>FUM</label><input type="date" id="txtFum" class="form-control" /></div>
-                    <div class="form-group full-width"><label>No. Hijos / Edades</label><input type="text" id="txtNoHijosEdades" class="form-control" placeholder="Ej. 2 hijos (5 y 8 a&ntilde;os)" /></div>
-                    <div class="form-group">
-                        <label>Planificaci&oacute;n Familiar</label>
-                        <select id="txtPlanificacion" class="form-control">
-                            <option value="">-- Seleccione --</option>
-                            <option value="Ninguno">Ninguno</option>
-                            <option value="Hormonal oral">Hormonal oral</option>
-                            <option value="Inyectable">Inyectable</option>
-                            <option value="DIU">DIU</option>
-                            <option value="Implante">Implante subd&eacute;rmico</option>
-                            <option value="Cond&oacute;n">Cond&oacute;n</option>
-                            <option value="Ligadura">Ligadura de trompas</option>
-                            <option value="Vasectom&iacute;a">Vasectom&iacute;a</option>
-                            <option value="Ritmo">M&eacute;todo del ritmo</option>
-                            <option value="Otro">Otro</option>
-                        </select>
+                    <div class="flex-row">
+                        <div class="form-group"><label>FUM</label><input type="date" id="txtFum" class="form-control" /></div>
+                        <div class="form-group"><label>No. Hijos / Edades</label><input type="text" id="txtNoHijosEdades" class="form-control" placeholder="Ej. 2 hijos (5 y 8 a&ntilde;os)" /></div>
                     </div>
-                    <div class="form-group"><label>IVSA (Edad inicio vida sexual)</label><input type="number" id="txtIvsaFem" class="form-control val-num" /></div>
-                    <div class="form-group"><label>Cit. Vag. (&uacute;ltima cita vaginal)</label><input type="date" id="txtPap" class="form-control" /></div>
+
+                    <!-- Row 2 -->
+                    <div class="flex-row">
+                        <div class="form-group">
+                            <label>Planificaci&oacute;n</label>
+                            <select id="txtPlanificacion" class="form-control">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Ninguno">Ninguno</option>
+                                <option value="Hormonal oral">Hormonal oral</option>
+                                <option value="Inyectable">Inyectable</option>
+                                <option value="DIU">DIU</option>
+                                <option value="Implante">Implante subd&eacute;rmico</option>
+                                <option value="Cond&oacute;n">Cond&oacute;n</option>
+                                <option value="Ligadura">Ligadura de trompas</option>
+                                <option value="Vasectom&iacute;a">Vasectom&iacute;a</option>
+                                <option value="Ritmo">M&eacute;todo del ritmo</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group small"><label>IVSA</label><input type="number" id="txtIvsaFem" class="form-control val-num" /></div>
+                        <div class="form-group"><label>Cit. Vag.</label><input type="date" id="txtPap" class="form-control" /></div>
+                    </div>
                     <div class="form-group"><label>ETS</label><input type="text" id="txtEts" class="form-control" /></div>
-                    <div class="form-group"><label>Gestas</label><input type="number" id="txtGestas" class="form-control val-num" /></div>
-                    <div class="form-group"><label>P (Partos)</label><input type="number" id="txtPartos" class="form-control val-num" /></div>
-                    <div class="form-group"><label>A (Abortos)</label><input type="number" id="txtAbortos" class="form-control val-num" /></div>
-                    <div class="form-group"><label>C (Ces&aacute;reas)</label><input type="number" id="txtCesareas" class="form-control val-num" /></div>
+
+                    <!-- Row 3 -->
+                    <div class="flex-row">
+                        <div class="form-group"><label>Gestas</label><input type="number" id="txtGestas" class="form-control val-num" /></div>
+                        <div class="form-group"><label>P (Partos)</label><input type="number" id="txtPartos" class="form-control val-num" /></div>
+                    </div>
+                    <div class="flex-row">
+                        <div class="form-group"><label>A (Abortos)</label><input type="number" id="txtAbortos" class="form-control val-num" /></div>
+                        <div class="form-group"><label>C (Ces&aacute;reas)</label><input type="number" id="txtCesareas" class="form-control val-num" /></div>
+                    </div>
                 </div>
                 <div id="formFem"></div>
             </div>
@@ -522,23 +563,29 @@
             <div id="secGenito" style="display:none;">
                 <h3 class="section-title">Antecedentes de Aparato Genitourinario Masculino</h3>
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label>Examen Cl&iacute;nico</label>
-                        <div class="check-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="check-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
                             <label class="check-item"><input type="checkbox" id="chkPrepucio" /> Prepucio retr&aacute;ctil</label>
                             <label class="check-item"><input type="checkbox" id="chkHidrocele" /> Hidrocele</label>
-                            <label class="check-item"><input type="checkbox" id="chkTesticulos" /> Test&iacute;culos Descendidos</label>
+                            <label class="check-item"><input type="checkbox" id="chkTesticulos" /> Test&iacute;culos</label>
                             <label class="check-item"><input type="checkbox" id="chkHernia" /> Hernia</label>
                             <label class="check-item"><input type="checkbox" id="chkFimosis" /> Fimosis</label>
                             <label class="check-item"><input type="checkbox" id="chkCriptorquidia" /> Criptorquidia</label>
                             <label class="check-item"><input type="checkbox" id="chkVaricocele" /> Varicocele</label>
                         </div>
                     </div>
-                    <div class="form-group"><label>No. de Hijos / Edades</label><input type="text" id="txtTieneHijos" class="form-control" /></div>
-                    <div class="form-group"><label>IVSA (Edad inicio vida sexual)</label><input type="number" id="txtIvsaMasc" class="form-control val-num" /></div>
-                    <div class="form-group"><label>PSA (Ant&iacute;geno Prost&aacute;tico)</label><input type="text" id="txtPsa" class="form-control" /></div>
-                    <div class="form-group"><label>MPF (M&eacute;todo Planificaci&oacute;n Familiar)</label><input type="text" id="txtMpf" class="form-control" /></div>
-                    <div class="form-group"><label>IVSA Femenino (oculto)</label><input type="text" id="txtIvsaFem" class="form-control" style="display:none;" /></div>
+                    
+                    <div class="flex-row">
+                        <div class="form-group"><label>No. de Hijos / Edades</label><input type="text" id="txtTieneHijos" class="form-control" /></div>
+                        <div class="form-group"><label>IVSA (Edad inicio)</label><input type="number" id="txtIvsaMasc" class="form-control val-num" /></div>
+                    </div>
+                    <div class="flex-row">
+                        <div class="form-group"><label>PSA (Ant&iacute;geno Prost&aacute;tico)</label><input type="text" id="txtPsa" class="form-control" /></div>
+                        <div class="form-group"><label>MPF (Planificaci&oacute;n)</label><input type="text" id="txtMpf" class="form-control" /></div>
+                    </div>
+
+                    <div class="form-group" style="display:none;"><label>IVSA Femenino (oculto)</label><input type="text" id="txtIvsaFem" class="form-control" style="display:none;" /></div>
                 </div>
                 <div id="formMasc"></div>
             </div>
