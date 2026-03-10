@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using Telerik.Models.Entities;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Telerik.Controllers
         public ActionResult Index()
         {
             ViewBag.Title = "Servicio Médico - Solicitudes Recibidas";
-            return View();
+            return View("~/Views/ServicioMedico/ListaServiciosMedicos.cshtml");
         }
 
         // GET: /ServicioMedico/IniciarEvaluacion/5
@@ -46,7 +47,7 @@ namespace Telerik.Controllers
             ViewBag.Title = orden.FkTipoServicio == 3 ? "Evaluación Antidoping" : "Evaluación Médica";
             ViewBag.IdOrden = id;
             ViewBag.TipoServicio = orden.FkTipoServicio;
-            return View();
+            return View("~/Views/ServicioMedico/FormularioEvaluacionMedica.cshtml");
         }
 
         // GET: /ServicioMedico/ObtenerSolicitudes?pagina=1&tamanoPagina=25
@@ -169,7 +170,7 @@ namespace Telerik.Controllers
 
                 ViewBag.Orden = orden;
                 ViewBag.Paciente = ObtenerInfoPaciente(orden);
-                return View("~/Views/ServicioMedico/ImprimirEvaluacion.cshtml", evaluacion);
+                return View("~/Views/ServicioMedico/FormatoImpresionEvaluacionMedica.cshtml", evaluacion);
             }
             catch (Exception ex)
             {
@@ -191,7 +192,7 @@ namespace Telerik.Controllers
 
                 ViewBag.Orden = orden;
                 ViewBag.Paciente = ObtenerInfoPaciente(orden);
-                return View("~/Views/ServicioMedico/ImprimirAntidoping.cshtml", antidoping);
+                return View("~/Views/ServicioMedico/FormatoImpresionAntidoping.cshtml", antidoping);
             }
             catch (Exception ex)
             {
@@ -596,7 +597,7 @@ namespace Telerik.Controllers
                 }
             }
 
-            return View("~/Views/Solicitud/ImprimirSolicitud.cshtml", orden);
+            return View("~/Views/Solicitud/FormatoImpresionInstruccionesRH.cshtml", orden);
         }
 
         // POST: /ServicioMedico/Eliminar

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using Telerik.Models.Entities;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -11,7 +12,7 @@ namespace Telerik.Controllers
         // GET: Solicitud
         public ActionResult Index()
         {
-            return View();
+            return View("~/Views/Solicitud/DashboardRecursosHumanos.cshtml");
         }
     }
 }

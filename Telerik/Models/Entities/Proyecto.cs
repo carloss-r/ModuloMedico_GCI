@@ -1,23 +1,21 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Telerik.Models
+namespace Telerik.Models.Entities
 {
-    [Table("Puesto")]
-    public class Puesto
+    [Table("Proyectos")]
+    public class Proyecto
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int pkPuesto { get; set; }
+        public int pkProyecto { get; set; }
 
         public string descripcion { get; set; }
         public int fkEmpresa { get; set; }
-        public int? fkArea { get; set; }
+        public int fkEstatusProyecto { get; set; }
+        public string clave { get; set; }
 
         [ForeignKey("fkEmpresa")]
         public virtual Empresa Empresa { get; set; }
-
-        [ForeignKey("fkArea")]
-        public virtual Area Area { get; set; }
     }
 }

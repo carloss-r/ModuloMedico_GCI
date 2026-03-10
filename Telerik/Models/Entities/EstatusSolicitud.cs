@@ -1,14 +1,14 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Telerik.Models
+namespace Telerik.Models.Entities
 {
-    [Table("TiposServicio")]
-    public class TipoServicio
+    [Table("EstatusSolicitud")]
+    public class EstatusSolicitud
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int pkTipoServicio { get; set; }
+        public int pkEstatus { get; set; }
 
         public string descripcion { get; set; }
     }

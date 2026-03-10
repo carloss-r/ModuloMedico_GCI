@@ -1,0 +1,171 @@
+﻿@{
+    ViewBag.Title = "RH - Solicitud de Examen Médico";
+}
+
+<link rel="stylesheet" href="~/Content/DashboardRecursosHumanos.css" />
+
+<div class="rh-container">
+    <div class="rh-header">
+        <h2><i class="fas fa-users"></i> Recursos Humanos</h2>
+        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.7);">M&oacute;dulo de Solicitudes M&eacute;dicas</span>
+    </div>
+
+    <!-- Acciones -->
+    <div style="text-align:right; margin-bottom:15px;">
+        <button class="btn-gci btn-gci-primary" onclick="abrirNuevaSolicitud()"><i class="fas fa-plus-circle"></i> Nueva Solicitud</button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="solicitudes-panel">
+        <div class="sp-title">
+            <span><i class="fas fa-inbox"></i> Solicitudes Recientes</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">Num. Empleado:
+                    <input type="number" id="txtBuscarNumEmpleado" class="form-control" style="width: 110px; display: inline-block; padding:4px 8px; margin-right: 15px;" placeholder="Buscar..." onkeypress="if(event.key === 'Enter') cargarSolicitudes();" />
+                </label>
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">Mostrar:
+                    <select id="selectTamanoPaginaRH" onchange="onCambioTamanoPaginaRH()" style="margin-left:5px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem;">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select> por página
+                </label>
+                <button class="btn-gci btn-gci-secondary" style="padding: 5px 12px; font-size: 0.75rem;" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            </div>
+        </div>
+        <div class="resultados-info" id="resultsInfo"></div>
+        <table class="solicitudes-table">
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Modalidad</th>
+                    <th>Candidato / Empleado</th>
+                    <th>Servicio</th>
+                    <th>Estatus</th>
+                    <th>Aptitud</th>
+                    <th style="text-align:center;">Formato(s)</th>
+                </tr>
+            </thead>
+            <tbody id="tbodySolicitudes">
+                <tr><td colspan="8" class="no-data">Cargando solicitudes...</td></tr>
+            </tbody>
+        </table>
+        <div id="paginacionControles" class="paginacion"></div>
+    </div>
+</div>
+
+<!-- Modal Nueva Solicitud -->
+<div class="modal-overlay" id="modalNuevaSolicitud">
+    <div class="modal-box" style="width: 600px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-medical"></i> Solicitud de Examen M&eacute;dico</h3>
+            <button class="modal-close" onclick="cerrarNuevaSolicitud()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 25px;">
+            <div id="modalAlert" class="modal-alert error"></div>
+            <div class="modal-instruction" style="text-align:center; color:#555; margin-bottom:20px;">Seleccione el tipo de examen a solicitar:</div>
+
+            <div class="modalidad-cards">
+                <div class="modalidad-card card-periodico" id="cardPeriodico" onclick="seleccionarModalidad('PERIODICO')">
+                    <i class="fas fa-user-check" style="font-size:2rem; margin-bottom:6px;"></i>
+                    <div style="font-weight:700; font-size:1rem; margin-top:10px;">PERI&Oacute;DICO</div>
+                    <div style="font-size:0.75rem; color:#777; margin-top:5px;">Empleado existente</div>
+                </div>
+                <div class="modalidad-card card-ingreso" id="cardIngreso" onclick="seleccionarModalidad('INGRESO')">
+                    <i class="fas fa-user-plus" style="font-size:2rem; margin-bottom:6px;"></i>
+                    <div style="font-weight:700; font-size:1rem; margin-top:10px;">NUEVO INGRESO</div>
+                    <div style="font-size:0.75rem; color:#777; margin-top:5px;">Sin datos previos</div>
+                </div>
+            </div>
+     
+            <div id="formPeriodico" style="display:none; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="form-group" style="margin-bottom:15px;">
+                    <label>No. Empleado</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="number" id="txtNumEmpleado" class="form-control" placeholder="Ingrese # n&oacute;mina" />
+                        <button class="btn-gci btn-gci-primary" onclick="buscarEmpleadoParaSolicitud()"><i class="fas fa-search"></i> Buscar</button>
+                    </div>  
+                </div>
+
+                <div id="datosEmpleadoConfirm" style="display:none; background:#f0f9f0; padding:15px; border-radius:6px; border:1px solid #c3e6c3; margin-bottom:15px;">
+                    <div style="display:grid; grid-template-columns:1fr; gap:8px; font-size:0.9rem;">
+                        <div><strong>Nombre:</strong> <span id="confNombre"></span></div>
+                        <div><strong>Empresa:</strong> <span id="confEmpresa"></span></div>
+                        <div><strong>Proyecto:</strong> <span id="confProyecto"></span></div>
+                        <div><strong>Puesto:</strong> <span id="confPuesto"></span></div>
+                    </div>
+                </div>
+                
+                <div id="wrapperPerOptions" style="display:none;">
+                    <div class="form-group">
+                        <label>Tipo de Servicio</label>
+                        <select id="ddlTipoServicioPer" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+      
+            <div id="formIngreso" style="display:none; border-top: 1px solid #eee; padding-top: 15px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px 15px;">
+                    <div class="form-group">
+                        <label>Nombre(s)</label>
+                        <input type="text" id="txtNombreCandidato" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido(s)</label>
+                        <input type="text" id="txtApellidoCandidato" class="form-control" />
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Empresa</label>
+                         <select id="ddlEmpresaIng" class="form-control" onchange="cargarProyectosYPuestos(this.value)">
+                            <option value="">-- Seleccione Empresa --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Proyecto</label>
+                        <select id="ddlProyectoIng" class="form-control">
+                            <option value="">-- Primero Empresa --</option>
+                        </select>
+                    </div>
+                     <div class="form-group">
+                        <label>Puesto / Vacante</label>
+                        <select id="ddlPuestoIng" class="form-control">
+                            <option value="">-- Primero Empresa --</option>
+                        </select>
+                    </div>
+                     <div class="form-group" style="grid-column: 1 / -1;">
+                         <label>Tipo de Servicio</label>
+                         <select id="ddlTipoServicioIng" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                         </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-gci btn-gci-secondary" onclick="cerrarNuevaSolicitud()">Cerrar</button>
+            <button class="btn-gci btn-gci-primary" id="btnCrearSol" onclick="crearSolicitud()" style="display:none;">Crear Solicitud</button>
+            <button class="btn-gci btn-gci-primary" id="btnPrintNewSol" onclick="imprimirDesdeIframe()" style="display:none;"><i class="fas fa-print"></i> Imprimir Formato</button>
+        </div>
+    </div>
+</div>
+
+<div class="print-overlay" id="printOverlay">
+    <div class="print-modal">
+        <div class="print-modal-header">
+            <h3><i class="fas fa-print"></i> Vista Previa de Impresi&oacute;n</h3>
+            <div>
+                <button class="btn-gci btn-gci-success" style="padding: 6px 14px;" onclick="imprimirIframeReal()"><i class="fas fa-print"></i> Imprimir</button>
+                <button class="btn-gci btn-gci-secondary" style="padding: 6px 14px;" onclick="cerrarImpresion()">Cerrar</button>
+            </div>
+        </div>
+        <iframe id="printIframe" class="print-iframe"></iframe>
+    </div>
+</div>
+
+@section scripts {
+<script src="~/Scripts/DashboardRecursosHumanos.js"></script>
+}

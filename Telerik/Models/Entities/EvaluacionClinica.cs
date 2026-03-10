@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Telerik.Models
+namespace Telerik.Models.Entities
 {
     [Table("EvaluacionesClinicas")]
     public class EvaluacionClinica

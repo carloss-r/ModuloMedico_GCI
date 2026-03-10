@@ -1,4 +1,4 @@
-namespace Telerik.Models.ViewModels
+﻿namespace Telerik.Models.ViewModels
 {
     /// <summary>
     /// Clase genérica para catálogos simples (Id + Descripción).

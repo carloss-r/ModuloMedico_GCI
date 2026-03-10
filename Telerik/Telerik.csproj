@@ -130,25 +130,25 @@
     <Compile Include="Controllers\SolicitudController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Models\ApplicationDbContext.cs" />
-    <Compile Include="Models\Empleado.cs" />
-    <Compile Include="Models\PruebaToxicologica.cs" />
-    <Compile Include="Models\OrdenServicioMedico.cs" />
-    <Compile Include="Models\Candidato.cs" />
-    <Compile Include="Models\EvaluacionClinica.cs" />
-    <Compile Include="Models\HabitoPersonal.cs" />
-    <Compile Include="Models\HistoriaMedica.cs" />
-    <Compile Include="Models\AntecedenteLaboral.cs" />
-    <Compile Include="Models\ExamenFisico.cs" />
-    <Compile Include="Models\EvaluacionColumna.cs" />
-    <Compile Include="Models\DetalleGineco.cs" />
-    <Compile Include="Models\DetalleMasculino.cs" />
-    <Compile Include="Models\TipoServicio.cs" />
-    <Compile Include="Models\EstatusSolicitud.cs" />
-    <Compile Include="Models\Proyecto.cs" />
-    <Compile Include="Models\Empresa.cs" />
-    <Compile Include="Models\Puesto.cs" />
-    <Compile Include="Models\Area.cs" />
-    <Compile Include="Models\Vacunacion.cs" />
+    <Compile Include="Models\Entities\Empleado.cs" />
+    <Compile Include="Models\Entities\PruebaToxicologica.cs" />
+    <Compile Include="Models\Entities\OrdenServicioMedico.cs" />
+    <Compile Include="Models\Entities\Candidato.cs" />
+    <Compile Include="Models\Entities\EvaluacionClinica.cs" />
+    <Compile Include="Models\Entities\HabitoPersonal.cs" />
+    <Compile Include="Models\Entities\HistoriaMedica.cs" />
+    <Compile Include="Models\Entities\AntecedenteLaboral.cs" />
+    <Compile Include="Models\Entities\ExamenFisico.cs" />
+    <Compile Include="Models\Entities\EvaluacionColumna.cs" />
+    <Compile Include="Models\Entities\DetalleGineco.cs" />
+    <Compile Include="Models\Entities\DetalleMasculino.cs" />
+    <Compile Include="Models\Entities\TipoServicio.cs" />
+    <Compile Include="Models\Entities\EstatusSolicitud.cs" />
+    <Compile Include="Models\Entities\Proyecto.cs" />
+    <Compile Include="Models\Entities\Empresa.cs" />
+    <Compile Include="Models\Entities\Puesto.cs" />
+    <Compile Include="Models\Entities\Area.cs" />
+    <Compile Include="Models\Entities\Vacunacion.cs" />
     <Compile Include="Models\dal\orden_servicio_medico_dal.cs" />
     <Compile Include="Models\dal\empleado_dal.cs" />
     <Compile Include="Models\dal\candidato_dal.cs" />
@@ -169,6 +169,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\FormularioEvaluacionMedica.css" /><Content Include="Scripts\FormularioEvaluacionMedica.js" /><Content Include="Content\ListaServiciosMedicos.css" /><Content Include="Scripts\ListaServiciosMedicos.js" /><Content Include="Content\DashboardRecursosHumanos.css" /><Content Include="Scripts\DashboardRecursosHumanos.js" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -215,15 +216,15 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Solicitud\Index.cshtml" />
+    <Content Include="Views\Solicitud\DashboardRecursosHumanos.cshtml" />
     <Content Include="Views\Solicitud\_ModalNuevaSolicitud.cshtml" />
     <Content Include="Content\solicitud.css" />
     <Content Include="Scripts\solicitud.js" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\ServicioMedico\Index.cshtml" />
-    <Content Include="Views\ServicioMedico\Evaluacion.cshtml" />
-    <Content Include="Views\ServicioMedico\ImprimirEvaluacion.cshtml" />
-    <Content Include="Views\ServicioMedico\ImprimirAntidoping.cshtml" />
+    <Content Include="Views\ServicioMedico\ListaServiciosMedicos.cshtml" />
+    <Content Include="Views\ServicioMedico\FormularioEvaluacionMedica.cshtml" />
+    <Content Include="Views\ServicioMedico\ImprimirFormularioEvaluacionMedica.cshtml" />
+    <Content Include="Views\ServicioMedico\FormatoImpresionAntidoping.cshtml" />
     <Content Include="Content\sidebar.css" />
   </ItemGroup>
   <ItemGroup>

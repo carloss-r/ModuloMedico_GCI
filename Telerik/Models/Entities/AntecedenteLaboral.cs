@@ -1,7 +1,7 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Telerik.Models
+namespace Telerik.Models.Entities
 {
     [Table("AntecedentesLaborales")]
     public class AntecedenteLaboral

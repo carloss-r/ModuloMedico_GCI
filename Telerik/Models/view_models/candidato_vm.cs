@@ -1,4 +1,4 @@
-namespace Telerik.Models.ViewModels
+﻿namespace Telerik.Models.ViewModels
 {
     public class CandidatoVm
     {

@@ -1,4 +1,5 @@
 using System.Data.Entity;
+using Telerik.Models.Entities;
 
 namespace Telerik.Models
 {

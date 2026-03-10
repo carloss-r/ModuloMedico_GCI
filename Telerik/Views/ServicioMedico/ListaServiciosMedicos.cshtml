@@ -1,0 +1,190 @@
+﻿@{
+    ViewBag.Title = "Servicio Médico - Solicitudes Recibidas";
+}
+
+<link rel="stylesheet" href="~/Content/ListaServiciosMedicos.css" />
+
+<div class="sm-container">
+    <div class="sm-header">
+        <h2><i class="fas fa-stethoscope"></i> Servicio M&eacute;dico</h2>
+        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.7);">M&oacute;dulo de Servicios M&eacute;dicos</span>
+    </div>
+
+    <!-- Filtros -->
+    <div class="sm-filtros">
+        <div class="filtros-title"><i class="fas fa-filter"></i> Filtros de B&uacute;squeda</div>
+        <div class="filtros-row">
+            <div class="filtro-group">
+                <label>No. Empleado</label>
+                <input type="number" id="filtroNumEmp" placeholder="Ej: 1001" />
+            </div>
+            <div class="filtro-group">
+                <label>Tipo de Servicio</label>
+                <select id="filtroModalidad">
+                    <option value="">Todos</option>
+                    <option value="INGRESO">Ingreso</option>
+                    <option value="PERIODICO">Periódico</option>
+                    <option value="ANTIDOPING">Antidoping</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Estatus</label>
+                <select id="filtroEstatus">
+                    <option value="">Todas</option>
+                    <option value="1">Pendiente</option>
+                    <option value="3">Completada</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label>Fecha Desde</label>
+                <input type="date" id="filtroFechaDesde" />
+            </div>
+            <div class="filtro-group">
+                <label>Fecha Hasta</label>
+                <input type="date" id="filtroFechaHasta" />
+            </div>
+            <div class="filtro-group" style="flex-direction:row; gap:6px; flex:0 0 auto; align-items:flex-end;">
+                <button class="btn-filtrar" onclick="aplicarFiltros(true)"><i class="fas fa-search"></i> Buscar</button>
+                <button class="btn-limpiar" onclick="limpiarFiltros()"><i class="fas fa-times"></i> Limpiar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabla de solicitudes -->
+    <div class="sm-panel">
+        <div class="sp-title">
+            <span><i class="fas fa-inbox"></i> Bandeja de Solicitudes</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">Mostrar:
+                    <select id="selectTamanoPagina" onchange="onCambioTamanoPagina()" style="margin-left:5px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem;">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select> por página
+                </label>
+                <button class="btn-gci btn-gci-secondary btn-gci-sm" onclick="cargarSolicitudes()"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            </div>
+        </div>
+        <div class="resultados-info" id="resultsInfo"></div>
+        <table class="sm-table">
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Modalidad</th>
+                    <th>Persona</th>
+                    <th>No. Emp.</th>
+                    <th>Tipo Servicio</th>
+                    <th>Proyecto</th>
+                    <th>Estatus</th>
+                    <th style="text-align:center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbodySolicitudes">
+                <tr><td colspan="9" class="no-data">Cargando solicitudes...</td></tr>
+            </tbody>
+        </table>
+        <div id="paginacionControles" class="paginacion"></div>
+    </div>
+</div>
+</div>
+
+<!-- ══════════ Modal de Impresión Embebida ══════════ -->
+<div class="print-overlay" id="printOverlay">
+    <div class="print-modal">
+        <div class="print-modal-header">
+            <h3><i class="fas fa-print"></i> Vista Previa de Impresi&oacute;n</h3>
+            <div class="pm-actions">
+                <button class="pm-btn pm-btn-print" onclick="imprimirIframeReal()"><i class="fas fa-print"></i> Imprimir</button>
+                <button class="pm-btn pm-btn-close" onclick="cerrarImpresion()"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+        <iframe id="printIframe" class="print-iframe"></iframe>
+    </div>
+</div>
+
+<!-- Menú Contextual Flotante -->
+<div id="ctxMenu" class="ctx-menu">
+    <a href="#" id="ctxEvaluar" class="ctx-menu-item">
+        <i class="fas fa-notes-medical" style="color:#16a085;"></i> Evaluar Solicitud
+    </a>
+    <a href="#" id="ctxEliminar" class="ctx-menu-item">
+        <i class="fas fa-trash-alt" style="color:#c0392b;"></i> Eliminar Solicitud
+    </a>
+</div>
+<!-- ══════════ Modal de Detalle ══════════ -->
+<div class="modal-overlay" id="modalDetalle">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-medical-alt"></i> Detalle de Solicitud &mdash; <span id="modalFolio"></span></h3>
+            <button class="modal-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <div class="ds-title"><i class="fas fa-info-circle"></i> Informaci&oacute;n de la Solicitud</div>
+                <div class="detail-grid">
+                    <div class="detail-item"><label>Folio</label><span id="detFolio">&mdash;</span></div>
+                    <div class="detail-item"><label>Fecha</label><span id="detFecha">&mdash;</span></div>
+                    <div class="detail-item"><label>Modalidad</label><span id="detModalidad">&mdash;</span></div>
+                    <div class="detail-item"><label>Tipo de Servicio</label><span id="detTipoServicio">&mdash;</span></div>
+                    <div class="detail-item"><label>Estatus Actual</label><span id="detEstatus">&mdash;</span></div>
+                    <div class="detail-item"><label>Proyecto</label><span id="detProyecto">&mdash;</span></div>
+                </div>
+            </div>
+
+            <div class="detail-section" id="seccionEmpleado" style="display:none;">
+                <div class="emp-detail-box">
+                    <div class="edb-title"><i class="fas fa-user-tie"></i> Datos del Empleado (Pre-llenados)</div>
+                    <div class="emp-detail-grid">
+                        <div class="emp-detail-item"><label>No. Empleado</label><span id="detEmpNum">&mdash;</span></div>
+                        <div class="emp-detail-item"><label>Nombre Completo</label><span id="detEmpNombre">&mdash;</span></div>
+                        <div class="emp-detail-item"><label>CURP</label><span id="detEmpCurp">&mdash;</span></div>
+                        <div class="emp-detail-item"><label>RFC</label><span id="detEmpRfc">&mdash;</span></div>
+                        <div class="emp-detail-item"><label>NSS</label><span id="detEmpNss">&mdash;</span></div>
+                        <div class="emp-detail-item"><label>Puesto</label><span id="detEmpPuesto">&mdash;</span></div>
+                        <div class="emp-detail-item"><label>Proyecto</label><span id="detEmpProyecto">&mdash;</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section" id="seccionIngreso" style="display:none;">
+                <div class="ingreso-notice">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Nuevo Ingreso:</strong> Esta solicitud es para un candidato nuevo. No existen datos previos en el sistema, el personal m&eacute;dico deber&aacute; completar toda la informaci&oacute;n durante la evaluaci&oacute;n.
+                </div>
+                <div style="margin-top: 10px;">
+                    <div class="detail-grid">
+                        <div class="detail-item"><label>Candidato</label><span id="detCandNombre">&mdash;</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions" id="modalActions">
+            <button class="btn-gci btn-gci-secondary" id="btnPrintSol" style="display:none;" onclick="abrirImpresion(this.dataset.url)"><i class="fas fa-print"></i> Imprimir Solicitud</button>
+            <button class="btn-gci btn-gci-secondary" id="btnPrintEval" style="display:none;" onclick="abrirImpresion(this.dataset.url)"><i class="fas fa-file-medical"></i> Imprimir Evaluaci&oacute;n</button>
+            <button class="btn-gci btn-gci-secondary" id="btnPrintAnti" style="display:none;" onclick="abrirImpresion(this.dataset.url)"><i class="fas fa-flask"></i> Imprimir Antidoping</button>
+            <a href="#" id="btnIrEvaluar" class="btn-gci btn-gci-primary" style="display:none;"><i class="fas fa-notes-medical"></i> Ir a Evaluaci&oacute;n</a>
+            <div style="flex:1;"></div>
+            <button class="btn-gci btn-gci-secondary" onclick="cerrarModal()">Cerrar</button>
+            <button class="btn-gci btn-gci-danger" id="btnEliminar" onclick="eliminarSolicitud()"><i class="fas fa-trash-alt"></i> Eliminar</button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<!-- Modal de Impresión Embebida -->
+<div class="print-overlay" id="printOverlay">
+    <div class="print-modal">
+        <div class="print-modal-header">
+            <h3><i class="fas fa-print"></i> Vista Previa de Impresi&oacute;n</h3>
+            <div class="pm-actions">
+                <button class="pm-btn pm-btn-print" onclick="imprimirDesdeIframe()"><i class="fas fa-print"></i> Imprimir</button>
+                <button class="pm-btn pm-btn-close" onclick="cerrarImpresion()"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+        </div>
+        <iframe id="printIframe" class="print-iframe"></iframe>
+    </div>
+</div>
+<script src="~/Scripts/ListaServiciosMedicos.js"></script>
+}

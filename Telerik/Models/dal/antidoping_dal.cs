@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using Telerik.Models.Entities;
 using System.Linq;
 using Telerik.Models;
 using Telerik.Models.ViewModels;

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using Telerik.Models.Entities;
 
 namespace Telerik.Models.ViewModels
 {
