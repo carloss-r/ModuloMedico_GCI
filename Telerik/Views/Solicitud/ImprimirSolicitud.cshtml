@@ -205,9 +205,9 @@
                 </td>
             </tr>
             <tr>
-                <td class="option-cell">APTO</td>
-                <td class="option-cell">APTO CONDICIONADO</td>
-                <td class="option-cell">NO APTO</td>
+                <td class="option-cell">APTO @(Model.FkAptitudMedica == 1 ? "✔" : "")</td>
+                <td class="option-cell">APTO CONDICIONADO @(Model.FkAptitudMedica == 2 ? "✔" : "")</td>
+                <td class="option-cell">NO APTO @(Model.FkAptitudMedica == 3 ? "✔" : "")</td>
             </tr>
         </table>
 

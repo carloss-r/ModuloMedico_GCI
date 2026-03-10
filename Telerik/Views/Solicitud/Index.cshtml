@@ -98,6 +98,9 @@
         <div class="sp-title">
             <span><i class="fas fa-inbox"></i> Solicitudes Recientes</span>
             <div style="display:flex; align-items:center; gap:10px;">
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">Num. Empleado:
+                    <input type="number" id="txtBuscarNumEmpleado" class="form-control" style="width: 110px; display: inline-block; padding:4px 8px; margin-right: 15px;" placeholder="Buscar..." onkeypress="if(event.key === 'Enter') cargarSolicitudes();" />
+                </label>
                 <label style="font-size:0.78rem; color:#555; font-weight:500;">Mostrar:
                     <select id="selectTamanoPaginaRH" onchange="onCambioTamanoPaginaRH()" style="margin-left:5px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem;">
                         <option value="10">10</option>
@@ -119,11 +122,12 @@
                     <th>Candidato / Empleado</th>
                     <th>Servicio</th>
                     <th>Estatus</th>
+                    <th>Aptitud</th>
                     <th style="text-align:center;">Formato(s)</th>
                 </tr>
             </thead>
             <tbody id="tbodySolicitudes">
-                <tr><td colspan="7" class="no-data">Cargando solicitudes...</td></tr>
+                <tr><td colspan="8" class="no-data">Cargando solicitudes...</td></tr>
             </tbody>
         </table>
         <div id="paginacionControles" class="paginacion"></div>
@@ -160,7 +164,7 @@
                     <div style="display:flex; gap:5px;">
                         <input type="number" id="txtNumEmpleado" class="form-control" placeholder="Ingrese # n&oacute;mina" />
                         <button class="btn-gci btn-gci-primary" onclick="buscarEmpleadoParaSolicitud()"><i class="fas fa-search"></i> Buscar</button>
-                    </div>
+                    </div>  
                 </div>
 
                 <div id="datosEmpleadoConfirm" style="display:none; background:#f0f9f0; padding:15px; border-radius:6px; border:1px solid #c3e6c3; margin-bottom:15px;">
@@ -274,13 +278,32 @@
         $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="7"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
         $('#paginacionControles').empty();
         $('#resultsInfo').text('');
-        $.getJSON('@Url.Action("ObtenerSolicitudes", "ServicioMedico")', { pagina: paginaActualRH, tamanoPagina: registrosPorPaginaRH }, function (resp) {
-            if (resp.success) {
-                datosSolicitudes = resp.data || [];
-                totalRegistrosRH = resp.total || datosSolicitudes.length;
-                renderPagina();
-            } else {
-                $('#tbodySolicitudes').empty().append('<tr><td colspan="7" class="no-data">Error al cargar solicitudes.</td></tr>');
+        
+        // RH Dashboard - Solo mostrar INGRESO por requerimiento
+        var req = {
+            pagina: paginaActualRH,
+            tamanoPagina: registrosPorPaginaRH,
+            filtroModalidad: 'INGRESO', // Forzar solo INGRESO
+            filtroEstatus: null, // Traer todos (pendientes/completadas)
+            filtroNumEmpleado: $('#txtBuscarNumEmpleado').val() || null
+        };
+
+        $.ajax({
+            url: '@Url.Action("CargarPagina", "ServicioMedico")',
+            type: 'POST',
+            data: JSON.stringify(req),
+            contentType: 'application/json; charset=utf-8',
+            success: function (resp) {
+                if (resp.success) {
+                    datosSolicitudes = resp.data || [];
+                    totalRegistrosRH = resp.total || datosSolicitudes.length;
+                    renderPagina();
+                } else {
+                    $('#tbodySolicitudes').empty().append('<tr><td colspan="8" class="no-data">' + (resp.message || 'Error al cargar solicitudes.') + '</td></tr>');
+                }
+            },
+            error: function () {
+                $('#tbodySolicitudes').empty().append('<tr><td colspan="8" class="no-data">Error de conexi\u00f3n.</td></tr>');
             }
         });
     }
@@ -290,7 +313,7 @@
         $tbody.empty();
 
         if (!datosSolicitudes || datosSolicitudes.length === 0) {
-            $tbody.append('<tr><td colspan="7" class="no-data">No hay solicitudes registradas.</td></tr>');
+            $tbody.append('<tr><td colspan="8" class="no-data">No hay solicitudes registradas.</td></tr>');
             $('#resultsInfo').text('0 resultados.');
             $('#paginacionControles').empty();
             return;
@@ -311,6 +334,12 @@
             if (estLow.indexOf('proceso') >= 0) badgeEst = 'badge-proceso';
             if (estLow.indexOf('complet') >= 0) badgeEst = 'badge-completado';
 
+            var aptitudBadge = '<span style="color:#999">-</span>';
+            if (estLow.indexOf('complet') >= 0 && s.AptitudDesc) {
+                var aptitudColor = s.FkAptitudMedica === 1 ? '#27ae60' : (s.FkAptitudMedica === 3 ? '#c0392b' : '#f39c12');
+                aptitudBadge = '<span class="badge-sm" style="background:' + aptitudColor + ';">' + s.AptitudDesc + '</span>';
+            }
+
             var accionesHtml = '<div style="display:flex; justify-content:center; gap:5px;">';
             accionesHtml += '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="abrirImpresion(\'@Url.Action("ImprimirSolicitud", "ServicioMedico")/' + s.PkOrdenMedico + '\')" title="Ver Forma de Solicitud"><i class="fas fa-file-alt"></i></button>';
             accionesHtml += '</div>';
@@ -323,6 +352,7 @@
                 '<td>' + (s.NombrePersona || '-') + '</td>' +
                 '<td>' + (s.TipoServicioDesc || '-') + '</td>' +
                 '<td><span class="badge-sm ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span></td>' +
+                '<td>' + aptitudBadge + '</td>' +
                 '<td>' + accionesHtml + '</td>' +
                 '</tr>'
             );

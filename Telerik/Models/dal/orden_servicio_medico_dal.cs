@@ -41,7 +41,13 @@ namespace Telerik.Models.Dal
                             // Proyecto (LEFT JOIN)
                             join pr in db.Proyectos on o.fkProyecto equals pr.pkProyecto into prjoin
                             from pr in prjoin.DefaultIfEmpty()
-                            select new { o, ts, es, emp, cand, pr };
+                            // Evaluación Clínica (LEFT JOIN) para obtener Aptitud
+                            join eval in db.EvaluacionesClinicas on o.pkOrdenMedico equals eval.fkOrdenMedico into evaljoin
+                            from eval in evaljoin.DefaultIfEmpty()
+                            // Antidoping (LEFT JOIN) para veredictos de antidoping puros
+                            join anti in db.PruebasToxicologicas on o.pkOrdenMedico equals anti.fkOrdenMedico into antijoin
+                            from anti in antijoin.DefaultIfEmpty()
+                            select new { o, ts, es, emp, cand, pr, eval, anti };
 
                 // IQueryable dinámico. No evaluado aún.
                 var q = query.AsQueryable();
@@ -111,7 +117,14 @@ namespace Telerik.Models.Dal
                         PuestoCandidato  = x.cand != null ? x.cand.puestoDeseado : null,
                         AreaCandidato    = x.cand != null ? x.cand.area : null,
                         EmpresaCandidato = x.cand != null ? x.cand.empresa : null,
-                        SexoCandidato    = x.emp != null ? x.emp.fkSexo : (x.cand != null ? x.cand.fkSexo : null)
+                        SexoCandidato    = x.emp != null ? x.emp.fkSexo : (x.cand != null ? x.cand.fkSexo : null),
+                        // Determinar Aptitud Médica
+                        FkAptitudMedica  = x.o.fkTipoServicio == 3 
+                            ? (x.anti != null 
+                                ? (x.anti.veredictoFinal != null && x.anti.veredictoFinal.ToUpper().Contains("APTO") && !x.anti.veredictoFinal.ToUpper().Contains("NO APTO") ? 1 : 
+                                   x.anti.veredictoFinal != null && x.anti.veredictoFinal.ToUpper().Contains("NO APTO") ? 3 : (int?)null) 
+                                : (int?)null)
+                            : (x.eval != null ? x.eval.fkAptitudMedica : (int?)null)
                     })
                     .ToList();
 
@@ -161,6 +174,10 @@ namespace Telerik.Models.Dal
                           from cand in candjoin.DefaultIfEmpty()
                           join pr in db.Proyectos on o.fkProyecto equals pr.pkProyecto into prjoin
                           from pr in prjoin.DefaultIfEmpty()
+                          join eval in db.EvaluacionesClinicas on o.pkOrdenMedico equals eval.fkOrdenMedico into evaljoin
+                          from eval in evaljoin.DefaultIfEmpty()
+                          join anti in db.PruebasToxicologicas on o.pkOrdenMedico equals anti.fkOrdenMedico into antijoin
+                          from anti in antijoin.DefaultIfEmpty()
                           where o.pkOrdenMedico == pkOrden
                           select new OrdenServicioMedicoVm
                           {
@@ -182,7 +199,13 @@ namespace Telerik.Models.Dal
                               PuestoCandidato  = cand != null ? cand.puestoDeseado : null,
                               AreaCandidato    = cand != null ? cand.area : null,
                               EmpresaCandidato = cand != null ? cand.empresa : null,
-                              SexoCandidato    = emp != null ? emp.fkSexo : (cand != null ? cand.fkSexo : null)
+                              SexoCandidato    = emp != null ? emp.fkSexo : (cand != null ? cand.fkSexo : null),
+                              FkAptitudMedica  = o.fkTipoServicio == 3 
+                                  ? (anti != null 
+                                      ? (anti.veredictoFinal != null && anti.veredictoFinal.ToUpper().Contains("APTO") && !anti.veredictoFinal.ToUpper().Contains("NO APTO") ? 1 : 
+                                         anti.veredictoFinal != null && anti.veredictoFinal.ToUpper().Contains("NO APTO") ? 3 : (int?)null) 
+                                      : (int?)null)
+                                  : (eval != null ? eval.fkAptitudMedica : (int?)null)
                           }).FirstOrDefault();
 
                 // Resolver nombre de empresa en memoria

@@ -10,174 +10,198 @@
     <meta charset="utf-8" />
     <title>Examen Antidoping - @orden.FolioDisplay</title>
     <style>
-        @@page { size: letter; margin: 10mm; }
+        @@page { size: letter; margin: 15mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #000; background: #fff; }
-        .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000; background: #fff; }
+        .container { width: 100%; max-width: 800px; margin: 0 auto; }
         
-        /* Header */
-        .title-container { text-align: center; margin-bottom: 20px; }
-        h1 { font-size: 16pt; margin: 0; text-transform: uppercase; font-weight: bold; }
-        h2 { font-size: 13pt; margin: 5px 0 0 0; font-weight: normal; text-transform: uppercase; }
+        /* HEADER LOGOS */
+        .header-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 20px; }
+        .header-table td { border: 1.5px solid #000; text-align: center; vertical-align: middle; padding: 5px; }
+        .l-logo { width: 22%; font-weight: bold; font-size: 22pt; color: #fff; background:#fff; }
+        .r-logo { width: 22%; font-weight: bold; font-size: 24pt; color: #004b93; background:#fff;}
+        .c-title { font-weight: bold; font-size: 11pt; background: #e0e0e0; padding:10px!important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .c-subtitle { font-weight: bold; font-size: 10pt; background: #e0e0e0; padding: 6px!important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
         
-        .divider { border-bottom: 2px solid #000; margin-top: 10px; margin-bottom: 20px; }
+        /* BANNER */
+        .banner { background: #e0e0e0; font-weight: bold; text-align: center; font-size: 10pt; padding: 6px; margin-bottom: 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
 
-        /* General Table */
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        /* PRE-DATA */
+        .data-row { display: flex; margin-bottom: 8px; font-weight:bold; font-size:10pt;}
+        .data-row .label { width: 80px; }
+        .data-row .line { flex: 1; border-bottom: 1.5px solid #000; max-width: 250px;}
+
+        /* TEXT EXTRACTS */
+        .text-block { text-align: justify; margin-top: 25px; margin-bottom: 25px; font-size: 10pt; padding: 0 10px;}
+        .centered-line { text-align: center; margin-top: 15px; margin-bottom: 25px; font-size: 10pt;}
+
+        /* SIGNATURE FIELDS */
+        .sign-row { display: flex; align-items: flex-end; margin-bottom: 15px; font-weight: bold; font-size: 10pt;}
+        .sign-row .lbl { width: 200px; }
+        .sign-row .lin { flex: 1; border-bottom: 1.5px solid #000; max-width: 400px;}
+
+        /* MAIN GRID RESULTS + EVIDENCE */
+        .main-grid { display: flex; gap: 20px; margin-top: 30px; }
         
-        /* Layout Table for Header Data */
-        .header-table { margin-bottom: 20px; }
-        .header-table td { padding: 4px 0; vertical-align: bottom; }
-        .header-table .label { font-weight: bold; width: 80px; }
-        .header-table .value { border-bottom: 1px solid #000; padding-left: 5px; }
+        /* Left: Table */
+        .table-area { width: 55%; }
+        .res-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
+        .res-table th, .res-table td { border: 1.5px solid #000; padding: 8px 10px; font-size: 10pt; text-align: center; }
+        .res-table th { background: #e0e0e0; font-weight: normal; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
         
-        /* Section Title Box */
-        .section-box { border: 1px solid #000; padding: 5px 10px; font-weight: bold; font-size: 11pt; background: #f0f0f0; margin-bottom: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        /* Right: Photo */
+        .ev-area { width: 45%; }
+        .ev-box { border: 4px solid #000; height: 100%; min-height: 280px; position: relative; }
+        .ev-title-container { position: absolute; left: 0; top: 0; bottom: 0; width: 40px; border-right: 4px solid #000; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .ev-title { transform: rotate(-90deg); white-space: nowrap; font-weight: bold; font-size: 11pt; letter-spacing: 1px;}
+        .ev-content { margin-left: 40px; width: calc(100% - 40px); height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 5px; }
 
-        /* Data grids */
-        .data-grid { width: 100%; display: table; margin-bottom: 20px; }
-        .grid-row { display: table-row; }
-        .grid-cell { display: table-cell; border: 1px solid #000; padding: 5px; text-align: center; }
-        .grid-cell-title { font-weight: bold; font-size: 9pt; }
-        .grid-cell-value { font-size: 11pt; padding-top: 5px; }
-
-        /* Results table */
-        .results-table th, .results-table td { border: 1px solid #000; padding: 6px; }
-        .results-table th { background: #f0f0f0; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
-
-        /* Signature area */
-        .signatures { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 40px; }
-        .signature-box { text-align: center; width: 40%; font-size: 10pt; }
-        .signature-line { border-top: 1px solid #000; padding-top: 5px; margin-bottom: 5px; }
+        /* FOOTER */
+        .footer-msg { font-weight: bold; margin-top: 30px; font-size: 11pt; }
+        
+        .footer-sign { margin-top: 60px; text-align: center; }
+        .fs-name { font-weight: normal; font-size: 10pt; margin-bottom: 5px; }
+        .fs-line { border-top: 1.5px solid #000; width: 400px; margin: 0 auto; padding-top: 5px; font-weight: bold; font-size: 10pt;}
 
         @@media print { 
             .no-print { display: none !important; } 
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
-        
-        .print-btn { position: fixed; top: 10px; right: 10px; padding: 8px 15px; background: #333; color: white; border: none; cursor: pointer; border-radius: 4px; z-index: 1000;}
     </style>
 </head>
 <body>
-    <!-- Botón removido (Impresión externa) -->
-
     <div class="container">
-        <div class="title-container">
-            <h1>EXAMEN MÉDICO OCUPACIONAL</h1>
-            <h2>ANTIDOPING</h2>
-            <div class="divider"></div>
-        </div>
-
+        <!-- HEADER -->
         <table class="header-table">
             <tr>
-                <td class="label">Folio:</td>
-                <td class="value" style="width: 40%;">@orden.FolioDisplay</td>
-                <td class="label" style="width: 60px; padding-left: 20px;">Fecha:</td>
-                <td class="value">@DateTime.Now.ToString("dd/MM/yyyy")</td>
+                <td rowspan="2" class="l-logo">
+                    <!-- Placeholder de Image GCI -->
+                    <img src="~/Content/Images/logo.png" alt="GCI Logo" style="max-height: 50px;" onerror="this.style.display='none'" />
+                    <div style="color: #2e8b57; font-size: 40px; width: 100%; font-weight: 900; line-height: 1;">GCI</div>
+                    <div style="color: #f39c12; font-size: 8px; line-height: 1; margin-top:2px;">GRUPO CONSTRUCTOR INDUSTRIAL<br/>o i l &amp; g a s</div>
+                </td>
+                <td class="c-title">REGLAMENTO DE SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
+                <td rowspan="2" class="r-logo">
+                    <!-- Placeholder HSE -->
+                    <div style="display:flex; align-items:center; justify-content:center;">
+                        <span style="font-size:35px; color:#555;">⚙</span><span style="color:#004b93; font-style:italic;">HSE</span>
+                    </div>
+                </td>
             </tr>
             <tr>
-                <td class="label">Nombre:</td>
-                <td class="value">@paciente.NombreCompleto</td>
-                <td class="label" style="padding-left: 20px;">Edad:</td>
-                <td class="value">@paciente.Edad años</td>
-            </tr>
-            <tr>
-                <td class="label">Puesto:</td>
-                <td class="value">@paciente.Puesto</td>
-                <td class="label" style="padding-left: 20px;">Área:</td>
-                <td class="value">@paciente.Area</td>
-            </tr>
-            <tr>
-                <td class="label">Empresa:</td>
-                <td class="value">@paciente.Empresa</td>
-                <td class="label" style="padding-left: 20px;">Sexo:</td>
-                <td class="value">@(paciente.Sexo == "F" ? "Femenino" : "Masculino")</td>
-            </tr>
-            <tr>
-                <td class="label">RFC:</td>
-                <td class="value">@paciente.Rfc</td>
-                <td class="label" style="padding-left: 20px;">CURP:</td>
-                <td class="value">@paciente.Curp</td>
+                <td class="c-subtitle">GRUPO CONSTRUCTOR INDUSTRIAL OIL &amp; GAS</td>
             </tr>
         </table>
 
-        <div class="section-box">
-            RESULTADOS DE DETECCIÓN DE SUSTANCIAS
+        <!-- BANNER -->
+        <div class="banner">ATORIZACION DE PRUEBA DE DETECCION DEL CONSUMO DE DROGAS Y ALCOHOL</div>
+
+        <!-- FECHA Y PROYECTO -->
+        <div class="data-row">
+            <div class="label">Fecha:</div>
+            <div class="line" style="font-weight:normal; text-align:center; padding-bottom:2px;">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+        </div>
+        <div class="data-row" style="margin-bottom: 30px;">
+            <div class="label">Proyecto:</div>
+            <div class="line" style="font-weight:normal; text-align:center; padding-bottom:2px;">@(orden?.ProyectoDesc ?? "")</div>
         </div>
 
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th style="width: 50%; text-align: left;">Sustancia</th>
-                    <th style="width: 25%;">Resultado</th>
-                    <th style="width: 25%;">Cut-off</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Cocaína (COC)</td>
-                    <td style="text-align: center; font-weight: bold;">@(Model.ResultadoCocaina ? "POSITIVO" : "NEGATIVO")</td>
-                    <td style="text-align: center;">300 ng/mL</td>
-                </tr>
-                <tr>
-                    <td>Marihuana (THC)</td>
-                    <td style="text-align: center; font-weight: bold;">@(Model.ResultadoTHC ? "POSITIVO" : "NEGATIVO")</td>
-                    <td style="text-align: center;">50 ng/mL</td>
-                </tr>
-                <tr>
-                    <td>Anfetaminas (AMP)</td>
-                    <td style="text-align: center; font-weight: bold;">@(Model.ResultadoAnfetaminas ? "POSITIVO" : "NEGATIVO")</td>
-                    <td style="text-align: center;">1000 ng/mL</td>
-                </tr>
-                <tr>
-                    <td>Metanfetaminas (mAMP)</td>
-                    <td style="text-align: center; font-weight: bold;">@(Model.ResultadoMetanfetaminas ? "POSITIVO" : "NEGATIVO")</td>
-                    <td style="text-align: center;">1000 ng/mL</td>
-                </tr>
-                <tr>
-                    <td>Opiáceos (OPI)</td>
-                    <td style="text-align: center; font-weight: bold;">@(Model.ResultadoOpiaceos ? "POSITIVO" : "NEGATIVO")</td>
-                    <td style="text-align: center;">2000 ng/mL</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="section-box" style="margin-top: 20px;">
-            DIAGNÓSTICO Y APTITUD MÉDICA
+        <!-- TEXTO CONSENTIMIENTO 1 -->
+        <div class="text-block">
+            Considerando el echo, que el consumo de drogas o alcohol es un factor de riesgo para quienes trabajamos en este proyecto y del 
+            interes que tengo por mi seguridad y la de mis compañeros, autorizo a <span style="display:inline-block; border-bottom:1.5px solid #000; width:350px;"></span> para 
+            que se me relicen las pruebas de deteccion de consumo de drogas y alcohol que se estime conveniente, en el momento en que se 
+            tenga a bien efectuar.
         </div>
 
-        <table style="margin-bottom: 20px;">
-            <tr>
-                <td style="width: 80px; font-weight: bold;">Aptitud:</td>
-                <td style="border-bottom: 1px solid #000; font-weight: bold; font-size: 13pt;">@Model.VeredictoFinal</td>
-            </tr>
-        </table>
-
-        <div style="font-weight: bold; margin-bottom: 5px;">Observaciones:</div>
-        <div style="border: 1px solid #000; min-height: 80px; padding: 10px;">
-            @Model.Comentarios
+        <div class="centered-line">
+            Certifico que el vaso colector esterilizado y/o la tarjeta de deteccion y/o boquilla de alcoholimetro, se encuentran debidamente <br/>
+            sellados y en sus empaques originales, que fueron abiertas, marcados y sellados en mi presencia para la aplicación de la prueba , <br/>
+            ratfico que la muestra no fue alterada ni manipulada. <br/>
+            certifico que he leido y entendido la hoja de consentimiento para la prueba de sustancias controladas y autorizo al personal de <br/>
+            servicio medico para que tomen muestra de orina y aliento .
         </div>
-        
-        @if (!string.IsNullOrEmpty(Model.UrlFotoEvidencia))
-        {
-            <div style="margin-top: 20px; text-align: center;" class="no-print">
-                <div style="border: 1px solid #000; padding: 10px; display: inline-block;">
-                    <strong style="display: block; margin-bottom: 5px;">Evidencia adjunta (no se imprime por defecto)</strong>
-                    <img src="@Url.Content(Model.UrlFotoEvidencia)" alt="Evidencia" style="max-width: 300px; max-height: 200px;" />
+
+        <!-- FIRMAS PACIENTE -->
+        <div class="sign-row">
+            <div class="lbl">Nombre del trabajdor :</div>
+            <div class="lin" style="font-weight:normal; text-align:center;">@(paciente?.NombreCompleto)</div>
+        </div>
+        <div class="sign-row">
+            <div class="lbl">Numero de trabajador :</div>
+            <div class="lin" style="font-weight:normal; text-align:center;">@(orden?.FkEmpleado ?? 0)</div>
+        </div>
+        <div class="sign-row">
+            <div class="lbl">Nombre y firma del trabajador :</div>
+            <div class="lin"></div>
+        </div>
+
+        <!-- RESULTADOS Y FOTO -->
+        <div class="main-grid">
+            <div class="table-area">
+                <table class="res-table">
+                    <thead>
+                        <tr>
+                            <th colspan="2" style="text-align: left;">Observaciones: Se le realiza prueba de <span style="font-weight:bold; text-decoration: underline;">ANTIDOPING</span> con<br/>los siguientes resultados :</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width:55%;">OPI (Opiaceos )</td>
+                            <td style="width:45%;">@(Model.ResultadoOpiaceos ? "POSITIVO" : "NEGATIVO")</td>
+                        </tr>
+                        <tr>
+                            <td>COC (Cocaina)</td>
+                            <td>@(Model.ResultadoCocaina ? "POSITIVO" : "NEGATIVO")</td>
+                        </tr>
+                        <tr>
+                            <td>BZO (Benzodiacepinas)</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>AMP (Anfetaminas )</td>
+                            <td>@(Model.ResultadoAnfetaminas ? "POSITIVO" : "NEGATIVO")</td>
+                        </tr>
+                        <tr>
+                            <td>MET (Metanfetaminas )</td>
+                            <td>@(Model.ResultadoMetanfetaminas ? "POSITIVO" : "NEGATIVO")</td>
+                        </tr>
+                        <tr>
+                            <td>THC (Marihuana)</td>
+                            <td>@(Model.ResultadoTHC ? "POSITIVO" : "NEGATIVO")</td>
+                        </tr>
+                        <tr>
+                            <td>ALCOHOL</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="ev-area">
+                <div class="ev-box">
+                    <div class="ev-title-container">
+                        <div class="ev-title">EVIDENCIA FOTOGRAFICA</div>
+                    </div>
+                    <div class="ev-content">
+                        @if (!string.IsNullOrEmpty(Model.UrlFotoEvidencia))
+                        {
+                            <img src="@Url.Content(Model.UrlFotoEvidencia)" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                        }
+                    </div>
                 </div>
             </div>
-        }
-
-        <div class="signatures">
-            <div class="signature-box">
-                <div class="signature-line">Firma del Médico Evaluador</div>
-                <div>Cédula Profesional: ______________</div>
-            </div>
-            <div class="signature-box">
-                <div class="signature-line">Firma del Paciente</div>
-                <div>Fecha: @DateTime.Now.ToString("dd/MM/yyyy")</div>
-            </div>
         </div>
+
+        <div class="footer-msg">
+            NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES
+        </div>
+
+        <div class="footer-sign">
+            <div class="fs-name">LIC. NATALY MARTINEZ PUGA</div>
+            <div class="fs-line">Nombre y Firma de quien toma la muestra</div>
+        </div>
+
     </div>
 </body>
 </html>

@@ -23,6 +23,21 @@ namespace Telerik.Models.ViewModels
         // Propiedad auxiliar interna para resolver EmpresaNombre en 2 pasos (evita JOIN encadenado nullable)
         public int? _FkEmpresa { get; set; }
 
+        // Resultado Aptitud Medica
+        public int? FkAptitudMedica { get; set; }
+        public string AptitudDesc { 
+            get {
+                if (!FkAptitudMedica.HasValue) return "";
+                switch (FkAptitudMedica.Value) {
+                    case 1: return "APTO";
+                    case 2: return "CON RESTRICCIONES";
+                    case 3: return "NO APTO";
+                    case 4: return "PENDIENTE";
+                    default: return FkAptitudMedica.Value.ToString();
+                }
+            } 
+        }
+
         // Candidate Specific
         public string PuestoCandidato { get; set; }
         public string AreaCandidato { get; set; }
