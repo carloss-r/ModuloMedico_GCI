@@ -1,9 +1,8 @@
 var currentOrdenId = null;
     var paginaActual = 1;
-    var registrosPorPagina = 10;
-    var datosFiltrados = [];
+    var registrosPorPagina = 25;
+    var totalRegistrosGlobal = 0;
     var todosLosTiposServicio = [];
-    var catalogosCargados = false;
 
     $(document).ready(function () {
         cargarInicial();
@@ -17,22 +16,14 @@ var currentOrdenId = null;
             var status = $(this).data('status') || '';
             var statusLower = status.toLowerCase();
 
-            // Si está completa, previene menú default y no muestra nada
-            if (statusLower.indexOf('complet') >= 0) {
-                return;
-            }
-
+            if (statusLower.indexOf('complet') >= 0) return;
             if(!pk) return;
 
-            e.preventDefault(); // Prevenir menú del navegador
-
+            e.preventDefault();
             var evalUrl = '/ServicioMedico/IniciarEvaluacion/' + pk;
             $('#ctxEvaluar').attr('href', evalUrl);
 
-            // Mostrar Eliminar solo si es Pendiente (no proceso, no completa)
-            // Asumimos que si no es proceso ni completa, es pendiente
             var isProceso = statusLower.indexOf('proceso') >= 0;
-
             if (!isProceso) {
                 $('#ctxEliminar').show().off('click').on('click', function() {
                     if(confirm('\u00bfEst\u00e1 seguro de eliminar esta solicitud?')) {
@@ -43,16 +34,9 @@ var currentOrdenId = null;
             } else {
                 $('#ctxEliminar').hide();
             }
-
             $('#ctxMenu').css({ top: e.pageY, left: e.pageX }).show();
         });
     });
-
-    // Variables globales
-    var registrosPorPagina = 25; // default — lo controla el selector
-    var paginaActual = 1;
-    var totalRegistrosGlobal = 0;
-    var currentOrdenId = null;
 
     function onCambioTamanoPagina() {
         registrosPorPagina = parseInt($('#selectTamanoPagina').val());
@@ -60,25 +44,32 @@ var currentOrdenId = null;
         aplicarFiltros();
     }
 
-    // Carga inicial: muestra TODAS las solicitudes por defecto
     function cargarInicial() {
-        // Sin filtro de estatus — se muestran todas
+        // Cargar Catálogos para el modal de nueva solicitud (SM - Solo Periódico)
+        $.getJSON('/ServicioMedico/CargarInicial', function (resp) {
+            if (resp.success) {
+                var $ddl = $('#ddlTipoServicioPer');
+                $ddl.find('option:gt(0)').remove();
+                $.each(resp.tiposServicio || [], function(_, s) {
+                    var txt = (s.Descripcion || '').toUpperCase();
+                    if (txt.indexOf('PERIODICO') >= 0 || txt.indexOf('PERIÓDICO') >= 0 || txt.indexOf('ANTIDOPING') >= 0 || s.Id == 2 || s.Id == 3) {
+                        $ddl.append('<option value="' + s.Id + '">' + s.Descripcion + '</option>');
+                    }
+                });
+            }
+        });
+
         $('#filtroEstatus').val('');
         aplicarFiltros(true);
     }
 
-    // Recarga la página actual aplicando los filtros
-    function cargarSolicitudes() {
-        aplicarFiltros();
-    }
+    function cargarSolicitudes() { aplicarFiltros(); }
 
     function aplicarFiltros(resetPage) {
         if (resetPage) paginaActual = 1;
-
         var estatusVal = $('#filtroEstatus').val();
-        // -1 significa 'Activas' = mostrar solo Pendiente (1) y En Proceso (2)
         var filtroEstatus = (estatusVal && estatusVal !== '-1') ? parseInt(estatusVal) : null;
-        var soloActivas   = (estatusVal === '-1'); // flag especial para el servidor
+        var soloActivas   = (estatusVal === '-1');
 
         var req = {
             pagina: paginaActual,
@@ -91,9 +82,7 @@ var currentOrdenId = null;
         };
 
         $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="9"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
-        $('#paginacionControles').empty();
-        $('#resultsInfo').text('');
-
+        
         $.ajax({
             url: '/ServicioMedico/CargarPagina',
             type: 'POST',
@@ -116,7 +105,7 @@ var currentOrdenId = null;
     function limpiarFiltros() {
         $('#filtroNumEmp').val('');
         $('#filtroModalidad').val('');
-        $('#filtroEstatus').val('-1'); // Volver al filtro 'Activas' por defecto
+        $('#filtroEstatus').val('-1');
         $('#filtroFechaDesde').val('');
         $('#filtroFechaHasta').val('');
         aplicarFiltros(true);
@@ -125,20 +114,14 @@ var currentOrdenId = null;
     function renderPagina(paginaDatos) {
         var $tbody = $('#tbodySolicitudes');
         var totalPaginas = Math.max(1, Math.ceil(totalRegistrosGlobal / registrosPorPagina));
-
         var inicio = (paginaActual - 1) * registrosPorPagina;
         var fin = Math.min(inicio + registrosPorPagina, totalRegistrosGlobal);
 
         if (paginaDatos.length > 0) {
             $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + totalRegistrosGlobal + ' solicitudes.');
-
             var html = [];
             for (var i = 0; i < paginaDatos.length; i++) {
                 var s = paginaDatos[i];
-                // Badge de modalidad inteligente:
-                // - ANTIDOPING  → naranja   (tipo servicio contiene 'antidoping')
-                // - PERIÓDICO   → morado    (tiene No. Empleado en sistema)
-                // - INGRESO     → verde     (candidato sin número, nuevo en sistema)
                 var tipoUpper = (s.TipoServicioDesc || '').toUpperCase();
                 var hasEmp = s.FkEmpleado && s.FkEmpleado > 0;
                 var badgeMod;
@@ -155,7 +138,6 @@ var currentOrdenId = null;
                 if (estLow.indexOf('proceso') >= 0) badgeEst = 'badge-proceso';
                 if (estLow.indexOf('complet') >= 0) badgeEst = 'badge-completado';
                 var numEmp = s.FkEmpleado ? s.FkEmpleado : '-';
-                var evalUrl = '/ServicioMedico/IniciarEvaluacion/' + s.PkOrdenMedico;
 
                 html.push(
                     '<tr data-pk="' + s.PkOrdenMedico + '" data-status="' + (s.EstatusDesc || '') + '" style="cursor:pointer;">' +
@@ -177,15 +159,11 @@ var currentOrdenId = null;
             }
             $tbody.html(html.join(''));
         } else {
-            $tbody.html('<tr><td colspan="9" class="no-data">No se encontraron solicitudes con los filtros aplicados.</td></tr>');
+            $tbody.html('<tr><td colspan="9" class="no-data">No se encontraron solicitudes.</td></tr>');
             $('#resultsInfo').text('0 resultados.');
         }
 
-        // Paginación con numeración inteligente
-        var pagHtml = buildPaginacion(paginaActual, totalPaginas);
-        $('#paginacionControles').html(pagHtml);
-
-        // Delegated row click
+        $('#paginacionControles').html(buildPaginacion(paginaActual, totalPaginas));
         $tbody.off('click', 'tr').on('click', 'tr[data-pk]', function() {
             var pk = $(this).data('pk');
             if(pk) verDetalle(pk);
@@ -195,30 +173,22 @@ var currentOrdenId = null;
     function buildPaginacion(actual, total) {
         if (total <= 1) return '';
         var html = [];
-        html.push('<button ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPagina(' + (actual-1) + ')" title="Anterior">&laquo;</button>');
-
+        html.push('<button ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPagina(' + (actual-1) + ')">&laquo;</button>');
         var rango = [];
-        if (total <= 7) {
-            for (var i = 1; i <= total; i++) rango.push(i);
-        } else {
+        if (total <= 7) { for (var i = 1; i <= total; i++) rango.push(i); }
+        else {
             rango.push(1);
             if (actual > 3) rango.push('...');
             for (var p = Math.max(2, actual-1); p <= Math.min(total-1, actual+1); p++) rango.push(p);
             if (actual < total - 2) rango.push('...');
             rango.push(total);
         }
-
         for (var j = 0; j < rango.length; j++) {
             var v = rango[j];
-            if (v === '...') {
-                html.push('<span class="pag-dots">&hellip;</span>');
-            } else {
-                html.push('<button class="' + (v === actual ? 'pag-active' : '') + '" onclick="irAPagina(' + v + ')">' + v + '</button>');
-            }
+            if (v === '...') html.push('<span class="pag-dots">&hellip;</span>');
+            else html.push('<button class="' + (v === actual ? 'pag-active' : '') + '" onclick="irAPagina(' + v + ')">' + v + '</button>');
         }
-
-        html.push('<button ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPagina(' + (actual+1) + ')" title="Siguiente">&raquo;</button>');
-        html.push('<span class="pag-info" style="margin-left:8px;">P&aacute;g. ' + actual + ' / ' + total + ' (' + totalRegistrosGlobal + ' total)</span>');
+        html.push('<button ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPagina(' + (actual+1) + ')">&raquo;</button>');
         return html.join('');
     }
 
@@ -229,29 +199,10 @@ var currentOrdenId = null;
         aplicarFiltros(false);
     }
 
-    function cambiarPagina(dir) {
-        paginaActual += dir;
-        aplicarFiltros(false);
-    }
-
-    function limpiarFiltros() {
-        $('#filtroNumEmp').val('');
-        $('#filtroModalidad').val('');
-        $('#filtroEstatus').val('');
-        $('#filtroFechaDesde').val('');
-        $('#filtroFechaHasta').val('');
-        aplicarFiltros(true);
-    }
-
     function verDetalle(pkOrden) {
         currentOrdenId = pkOrden;
-
         $.getJSON('/ServicioMedico/VerDetalle', { id: pkOrden }, function (resp) {
-            if (!resp.success) {
-                alert(resp.message);
-                return;
-            }
-
+            if (!resp.success) { alert(resp.message); return; }
             var o = resp.orden;
             $('#modalFolio').text(o.FolioDisplay);
             $('#detFolio').text(o.FolioDisplay);
@@ -279,125 +230,114 @@ var currentOrdenId = null;
                 $('#seccionIngreso').show();
             }
 
-            // Reset all action buttons
-            $('#btnPrintSol').hide();
-            $('#btnPrintEval').hide();
-            $('#btnPrintAnti').hide();
-            $('#btnIrEvaluar').hide();
-            $('#btnEliminar').hide();
+            $('#btnPrintSol').hide(); $('#btnPrintEval').hide(); $('#btnPrintAnti').hide();
+            $('#btnIrEvaluar').hide(); $('#btnEliminar').hide();
 
             var estLow = (o.EstatusDesc || '').toLowerCase();
             var evalUrl = '/ServicioMedico/IniciarEvaluacion/' + o.PkOrdenMedico;
 
             if (estLow.indexOf('complet') >= 0) {
-                // Completada: show all print buttons
                 $('#btnPrintSol').attr('data-url', '/ServicioMedico/ImprimirSolicitud/' + o.PkOrdenMedico).show();
                 $('#btnPrintEval').attr('data-url', '/ServicioMedico/ImprimirEvaluacion/' + o.PkOrdenMedico).show();
                 $('#btnPrintAnti').attr('data-url', '/ServicioMedico/ImprimirAntidoping/' + o.PkOrdenMedico).show();
-                $('#btnPrintAnti').attr('data-url', '/ServicioMedico/ImprimirAntidoping/' + o.PkOrdenMedico).show();
-                // $('#btnIrEvaluar').attr('href', evalUrl).show(); // Comentado por solicitud: no volver a evaluar si ya está completa
-            } else if (estLow.indexOf('proceso') >= 0) {
-                // En Proceso: can evaluate or delete
-                $('#btnIrEvaluar').attr('href', evalUrl).show();
-                $('#btnEliminar').show();
             } else {
-                // Pendiente: can start or delete
                 $('#btnIrEvaluar').attr('href', evalUrl).show();
                 $('#btnEliminar').show();
             }
-
             $('#modalDetalle').addClass('active');
         });
     }
 
-    function cambiarEstatus(nuevoEstatus) {
-        if (!currentOrdenId) return;
-
-        var textoEstatus = nuevoEstatus === 2 ? 'En Proceso' : 'Completada';
-        if (!confirm('\u00bfCambiar la solicitud a "' + textoEstatus + '"?')) return;
-
-        $.ajax({
-            url: '/ServicioMedico/CambiarEstatus',
-            type: 'POST',
-            data: { pkOrdenMedico: currentOrdenId, fkEstatus: nuevoEstatus },
-            success: function (resp) {
-                if (resp.success) {
-                    cerrarModal();
-                    cargarSolicitudes();
-                } else {
-                    alert(resp.message);
-                }
-            },
-            error: function () {
-                alert('Error de conexi\u00f3n.');
-            }
-        });
-    }
-
-    function cerrarModal() {
-        $('#modalDetalle').removeClass('active');
-        currentOrdenId = null;
-    }
+    function cerrarModal() { $('#modalDetalle').removeClass('active'); currentOrdenId = null; }
 
     function eliminarSolicitud() {
         if (!currentOrdenId) return;
-        if (!confirm('\u00bfEst\u00e1 seguro de eliminar esta solicitud? Esta acci\u00f3n no se puede deshacer.')) return;
+        if (!confirm('\u00bfEst\u00e1 seguro?')) return;
         doEliminar(currentOrdenId, true);
     }
 
     function doEliminar(pk, fromModal) {
-        $.ajax({
-            url: '/ServicioMedico/Eliminar',
-            type: 'POST',
-            data: { pkOrdenMedico: pk },
-            success: function (resp) {
-                if (resp.success) {
-                    if(fromModal) cerrarModal();
-                    cargarSolicitudes();
-                } else {
-                    alert(resp.message);
-                }
-            },
-            error: function () {
-                alert('Error de conexi\u00f3n.');
-            }
+        $.post('/ServicioMedico/Eliminar', { pkOrdenMedico: pk }, function (resp) {
+            if (resp.success) { if(fromModal) cerrarModal(); cargarSolicitudes(); }
+            else alert(resp.message);
         });
     }
 
-    // ═══════ Funciones de Impresión Embebida ═══════
     function abrirImpresion(url) {
         if (!url) return;
-
-        // Cierra el modal de detalle para que no se empalme con el de impresión
-        if ($('#modalDetalle').hasClass('active')) {
-            cerrarModal();
-        }
-
+        if ($('#modalDetalle').hasClass('active')) cerrarModal();
         $('#printIframe').attr('src', url);
         $('#printOverlay').addClass('active');
     }
 
-    function cerrarImpresion() {
-        $('#printOverlay').removeClass('active');
-        $('#printIframe').attr('src', 'about:blank');
-    }
+    function cerrarImpresion() { $('#printOverlay').removeClass('active'); $('#printIframe').attr('src', 'about:blank'); }
 
     function imprimirIframeReal() {
         var iframe = document.getElementById('printIframe');
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.print();
-        }
+        if (iframe && iframe.contentWindow) iframe.contentWindow.print();
     }
 
     $(document).on('click', '.modal-overlay', function (e) {
         if ($(e.target).hasClass('modal-overlay')) {
-            // Check ID to distinguish modals
             if(e.target.id === 'modalNuevaSolicitud') cerrarNuevaSolicitud();
             else cerrarModal();
         }
     });
 
-    // Cerrar modal de impresión al hacer clic en el overlay
-    $('#printOverlay').on('click', function(e) {
-        if ($(e.target).is('#printOverlay')) cerrarImpresion();
-    });
+    $('#printOverlay').on('click', function(e) { if ($(e.target).is('#printOverlay')) cerrarImpresion(); });
+
+    // ══════════════ Funciones Nueva Solicitud (SM - Periódico) ══════════════
+    function abrirNuevaSolicitud() {
+        $('#modalNuevaSolicitud').addClass('active');
+        $('#modalAlert').hide().removeClass('error success').text('');
+        $('#txtNumEmpleado').val('');
+        $('#datosEmpleadoConfirm').hide();
+        $('#wrapperPerOptions').hide();
+        $('#btnCrearSol').hide();
+        $('#btnPrintNewSol').hide();
+    }
+
+    function cerrarNuevaSolicitud() { $('#modalNuevaSolicitud').removeClass('active'); }
+
+    function buscarEmpleadoParaSolicitud() {
+        var num = $('#txtNumEmpleado').val();
+         if (!num) { mostrarAlertaModal('Ingrese un número de empleado.', false); return; }
+         $.getJSON('/ServicioMedico/BuscarEmpleado', { numero: num }, function(resp) {
+             if(resp.success) {
+                 var e = resp.data;
+                 $('#confNombre').text(e.NombreCompleto || '-');
+                 $('#confEmpresa').text(e.EmpresaDesc || '-');
+                 $('#confProyecto').text(e.ProyectoDesc || '-');
+                 $('#confPuesto').text(e.PuestoDesc || '-');
+                 $('#datosEmpleadoConfirm').show();
+                 $('#wrapperPerOptions').show();
+                 $('#btnCrearSol').show();
+             } else {
+                 mostrarAlertaModal(resp.message, false); $('#datosEmpleadoConfirm').hide(); $('#wrapperPerOptions').hide(); $('#btnCrearSol').hide();
+             }
+         });
+    }
+
+    function crearSolicitud() {
+        var data = {
+            Modalidad: 'PERIODICO',
+            NumeroEmpleado: $('#txtNumEmpleado').val(),
+            FkTipoServicio: $('#ddlTipoServicioPer').val()
+        };
+        if(!data.FkTipoServicio) { mostrarAlertaModal('Seleccione un tipo de servicio.', false); return; }
+        $.post('/ServicioMedico/CrearSolicitud', data, function(resp) {
+            if(resp.success) {
+                mostrarAlertaModal('Solicitud generada con éxito.', true);
+                cargarSolicitudes(); $('#btnCrearSol').hide(); $('#wrapperPerOptions').hide();
+                var printUrl = '/ServicioMedico/ImprimirSolicitud/' + resp.pkOrdenMedico;
+                $('#btnPrintNewSol').off('click').on('click', function(e) { e.preventDefault(); abrirImpresion(printUrl); }).show();
+            } else { mostrarAlertaModal(resp.message, false); }
+        });
+    }
+
+    function mostrarAlertaModal(msg, isSuccess) {
+        var alertBox = $('#modalAlert');
+        alertBox.removeClass('error success').addClass(isSuccess ? 'success' : 'error').text(msg).show();
+    }
+
+    function imprimirDesdeIframe() { imprimirIframeReal(); }

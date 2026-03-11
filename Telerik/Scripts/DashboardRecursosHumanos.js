@@ -148,15 +148,14 @@ var datosSolicitudes = [];
 
     function abrirNuevaSolicitud() {
         $('#modalNuevaSolicitud').addClass('active');
-        $('.modalidad-cards').show();
-        $('.modal-instruction').show();
-        $('.modal-header h3').html('<i class="fas fa-file-medical"></i> Solicitud de Examen M&eacute;dico');
-        $('.modalidad-card').removeClass('selected');
-        $('#formPeriodico').hide();
-        $('#formIngreso').hide();
-        $('#btnCrearSol').hide();
-        $('#btnPrintNewSol').hide();
         $('#modalAlert').hide().removeClass('error success').text('');
+        
+        // Ensure Ingreso is selected and shown
+        seleccionarModalidad('INGRESO');
+        $('#formIngreso').show();
+        
+        $('#btnCrearSol').show();
+        $('#btnPrintNewSol').hide();
         
         $('#txtNumEmpleado').val('');
         $('#datosEmpleadoConfirm').hide();
@@ -231,12 +230,10 @@ var datosSolicitudes = [];
                 });
             }
             
-            // Seleccionar Pre-Empleo por defecto y deshabilitar si existe
+            // Seleccionar Pre-Empleo por defecto automáticamente
             var preEmpleoOpt = $sing.find('option').eq(1);
             if(preEmpleoOpt.length > 0) {
-                $sing.val(preEmpleoOpt.val()).prop('disabled', true);
-            } else {
-                $sing.prop('disabled', false).val('');
+                $sing.val(preEmpleoOpt.val());
             }
         }
     }
@@ -326,7 +323,7 @@ var datosSolicitudes = [];
             data.FkProyecto = $('#ddlProyectoIng').val();
             var puestoSel = $('#ddlPuestoIng option:selected');
             if(puestoSel.val()) data.PuestoDeseado = puestoSel.text();
-            data.FkTipoServicio = $('#ddlTipoServicioIng').val();
+            data.FkTipoServicio = $('#ddlTipoServicioIng').val() || 1; // Forzar 1 si no hay valor (Default Ingreso)
             
              if(!data.NombreCandidato) { mostrarAlertaModal('Ingrese el nombre del candidato', false); return; }
              if(!data.FkEmpresa) { mostrarAlertaModal('Seleccione la empresa para el ingreso', false); return; }
