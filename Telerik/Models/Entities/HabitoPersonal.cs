@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Telerik.Models.Entities
@@ -20,6 +20,7 @@ namespace Telerik.Models.Entities
         public bool? usaDrogas { get; set; }
         public string tipoDrogas { get; set; }
         public bool? haceDeporte { get; set; }
+        public string tipoDeporte { get; set; }
         public string descripcionTiempoLibre { get; set; }
 
         // Las vacunas están en HabitosPersonales directamente (no en tabla separada)

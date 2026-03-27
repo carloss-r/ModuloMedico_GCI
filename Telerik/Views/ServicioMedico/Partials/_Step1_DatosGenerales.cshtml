@@ -1,0 +1,141 @@
+<!-- Paso 1: Datos Generales -->
+<div class="step-panel active" id="panel1">
+    <h3 class="section-title">Datos Generales del Paciente</h3>
+
+    <!-- Row 1: Lugar Evaluación + Fecha | Cargo | No. IMSS -->
+    <div class="paper-row">
+        <div class="form-group flex-2">
+            <label>Lugar y fecha del Examen:</label>
+            <input type="text" id="txtLugarEvaluacion" class="form-control" placeholder="Ej. Monterrey, N.L. / Obra Torre Centro" />
+        </div>
+        <div class="form-group flex-1">
+            <label>Fecha de Captura</label>
+            <input type="date" id="txtFechaExamen" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group flex-1">
+            <label>Cargo</label>
+            <input type="text" id="txtPuesto" class="form-control" readonly />
+        </div>
+        <div class="form-group flex-1">
+            <label>No. IMSS</label>
+            <input type="text" id="txtNss" class="form-control" maxlength="11" placeholder="11 d&iacute;gitos" />
+        </div>
+    </div>
+
+    <!-- Row 2: Nombre | Fecha Nac + Edad | Lugar Nac -->
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Nombre(s)</label>
+            <input type="text" id="txtNombre" class="form-control" readonly />
+        </div>
+        <div class="form-group flex-1">
+            <label>Apellido Paterno</label>
+            <input type="text" id="txtApellidoPaterno" class="form-control" readonly />
+        </div>
+        <div class="form-group flex-1">
+            <label>Apellido Materno</label>
+            <input type="text" id="txtApellidoMaterno" class="form-control" readonly />
+        </div>
+    </div>
+
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Lugar de Nacimiento</label>
+            <input type="text" id="txtLugarNacimiento" class="form-control" placeholder="Ciudad, Estado" />
+        </div>
+        <div class="form-group flex-1">
+            <label>Fecha de Nacimiento</label>
+            <input type="date" id="txtFechaNacimiento" class="form-control" onchange="calcularEdad()" />
+        </div>
+        <div class="form-group flex-05">
+            <label>Edad</label>
+            <input type="text" id="txtEdad" class="form-control" readonly style="text-align: center;" />
+        </div>
+    </div>
+
+    <!-- Row 3: Estado Civil | Mano Dominante | Teléfono | Examen De -->
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Examen de</label>
+            <input type="text" id="txtExamenDe" class="form-control" readonly value="@(ViewBag.TipoServicio == 2 ? "Periódico" : "Ingreso")" />
+        </div>
+        <div class="form-group flex-1">
+            <label>Estado Civil</label>
+            <select id="ddlEstadoCivil" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="Soltero">Soltero(a)</option>
+                <option value="Casado">Casado(a)</option>
+                <option value="Union Libre">Uni&oacute;n Libre</option>
+                <option value="Separado">Separado(a)</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Mano Dominante</label>
+            <select id="ddlManoDominante" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="Diestro">Diestro(a)</option>
+                <option value="Zurdo">Zurdo(a)</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Tel&eacute;fono</label>
+            <input type="tel" id="txtTelefono" class="form-control" placeholder="10 d&iacute;gitos" maxlength="15" />
+        </div>
+    </div>
+
+    <!-- Row 4: Domicilio | Nivel Académico | Profesión -->
+    <div class="paper-row">
+        <div class="form-group flex-2">
+            <label>Domicilio Completo</label>
+            <input type="text" id="txtDomicilio" class="form-control" readonly />
+        </div>
+        <div class="form-group flex-1">
+            <label>Nivel Acad&eacute;mico</label>
+            <select id="ddlEscolaridad" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="Primaria">Primaria</option>
+                <option value="Secundaria">Secundaria</option>
+                <option value="Media Superior">Media Sup.</option>
+                <option value="Universidad">Universidad</option>
+                <option value="Posgrado">Posgrado</option>
+                <option value="Técnico">T&eacute;cnico</option>
+                <option value="Ninguno">Ninguno</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Profesi&oacute;n y/u Oficio</label>
+            <input type="text" id="txtProfesion" class="form-control" />
+        </div>
+    </div>
+
+    <!-- Row 5: Sexo | Tipo Sangre -->
+    <div class="paper-row" style="justify-content: flex-start;">
+        <div class="form-group flex-1" style="max-width:300px;">
+            <label>Sexo biológico</label>
+            <select id="ddlSexo" class="form-control" disabled>
+                <option value="">-- Seleccione --</option>
+                <option value="M">Masculino (Masc)</option>
+                <option value="F">Femenino (Fem)</option>
+            </select>
+        </div>
+        <div class="form-group flex-1" style="max-width:300px;">
+            <label>Tipo de Sangre</label>
+            <select id="ddlTipoSangre" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="1">O+</option>
+                <option value="2">O-</option>
+                <option value="3">A+</option>
+                <option value="4">A-</option>
+                <option value="5">B+</option>
+                <option value="6">B-</option>
+                <option value="7">AB+</option>
+                <option value="8">AB-</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Empresa (oculta pero necesaria para guardar) -->
+    <div class="form-group" style="display:none;">
+        <input type="text" id="txtEmpresa" class="form-control" readonly />
+    </div>
+</div>

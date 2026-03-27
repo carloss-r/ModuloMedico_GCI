@@ -1,7 +1,7 @@
-Ôªønamespace Telerik.Models.ViewModels
+namespace Telerik.Models.ViewModels
 {
     /// <summary>
-    /// Clase gen√©rica para cat√°logos simples (Id + Descripci√≥n).
+    /// Clase genÈrica para cat·logos simples (Id + DescripciÛn).
     /// Usada por CatalogoDal para devolver listas de dropdowns.
     /// </summary>
     public class CatalogoItem

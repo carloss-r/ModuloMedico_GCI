@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -57,10 +57,8 @@
             <!-- GCI (Fábrica) -->
             <div class="gci-filter-row">
                 <div class="filter-icon"><i class="fas fa-industry"></i></div>
-                <select id="ddlEmpresa">
-                    <option>GCI</option>
-                    <option>GCI NORTE</option>
-                    <option>GCI SUR</option>
+                <select id="ddlEmpresa" class="gci-sidebar-select">
+                    <option value="0">TODAS LAS EMPRESAS</option>
                 </select>
                 <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
             </div>
@@ -68,10 +66,8 @@
             <!-- ADMINISTRATIVO (Usuario) -->
             <div class="gci-filter-row">
                 <div class="filter-icon"><i class="fas fa-user-tie"></i></div>
-                <select id="ddlDepartamento">
-                    <option>ADMINISTRATIVO</option>
-                    <option>OPERATIVO</option>
-                    <option>GERENCIA</option>
+                <select id="ddlDepartamento" class="gci-sidebar-select">
+                    <option value="0">TODAS LAS AREAS</option>
                 </select>
                 <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
             </div>
@@ -90,10 +86,8 @@
             <!-- 2026 (Calendario año) -->
             <div class="gci-filter-row">
                 <div class="filter-icon"><i class="fas fa-calendar-days"></i></div>
-                <select id="ddlAnio">
-                    <option>2026</option>
-                    <option>2025</option>
-                    <option>2024</option>
+                <select id="ddlAnio" class="gci-sidebar-select">
+                    <option value="0">A&Ntilde;O</option>
                 </select>
                 <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
             </div>
@@ -101,19 +95,15 @@
             <!-- SEMANA 3 (Calendario semana) -->
             <div class="gci-filter-row">
                 <div class="filter-icon"><i class="fas fa-calendar-days"></i></div>
-                <select id="ddlSemana">
-                    <option>SEMANA 3</option>
-                    <option>SEMANA 1</option>
-                    <option>SEMANA 2</option>
-                    <option>SEMANA 4</option>
-                    <option>SEMANA 5</option>
+                <select id="ddlSemana" class="gci-sidebar-select">
+                    <option value="0">SEMANAS</option>
                 </select>
                 <div class="filter-arrow"><i class="fas fa-caret-down"></i></div>
             </div>
 
             <!-- Label de rango de fecha -->
-            <div class="gci-filter-date-label">
-                DEL 12 AL 18 DE ENERO DEL 2026
+            <div class="gci-filter-date-label" id="sidebarFechaLabel">
+                SELECCIONE A&Ntilde;O Y SEMANA
             </div>
         </div>
 
@@ -321,13 +311,25 @@
                     <span style="font-size:0.95rem; font-weight:700; color:#333;">Solicitud de Nuevo Ingreso</span>
                 </div>
 
-                <!-- Nombre del candidato -->
                 <div style="margin-bottom:14px;">
-                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Nombre del Candidato <span style="color:#e74c3c;">*</span></label>
-                    <div style="display:flex; gap:8px;">
-                        <input type="text" id="solNombreIng" placeholder="Nombre(s)" style="flex:1; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
-                        <input type="text" id="solApellidoIng" placeholder="Apellido(s)" style="flex:1; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
+                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Nombre(s) y Apellidos del Candidato <span style="color:#e74c3c;">*</span></label>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <input type="text" id="solNombreIng" placeholder="Nombre(s)" style="width:100% !important; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="solAPaternoIng" placeholder="Apellido Paterno" style="flex:1; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
+                            <input type="text" id="solAMaternoIng" placeholder="Apellido Materno" style="flex:1; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'" />
+                        </div>
                     </div>
+                </div>
+
+                <!-- Sexo -->
+                <div style="margin-bottom:14px;">
+                    <label style="display:block; font-size:0.78rem; font-weight:600; color:#555; margin-bottom:4px;">Sexo biológico <span style="color:#e74c3c;">*</span></label>
+                    <select id="solSexoIng" style="width:100%; padding:9px 12px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.85rem; outline:none; background:#fff; transition:border-color 0.2s;" onfocus="this.style.borderColor='#16a085'" onblur="this.style.borderColor='#d0d0d0'">
+                        <option value="">-- Seleccione --</option>
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                    </select>
                 </div>
 
                 <!-- Empresa -->
@@ -520,6 +522,72 @@
     @Scripts.Render("~/bundles/bootstrap")
 
     <script>
+        $(document).ready(function() {
+            cargarFiltrosSidebar();
+            
+            // Evento global para cambios en filtros
+            $('.gci-sidebar-select').on('change', function() {
+                var id = $(this).attr('id');
+                if (id === 'ddlEmpresa') {
+                    // Cascading: si cambia empresa, opcionalmente filtrar areas (avanzado, se deja basico por ahora)
+                }
+                actualizarEtiquetaFecha();
+                $(document).trigger('gci-sidebar-filter-changed');
+            });
+        });
+
+        function actualizarEtiquetaFecha() {
+            var anio = parseInt($('#ddlAnio').val());
+            var semana = parseInt($('#ddlSemana').val());
+            
+            if (anio > 0 && semana > 0) {
+                var d = new Date(anio, 0, 1);
+                var dayOffset = d.getDay(); 
+                var firstMonday = new Date(anio, 0, 1 + (dayOffset <= 1 ? 1 - dayOffset : 8 - dayOffset));
+                
+                var start = new Date(firstMonday);
+                start.setDate(firstMonday.getDate() + (semana - 1) * 7);
+                
+                var end = new Date(start);
+                end.setDate(start.getDate() + 6);
+                
+                var meses = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+                var txt = "DEL " + start.getDate() + " " + meses[start.getMonth()] + " AL " + 
+                          end.getDate() + " " + meses[end.getMonth()] + " DEL " + anio;
+                
+                $('#sidebarFechaLabel').text(txt);
+            } else {
+                $('#sidebarFechaLabel').text('SELECCIONE A\u00d1O Y SEMANA');
+            }
+        }
+
+        function cargarFiltrosSidebar() {
+            $.getJSON('/ServicioMedico/ObtenerFiltrosSidebar', function(resp) {
+                if (resp.success) {
+                    llenarCombo('#ddlEmpresa', resp.empresas, 'TODAS LAS EMPRESAS');
+                    llenarCombo('#ddlDepartamento', resp.areas, 'TODAS LAS AREAS');
+                    llenarCombo('#ddlAnio', resp.anios, 'A\u00d1O');
+                    llenarCombo('#ddlSemana', resp.semanas, 'SEMANAS');
+                    
+                    // Seleccionar año actual por defecto
+                    // var anioActual = new Date().getFullYear();
+                    // $('#ddlAnio').val(anioActual);
+                    
+                    // Notificar a los dashboards que los filtros ya están listos
+                    $(document).trigger('gci-sidebar-filter-changed');
+                }
+            });
+        }
+
+        function llenarCombo(selector, data, defaultText) {
+            var $dd = $(selector);
+            $dd.empty().append('<option value="0">' + defaultText + '</option>');
+            if (data) {
+                $.each(data, function(_, item) {
+                    $dd.append('<option value="' + item.Id + '">' + item.Descripcion + '</option>');
+                });
+            }
+        }
         // ═══════════════════════════════════════
         // Modal de Solicitud de Examen Médico
         // ═══════════════════════════════════════
@@ -535,7 +603,8 @@
         function cerrarModalSol() {
             $('#modalSolicitud').hide();
             $('#solNumEmpleado').val('');
-            $('#solNombreIng, #solApellidoIng').val('');
+            $('#solNombreIng, #solAPaternoIng, #solAMaternoIng').val('');
+            $('#solSexoIng').val('M');
             $('#solEmpresaIng').val('');
             $('#solProyectoIng').html('<option value="">-- Primero seleccione empresa --</option>').prop('disabled', true).css('background', '#f5f5f5');
             $('#solPuestoIng').html('<option value="">-- Primero seleccione empresa --</option>').prop('disabled', true).css('background', '#f5f5f5');
@@ -722,7 +791,9 @@
         // --- Enviar Ingreso ---
         function enviarIngreso() {
             var nombre = $('#solNombreIng').val().trim();
-            var apellido = $('#solApellidoIng').val().trim();
+            var aPaterno = $('#solAPaternoIng').val().trim();
+            var aMaterno = $('#solAMaternoIng').val().trim();
+            var sexo = $('#solSexoIng').val();
             var fkEmpresa = parseInt($('#solEmpresaIng').val());
             var fkProyecto = parseInt($('#solProyectoIng').val());
             var fkPuesto = parseInt($('#solPuestoIng').val());
@@ -758,7 +829,9 @@
                 data: {
                     Modalidad: 'INGRESO',
                     NombreCandidato: nombre,
-                    ApellidoCandidato: apellido,
+                    ApellidoPaterno: aPaterno,
+                    ApellidoMaterno: aMaterno,
+                    Sexo: sexo,
                     PuestoDeseado: puestoDesc,
                     FkTipoServicio: 1,
                     FkProyecto: fkProyecto,
@@ -772,7 +845,7 @@
                     if (resp.success) {
                         _datosFormatoIngreso = {
                             folio: 'GCI-SOL-SM-' + String(resp.pkOrdenMedico).padStart(3, '0'),
-                            nombre: resp.nombreCandidato || (nombre + ' ' + apellido).trim(),
+                            nombre: resp.nombreCandidato || (nombre + ' ' + aPaterno + ' ' + aMaterno).trim(),
                             empresa: resp.empresaDesc || empresaDesc,
                             proyecto: resp.proyectoDesc || proyectoDesc,
                             puesto: resp.puestoDesc || puestoDesc,

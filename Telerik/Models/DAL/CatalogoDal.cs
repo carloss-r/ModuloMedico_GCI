@@ -1,9 +1,9 @@
-Ôªøusing System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Telerik.Models;
 using Telerik.Models.ViewModels;
 
-namespace Telerik.Models.Dal
+namespace Telerik.Models.DAL
 {
     public class CatalogoDal
     {
@@ -74,8 +74,8 @@ namespace Telerik.Models.Dal
         }
 
         /// <summary>
-        /// M√©todo de compatibilidad con el Controller actual.
-        /// Retorna TiposServicio y Empresas juntos via par√°metros out.
+        /// MÈtodo de compatibilidad con el Controller actual.
+        /// Retorna TiposServicio y Empresas juntos via par·metros out.
         /// </summary>
         public static void ObtenerCatalogosParaSolicitud(out List<CatalogoItem> tiposServicio, out List<CatalogoItem> empresas)
         {

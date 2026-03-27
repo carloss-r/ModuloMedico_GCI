@@ -1,4 +1,4 @@
-﻿namespace Telerik.Models.ViewModels
+namespace Telerik.Models.ViewModels
 {
     public class NuevaSolicitudVm
     {
@@ -13,7 +13,9 @@
 
         // Ingreso
         public string NombreCandidato { get; set; }
-        public string ApellidoCandidato { get; set; }
+        public string ApellidoPaterno { get; set; }
+        public string ApellidoMaterno { get; set; }
+        public string Sexo { get; set; }
         public string PuestoDeseado { get; set; }
 
         // Descripciones para el formato de impresión

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Telerik.Models.Entities;
 using System.Collections.Generic;
 
@@ -35,7 +35,8 @@ namespace Telerik.Models.ViewModels
         public string Escolaridad { get; set; }
         public string Profesion { get; set; }
         public string Alergias { get; set; }
-        public string TipoSangre { get; set; }
+        public int? FkTipoSangre { get; set; }
+        public string LugarEvaluacion { get; set; }
 
         // Secciones (Listas o Objetos anidados)
         public HabitosPersonalesVm Habitos { get; set; }
@@ -43,6 +44,7 @@ namespace Telerik.Models.ViewModels
         public List<ExamenFisicoVm> ExamenFisico { get; set; }
         public List<AntecedenteLaboralVm> AntecedentesLaborales { get; set; }
         public EvaluacionColumnaVm Columna { get; set; }
+        public VacunacionVm Vacunacion { get; set; }
         
         // Específicos por sexo (solo uno vendrá lleno)
         public DetalleGinecoVm DetalleFemenino { get; set; }
@@ -50,6 +52,8 @@ namespace Telerik.Models.ViewModels
 
         // Optional: Candidate Info Update
         public string NombreCandidato { get; set; }
+        public string ApellidoPaternoCandidato { get; set; }
+        public string ApellidoMaternoCandidato { get; set; }
         public string PuestoCandidato { get; set; }
         public string AreaCandidato { get; set; }
         public string EmpresaCandidato { get; set; }
@@ -67,10 +71,19 @@ namespace Telerik.Models.ViewModels
         public bool UsaDrogas { get; set; }
         public string TipoDrogas { get; set; }
         public bool HaceDeporte { get; set; }
+        public string TipoDeporte { get; set; }
         public string DescripcionTiempoLibre { get; set; }
-        public int? VacunaTetanos { get; set; }
-        public int? VacunaHepatitis { get; set; }
-        public bool VacunaH1N1 { get; set; }
+    }
+
+    public class VacunacionVm
+    {
+        public bool TetanosDosis1 { get; set; }
+        public bool TetanosDosis2 { get; set; }
+        public bool TetanosDosis3 { get; set; }
+        public bool HepatitisDosis1 { get; set; }
+        public bool HepatitisDosis2 { get; set; }
+        public bool InfluenzaH1N1 { get; set; }
+        public string ObservacionesVacunacion { get; set; }
     }
 
     public class HistoriaMedicaVm

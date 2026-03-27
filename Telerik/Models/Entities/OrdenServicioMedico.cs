@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,7 +18,7 @@ namespace Telerik.Models.Entities
         public int? fkEstatus { get; set; }
         public DateTime? fechaOrden { get; set; }
 
-        // Propiedades de navegación
+        // Propiedades de navegaci�n
         [ForeignKey("fkEmpleado")]
         public virtual Empleado Empleado { get; set; }
 

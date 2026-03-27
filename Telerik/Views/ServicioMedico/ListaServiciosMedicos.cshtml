@@ -54,13 +54,14 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Tabla de solicitudes -->
     <div class="gci-panel">
         <div class="sp-title">
             <span><i class="fas fa-inbox"></i> Bandeja de Solicitudes</span>
             <div style="display:flex; align-items:center; gap:10px;">
-                <label style="font-size:0.78rem; color:#555; font-weight:500;">Mostrar:
+                <label style="font-size:0.78rem; color:#555; font-weight:500;">
+                    Mostrar:
                     <select id="selectTamanoPagina" onchange="onCambioTamanoPagina()" style="margin-left:5px; padding:4px 8px; border:1px solid #d0d0d0; border-radius:4px; font-size:0.8rem;">
                         <option value="10">10</option>
                         <option value="25" selected>25</option>
@@ -75,19 +76,20 @@
         <table class="gci-table">
             <thead>
                 <tr>
-                    <th>Folio</th>
-                    <th>Fecha</th>
-                    <th>Modalidad</th>
+                    <th style="width: 100px;">Folio</th>
+                    <th style="width: 110px;">Fecha</th>
+                    <th style="width: 100px;">Modalidad</th>
                     <th>Persona</th>
-                    <th>No. Emp.</th>
-                    <th>Tipo Servicio</th>
-                    <th>Proyecto</th>
-                    <th>Estatus</th>
-                    <th style="text-align:center;">Acciones</th>
+                    <th style="width: 80px;">No. Emp.</th>
+                    <th style="width: 140px;">Empresa</th>
+                    <th style="width: 140px;">Proyecto</th>
+                    <th style="width: 140px;">Tipo Servicio</th>
+                    <th style="width: 120px;">Estatus</th>
+                    <th style="text-align:center; width: 100px;">Acciones</th>
                 </tr>
             </thead>
             <tbody id="tbodySolicitudes">
-                <tr><td colspan="9" class="no-data">Cargando solicitudes...</td></tr>
+                <tr><td colspan="10" class="no-data">Cargando solicitudes...</td></tr>
             </tbody>
         </table>
         <div id="paginacionControles" class="paginacion"></div>
@@ -103,16 +105,16 @@
         </div>
         <div class="modal-body" style="padding: 25px;">
             <div id="modalAlert" class="modal-alert error"></div>
-            
+
             <div id="formPeriodico" style="display:block;">
                 <div class="modal-instruction" style="text-align:center; color:#555; margin-bottom:20px;">Busque al empleado por su número de nómina:</div>
-                
+
                 <div class="form-group" style="margin-bottom:15px;">
                     <label>No. Empleado</label>
                     <div style="display:flex; gap:5px;">
                         <input type="number" id="txtNumEmpleado" class="form-control" placeholder="Ingrese # n&oacute;mina" />
                         <button class="btn-gci btn-gci-primary" onclick="buscarEmpleadoParaSolicitud()"><i class="fas fa-search"></i> Buscar</button>
-                    </div>  
+                    </div>
                 </div>
 
                 <div id="datosEmpleadoConfirm" style="display:none; background:#f0f9f0; padding:15px; border-radius:6px; border:1px solid #c3e6c3; margin-bottom:15px;">
@@ -123,7 +125,7 @@
                         <div><strong>Puesto:</strong> <span id="confPuesto"></span></div>
                     </div>
                 </div>
-                
+
                 <div id="wrapperPerOptions" style="display:none;">
                     <div class="form-group">
                         <label>Tipo de Servicio</label>
@@ -142,15 +144,6 @@
     </div>
 </div>
 
-<!-- Menú Contextual Flotante -->
-<div id="ctxMenu" class="ctx-menu">
-    <a href="#" id="ctxEvaluar" class="ctx-menu-item">
-        <i class="fas fa-notes-medical" style="color:#16a085;"></i> Evaluar Solicitud
-    </a>
-    <a href="#" id="ctxEliminar" class="ctx-menu-item">
-        <i class="fas fa-trash-alt" style="color:#c0392b;"></i> Eliminar Solicitud
-    </a>
-</div>
 
 <!-- ══════════ Modal de Detalle ══════════ -->
 <div class="modal-overlay" id="modalDetalle">
@@ -198,6 +191,8 @@
                 <div style="margin-top: 15px;">
                     <div class="detail-grid">
                         <div class="detail-item"><label>Nombre del Candidato</label><span id="detCandNombre">&mdash;</span></div>
+                        <div class="detail-item"><label>Empresa</label><span id="detCandEmpresa">&mdash;</span></div>
+                        <div class="detail-item"><label>Proyecto / &Aacute;rea</label><span id="detCandArea">&mdash;</span></div>
                     </div>
                 </div>
             </div>
@@ -229,5 +224,5 @@
 </div>
 
 @section scripts {
-<script src="~/Scripts/ListaServiciosMedicos.js"></script>
+    <script src="~/Scripts/ListaServiciosMedicos.js?v=@DateTime.Now.Ticks"></script>
 }

@@ -1,7 +1,10 @@
-﻿namespace Telerik.Models.ViewModels
+namespace Telerik.Models.ViewModels
 {
     public class PacienteInfoVm
     {
+        public string Nombre { get; set; }
+        public string ApellidoPaterno { get; set; }
+        public string ApellidoMaterno { get; set; }
         public string NombreCompleto { get; set; }
         public string Edad { get; set; }
         public string Puesto { get; set; }

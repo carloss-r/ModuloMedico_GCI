@@ -1,0 +1,136 @@
+<!-- Paso 6: Columna Vertebral + Diagnóstico -->
+<div class="step-panel" id="panel6">
+    <h3 class="section-title">Columna Vertebral</h3>
+    <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:0.9rem;">
+        <thead>
+            <tr style="background:#f0f4f8;">
+                <th style="border:1px solid #ddd; padding:8px;">Curva</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:center;">Cervical</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:center;">Dorsal</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:center;">Lumbar</th>
+            </tr>
+            <tr style="background:#e8eef4; font-size:0.78rem;">
+                <th style="border:1px solid #ddd; padding:4px 8px;"></th>
+                <th style="border:1px solid #ddd; padding:4px; text-align:center;">N: Normal &nbsp; A: Aumentada &nbsp; D: Disminuida</th>
+                <th style="border:1px solid #ddd; padding:4px; text-align:center;">N / A / D</th>
+                <th style="border:1px solid #ddd; padding:4px; text-align:center;">N / A / D</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px; font-weight:600;">LORDOSIS</td>
+                <td style="border:1px solid #ddd; padding:6px;">
+                    <select id="ddlLordosisCervical" class="form-control" style="padding:5px;">
+                        <option value="0">Sin dato</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Aumentada</option>
+                        <option value="3">Disminuida</option>
+                    </select>
+                </td>
+                <td style="border:1px solid #ddd; padding:6px;">
+                    <select id="ddlLordosisDorsal" class="form-control" style="padding:5px;">
+                        <option value="0">Sin dato</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Aumentada</option>
+                        <option value="3">Disminuida</option>
+                    </select>
+                </td>
+                <td style="border:1px solid #ddd; padding:6px;">
+                    <select id="ddlLordosisLumbar" class="form-control" style="padding:5px;">
+                        <option value="0">Sin dato</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Aumentada</option>
+                        <option value="3">Disminuida</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px; font-weight:600;">CIFOSIS</td>
+                <td style="border:1px solid #ddd; padding:6px;">
+                    <select id="ddlCifosisCervical" class="form-control" style="padding:5px;">
+                        <option value="0">Sin dato</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Aumentada</option>
+                        <option value="3">Disminuida</option>
+                    </select>
+                </td>
+                <td style="border:1px solid #ddd; padding:6px;">
+                    <select id="ddlCifosisDorsal" class="form-control" style="padding:5px;">
+                        <option value="0">Sin dato</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Aumentada</option>
+                        <option value="3">Disminuida</option>
+                    </select>
+                </td>
+                <td style="border:1px solid #ddd; padding:6px;">
+                    <select id="ddlCifosisLumbar" class="form-control" style="padding:5px;">
+                        <option value="0">Sin dato</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Aumentada</option>
+                        <option value="3">Disminuida</option>
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:0.9rem;">
+        <thead>
+            <tr style="background:#f0f4f8;">
+                <th style="border:1px solid #ddd; padding:8px;">Escoliosis</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:center;">Dorsal</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:center;">Lumbar</th>
+                <th style="border:1px solid #ddd; padding:8px; text-align:center;">Doble</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px; font-weight:600;">Derecha</td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDorsalDer" /></td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscLumbarDer" /></td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDoboDer" /></td>
+            </tr>
+            <tr>
+                <td style="border:1px solid #ddd; padding:8px; font-weight:600;">Izquierda</td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDorsalIzq" /></td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscLumbarIzq" /></td>
+                <td style="border:1px solid #ddd; padding:8px; text-align:center;"><input type="checkbox" id="chkEscDoboIzq" /></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="paper-row">
+        <div class="form-group flex-1" style="margin-bottom:20px;">
+            <label>Observaciones Columna</label>
+            <textarea id="txtObsColumna" class="form-control" rows="2"></textarea>
+        </div>
+    </div>
+
+    <h3 class="section-title">Diagn&oacute;stico</h3>
+
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>DIAGN&Oacute;STICO</label>
+            <textarea id="txtRecomendaciones" class="form-control" rows="3" placeholder="Diagn&oacute;stico m&eacute;dico..."></textarea>
+        </div>
+    </div>
+
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>RESULTADO</label>
+            <select id="ddlAptitud" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="1">APTO</option>
+                <option value="2">CON RESTRICCIONES</option>
+                <option value="3">NO APTO</option>
+                <option value="4">Pendiente de Evaluaci&oacute;n</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>RECOMENDACIONES</label>
+            <textarea id="txtSintomas" class="form-control" rows="3" placeholder="Recomendaciones al trabajador..."></textarea>
+        </div>
+    </div>
+</div>

@@ -10,8 +10,8 @@ var currentOrdenId = null;
         // Ocultar menú al hacer clic en cualquier lado
         $(document).on('click', function() { $('#ctxMenu').hide(); });
 
-        // Evento Context Menu (Click Derecho)
         $('#tbodySolicitudes').on('contextmenu', 'tr', function(e) {
+            // ... (keep existing code)
             var pk = $(this).data('pk');
             var status = $(this).data('status') || '';
             var statusLower = status.toLowerCase();
@@ -35,6 +35,12 @@ var currentOrdenId = null;
                 $('#ctxEliminar').hide();
             }
             $('#ctxMenu').css({ top: e.pageY, left: e.pageX }).show();
+        });
+
+        // Escuchar cambios en los filtros del Sidebar
+        $(document).on('gci-sidebar-filter-changed', function() {
+            paginaActual = 1;
+            aplicarFiltros();
         });
     });
 
@@ -78,10 +84,15 @@ var currentOrdenId = null;
             filtroModalidad: $('#filtroModalidad').val() || null,
             filtroEstatus: soloActivas ? -1 : filtroEstatus,
             fechaDesde: $('#filtroFechaDesde').val() || null,
-            fechaHasta: $('#filtroFechaHasta').val() || null
+            fechaHasta: $('#filtroFechaHasta').val() || null,
+            // Nuevos filtros del Sidebar
+            filtroEmpresa: $('#ddlEmpresa').val() != "0" ? parseInt($('#ddlEmpresa').val()) : null,
+            filtroArea: $('#ddlDepartamento').val() != "0" ? parseInt($('#ddlDepartamento').val()) : null,
+            filtroAnio: $('#ddlAnio').val() != "0" ? parseInt($('#ddlAnio').val()) : null,
+            filtroSemana: $('#ddlSemana').val() != "0" ? parseInt($('#ddlSemana').val()) : null
         };
 
-        $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="9"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
+        $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="10"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
         
         $.ajax({
             url: '/ServicioMedico/CargarPagina',
@@ -91,13 +102,13 @@ var currentOrdenId = null;
             success: function(resp) {
                 if (resp.success) {
                     totalRegistrosGlobal = resp.total;
-                    renderPagina(resp.data);
+                    renderPaginaMed(resp.data);
                 } else {
-                    $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">' + resp.message + '</td></tr>');
+                    $('#tbodySolicitudes').html('<tr><td colspan="10" class="no-data">' + resp.message + '</td></tr>');
                 }
             },
             error: function() {
-                $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">Error de conexi\u00f3n.</td></tr>');
+                $('#tbodySolicitudes').html('<tr><td colspan="10" class="no-data">Error de conexi\u00f3n.</td></tr>');
             }
         });
     }
@@ -111,7 +122,7 @@ var currentOrdenId = null;
         aplicarFiltros(true);
     }
 
-    function renderPagina(paginaDatos) {
+    function renderPaginaMed(paginaDatos) {
         var $tbody = $('#tbodySolicitudes');
         var totalPaginas = Math.max(1, Math.ceil(totalRegistrosGlobal / registrosPorPagina));
         var inicio = (paginaActual - 1) * registrosPorPagina;
@@ -137,21 +148,26 @@ var currentOrdenId = null;
                 var badgeEst = 'badge-pendiente';
                 if (estLow.indexOf('proceso') >= 0) badgeEst = 'badge-proceso';
                 if (estLow.indexOf('complet') >= 0) badgeEst = 'badge-completado';
-                var numEmp = s.FkEmpleado ? s.FkEmpleado : '-';
+                var numEmp = s.FkEmpleado ? s.FkEmpleado : 'N/A';
 
                 html.push(
                     '<tr data-pk="' + s.PkOrdenMedico + '" data-status="' + (s.EstatusDesc || '') + '" style="cursor:pointer;">' +
                     '<td><strong>' + s.FolioDisplay + '</strong></td>' +
                     '<td>' + (s.FechaOrdenFormateada || '-') + '</td>' +
                     '<td>' + badgeMod + '</td>' +
-                    '<td>' + (s.NombrePersona || '-') + '</td>' +
-                    '<td>' + numEmp + '</td>' +
-                    '<td>' + (s.TipoServicioDesc || '-') + '</td>' +
-                    '<td><div style="font-weight:600; font-size:0.8rem; color:#2c3e50; margin-bottom:2px;">' + (s.EmpresaNombre || 'Sin Empresa') + '</div><div style="font-size:0.75rem; color:#666;">' + (s.ProyectoDesc ? s.ProyectoDesc : '<i>N/A</i>') + '</div></td>' +
+                    '<td>' + (s.NombrePersona || 'N/A') + '</td>' +
+                    '<td>' + (numEmp || 'N/A') + '</td>' +
+                    '<td>' + (s.EmpresaNombre || s.EmpresaCandidato || 'N/A') + '</td>' +
+                    '<td>' + (s.ProyectoDesc || 'N/A') + '</td>' +
+                    '<td>' + (s.TipoServicioDesc || 'N/A') + '</td>' +
                     '<td><span class="badge-sm ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span></td>' +
                     '<td style="text-align:center;">' +
-                    '<div class="row-actions">' +
-                    '<button class="row-btn row-btn-ver" onclick="event.stopPropagation(); verDetalle(' + s.PkOrdenMedico + ')"><i class="fas fa-eye"></i> Ver</button>' +
+                    '<div style="display:flex; justify-content:center; gap:5px;">' +
+                    '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); verDetalle(' + s.PkOrdenMedico + ')" title="Ver Detalles"><i class="fas fa-eye"></i></button>' +
+                    '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirSolicitud/' + s.PkOrdenMedico + '\')" title="Imprimir Solicitud"><i class="fas fa-file-alt"></i></button>' +
+                    (s.FkEstatus === 3 ? (s.FkTipoServicio === 3 ? 
+                        '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirAntidoping/' + s.PkOrdenMedico + '\')" title="Imprimir Antidoping"><i class="fas fa-flask"></i></button>' :
+                        '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirEvaluacion/' + s.PkOrdenMedico + '\')" title="Imprimir Evaluación"><i class="fas fa-file-medical"></i></button>') : '') +
                     '</div>' +
                     '</td>' +
                     '</tr>'
@@ -159,7 +175,7 @@ var currentOrdenId = null;
             }
             $tbody.html(html.join(''));
         } else {
-            $tbody.html('<tr><td colspan="9" class="no-data">No se encontraron solicitudes.</td></tr>');
+            $tbody.html('<tr><td colspan="10" class="no-data">No se encontraron solicitudes.</td></tr>');
             $('#resultsInfo').text('0 resultados.');
         }
 
@@ -226,6 +242,8 @@ var currentOrdenId = null;
                 $('#seccionIngreso').hide();
             } else {
                 $('#detCandNombre').text(o.NombrePersona || '-');
+                $('#detCandEmpresa').text(o.EmpresaNombre || o.EmpresaCandidato || '-');
+                $('#detCandArea').text(o.ProyectoDesc || o.AreaCandidato || '-');
                 $('#seccionEmpleado').hide();
                 $('#seccionIngreso').show();
             }

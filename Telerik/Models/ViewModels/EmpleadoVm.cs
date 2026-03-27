@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using Telerik.Models.Entities;
 
 namespace Telerik.Models.ViewModels
@@ -20,7 +20,7 @@ namespace Telerik.Models.ViewModels
         public string AreaDesc { get; set; }
         public string EmpresaDesc { get; set; }
         
-        // Relacionados a EvaluaciÃ³n MÃ©dica
+        // Relacionados a Evaluación Médica
         public string Telefono { get; set; }
         public string Calle { get; set; }
         public string NumExterior { get; set; }

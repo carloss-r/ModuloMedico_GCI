@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using Telerik.Models.Entities;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace Telerik.Models.Dal
+namespace Telerik.Models.DAL
 {
     public class ConexionBd
     {

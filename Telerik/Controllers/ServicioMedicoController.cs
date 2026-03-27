@@ -1,16 +1,29 @@
-﻿using System;
+using System;
 using Telerik.Models.Entities;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Web.Mvc;
-using Telerik.Models.Dal;
+using Telerik.Models.DAL;
 using Telerik.Models.ViewModels;
+using Telerik.Models;
+using Telerik.Services;
 
 namespace Telerik.Controllers
 {
     public class ServicioMedicoController : Controller
     {
+        private readonly MedicalService _medicalService;
+
+        public ServicioMedicoController()
+        {
+            _medicalService = new MedicalService();
+        }
+
+        public ServicioMedicoController(MedicalService medicalService)
+        {
+            _medicalService = medicalService;
+        }
         // GET: /ServicioMedico/
         public ActionResult Index()
         {
@@ -47,6 +60,7 @@ namespace Telerik.Controllers
             ViewBag.Title = orden.FkTipoServicio == 3 ? "Evaluación Antidoping" : "Evaluación Médica";
             ViewBag.IdOrden = id;
             ViewBag.TipoServicio = orden.FkTipoServicio;
+            ViewBag.Sexo = _medicalService.NormalizarSexo(orden.SexoCandidato);
             return View("~/Views/ServicioMedico/FormularioEvaluacionMedica.cshtml");
         }
 
@@ -59,7 +73,7 @@ namespace Telerik.Controllers
                 // Clamp para evitar abuso: máximo 100 por página
                 tamanoPagina = Math.Min(tamanoPagina, 100);
                 int total;
-                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out total, pagina, tamanoPagina, null, null, null, null, null);
+                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out total, pagina, tamanoPagina);
                 return Json(new { success = true, data = solicitudes, total = total }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -75,7 +89,7 @@ namespace Telerik.Controllers
         {
             try
             {
-                EvaluacionDal.GuardarEvaluacion(model);
+                _medicalService.GuardarEvaluacion(model);
                 return Json(new { success = true, message = "Evaluación médica guardada correctamente. ¿Desea continuar con el Antidoping?" });
             }
             catch(Exception ex)
@@ -89,37 +103,44 @@ namespace Telerik.Controllers
         public JsonResult GuardarAntidoping()
         {
             try
-            {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-                // El model binder de MVC 4.0 no resuelve HttpPostedFileBase dentro de un VM
-                // cuando el POST es multipart/form-data con campos bool. Se leen manualmente.
+            {
                 var req = Request.Form;
-
                 int pkOrden = 0;
                 if (!int.TryParse(req["PkOrdenMedico"], out pkOrden) || pkOrden == 0)
-                    return Json(new { success = false, message = "PkOrdenMedico inválido o no recibido. Valor: '" + req["PkOrdenMedico"] + "'" });
+                    return Json(new { success = false, message = "PkOrdenMedico inválido." });
 
                 var model = new AntidopingVm
                 {
-                    PkOrdenMedico         = pkOrden,
-                    ConsentimientoFirmado = (req["ConsentimientoFirmado"] ?? "").ToLower().Contains("true"),
-                    ResultadoCocaina      = (req["ResultadoCocaina"]      ?? "").ToLower().Contains("true"),
-                    ResultadoTHC          = (req["ResultadoTHC"]          ?? "").ToLower().Contains("true"),
-                    ResultadoAnfetaminas  = (req["ResultadoAnfetaminas"]  ?? "").ToLower().Contains("true"),
-                    ResultadoMetanfetaminas=(req["ResultadoMetanfetaminas"]?? "").ToLower().Contains("true"),
-                    ResultadoOpiaceos     = (req["ResultadoOpiaceos"]     ?? "").ToLower().Contains("true"),
-                    VeredictoFinal        = req["VeredictoFinal"],
-                    Comentarios           = req["Comentarios"]
+                    PkOrdenMedico          = pkOrden,
+                    ConsentimientoFirmado  = (req["ConsentimientoFirmado"] ?? "").ToLower().Contains("true"),
+                    ResultadoAlcohol       = (req["ResultadoAlcohol"]       ?? "").ToLower().Contains("true"),
+                    AplicaAlcohol          = (req["AplicaAlcohol"]          ?? "").ToLower().Contains("true"),
+                    ResultadoCocaina       = (req["ResultadoCocaina"]       ?? "").ToLower().Contains("true"),
+                    AplicaCocaina          = (req["AplicaCocaina"]          ?? "").ToLower().Contains("true"),
+                    ResultadoTHC           = (req["ResultadoTHC"]           ?? "").ToLower().Contains("true"),
+                    AplicaTHC              = (req["AplicaTHC"]              ?? "").ToLower().Contains("true"),
+                    ResultadoAnfetaminas   = (req["ResultadoAnfetaminas"]   ?? "").ToLower().Contains("true"),
+                    AplicaAnfetaminas      = (req["AplicaAnfetaminas"]      ?? "").ToLower().Contains("true"),
+                    ResultadoMetanfetaminas= (req["ResultadoMetanfetaminas"] ?? "").ToLower().Contains("true"),
+                    AplicaMetanfetaminas   = (req["AplicaMetanfetaminas"]   ?? "").ToLower().Contains("true"),
+                    ResultadoOpiaceos      = (req["ResultadoOpiaceos"]      ?? "").ToLower().Contains("true"),
+                    AplicaOpiaceos         = (req["AplicaOpiaceos"]         ?? "").ToLower().Contains("true"),
+                    ResultadoMetilfenidato = (req["ResultadoMetilfenidato"] ?? "").ToLower().Contains("true"),
+                    AplicaMetilfenidato    = (req["AplicaMetilfenidato"]    ?? "").ToLower().Contains("true"),
+                    ResultadoFentanilo     = (req["ResultadoFentanilo"]     ?? "").ToLower().Contains("true"),
+                    AplicaFentanilo        = (req["AplicaFentanilo"]        ?? "").ToLower().Contains("true"),
+                    ResultadoBenzodiacepinas = (req["ResultadoBenzodiacepinas"] ?? "").ToLower().Contains("true"),
+                    AplicaBenzodiacepinas  = (req["AplicaBenzodiacepinas"]  ?? "").ToLower().Contains("true"),
+                    VeredictoFinal         = req["VeredictoFinal"],
+                    Comentarios            = req["Comentarios"]
                 };
 
-                // Guardar imagen en carpeta ~/Content/Evidencias/Antidoping/
-                // Nombre: ANTI-SOL-SM-{id}_{fecha}_{hora}.ext  (fácil de identificar)
+                // Evidence photo handling
                 if (Request.Files["FileEvidencia"] != null && Request.Files["FileEvidencia"].ContentLength > 0)
                 {
                     var file = Request.Files["FileEvidencia"];
-                    string ext   = System.IO.Path.GetExtension(file.FileName);
-                    string stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                    string nombre = string.Format("ANTI-SOL-SM-{0:D4}_{1}{2}",
-                        model.PkOrdenMedico, stamp, ext);
+                    string ext = System.IO.Path.GetExtension(file.FileName);
+                    string nombre = _medicalService.GenerarNombreArchivoAntidoping(pkOrden, ext);
 
                     string carpeta = Server.MapPath("~/Content/Evidencias/Antidoping/");
                     if (!System.IO.Directory.Exists(carpeta))
@@ -129,12 +150,14 @@ namespace Telerik.Controllers
                     model.UrlFotoEvidencia = "/Content/Evidencias/Antidoping/" + nombre;
                 }
 
-                AntidopingDal.GuardarAntidoping(model);
+                _medicalService.GuardarAntidoping(model);
+                _medicalService.CompletarOrden(pkOrden);
+
                 return Json(new { success = true, message = "Antidoping guardado y solicitud COMPLETADA." });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error al guardar antidoping: " + ex.Message });
+                return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
 
@@ -146,7 +169,7 @@ namespace Telerik.Controllers
         {
             try
             {
-                OrdenServicioMedicoDal.ActualizarEstatus(pkOrdenMedico, 3);
+                _medicalService.CompletarOrden(pkOrdenMedico);
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -155,7 +178,7 @@ namespace Telerik.Controllers
             }
         }
 
-        // GET: /ServicioMedico/ImprimirEvaluacion/5
+        // GET: /ServicioMedico/ImprimirEvaluacion/
         public ActionResult ImprimirEvaluacion(int id)
         {
             try
@@ -169,7 +192,7 @@ namespace Telerik.Controllers
                     return Content("Error: No se encontró la evaluación médica para esta orden (es posible que aún no se haya completado).");
 
                 ViewBag.Orden = orden;
-                ViewBag.Paciente = ObtenerInfoPaciente(orden);
+                ViewBag.Paciente = _medicalService.ObtenerInfoPaciente(orden);
                 return View("~/Views/ServicioMedico/FormatoImpresionEvaluacionMedica.cshtml", evaluacion);
             }
             catch (Exception ex)
@@ -191,7 +214,7 @@ namespace Telerik.Controllers
                     return Content("Error: No se encontró el examen antidoping para esta orden (es posible que aún no se haya completado).");
 
                 ViewBag.Orden = orden;
-                ViewBag.Paciente = ObtenerInfoPaciente(orden);
+                ViewBag.Paciente = _medicalService.ObtenerInfoPaciente(orden);
                 return View("~/Views/ServicioMedico/FormatoImpresionAntidoping.cshtml", antidoping);
             }
             catch (Exception ex)
@@ -209,7 +232,7 @@ namespace Telerik.Controllers
                 if (orden == null)
                     return Json(new { success = false, message = "Orden no encontrada." }, JsonRequestBehavior.AllowGet);
 
-                var paciente = ObtenerInfoPaciente(orden);
+                var paciente = _medicalService.ObtenerInfoPaciente(orden);
                 return Json(new { success = true, paciente }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -218,72 +241,8 @@ namespace Telerik.Controllers
             }
         }
 
-        private PacienteInfoVm ObtenerInfoPaciente(OrdenServicioMedicoVm orden)
-        {
-            if (orden.FkEmpleado.HasValue)
-            {
-                var emp = EmpleadoDal.BuscarPorNumero(orden.FkEmpleado.Value);
-                if (emp != null)
-                {
-                    string edad = emp.Edad;
-                    if (emp.FechaNacimiento.HasValue)
-                    {
-                         var hoy = DateTime.Today;
-                         var nacimiento = emp.FechaNacimiento.Value;
-                         var edadCalc = hoy.Year - nacimiento.Year;
-                         if (nacimiento.Date > hoy.AddYears(-edadCalc)) edadCalc--;
-                         edad = edadCalc.ToString();
-                    }
+        // End of MedicalService migration
 
-                    return new PacienteInfoVm
-                    {
-                        NombreCompleto = emp.NombreCompleto,
-                        Edad = edad,
-                        Puesto = emp.PuestoDesc,
-                        Area = emp.AreaDesc,
-                        Empresa = emp.ProyectoDesc, // Project for employees
-                        Sexo = emp.Sexo,
-                        Tipo = "EMPLEADO",  
-                        TipoServicioId = orden.FkTipoServicio,
-                        TipoServicioDesc = orden.TipoServicioDesc,
-                        NumeroEmpleado = emp.PkEmpleado.ToString(),
-                        
-                        FechaNacimiento = emp.FechaNacimiento.HasValue ? emp.FechaNacimiento.Value.ToString("yyyy-MM-dd") : "",
-                        Nss = emp.Nss,
-                        Telefono = emp.Telefono,
-                        Direccion = string.Join(", ", new string[] {
-                            (!string.IsNullOrEmpty(emp.Calle) ? emp.Calle + " " + emp.NumExterior + (string.IsNullOrEmpty(emp.NumInterior) ? "" : " " + emp.NumInterior) : ""),
-                            emp.ColoniaDesc,
-                            emp.MunicipioDesc,
-                            emp.EstadoDesc,
-                            emp.PaisDesc,
-                            (!string.IsNullOrEmpty(emp.CPDesc) ? "CP: " + emp.CPDesc : "")
-                        }.Where(s => !string.IsNullOrEmpty(s))).Trim(),
-                        EstadoCivil = emp.EstadoCivil,
-                        TipoSangre = emp.TipoSangre,
-                        Rfc = emp.Rfc,
-                        Curp = emp.Curp,
-                        TieneHijos = emp.TieneHijos,
-                        NumeroHijos = emp.NumeroHijosDesc,
-                        Escolaridad = emp.EscolaridadDesc
-                    };
-                }
-            }
-            
-            return new PacienteInfoVm
-            {
-                NombreCompleto = orden.NombrePersona ?? "",
-                Edad = orden.EdadCandidato ?? "",
-                Puesto = orden.PuestoCandidato ?? "",
-                Area = orden.AreaCandidato ?? "",
-                Empresa = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : (orden.ProyectoDesc ?? ""),
-                Sexo = orden.SexoCandidato ?? "",
-                Tipo = "CANDIDATO",
-                TipoServicioId = orden.FkTipoServicio,
-                TipoServicioDesc = orden.TipoServicioDesc,
-                NumeroEmpleado = "N/A"
-            };
-        }
 
         // GET: /ServicioMedico/VerDetalle?id=1
         [HttpGet]
@@ -419,11 +378,33 @@ namespace Telerik.Controllers
                         return Json(new { success = false, message = "Debe ingresar el nombre del candidato." });
                     }
 
+                    // Resolver nombres para el candidato
+                    string areaNombre = model.ProyectoDesc;
+                    string empresaNombre = model.EmpresaDesc;
+
+                    using (var db = new ApplicationDbContext())
+                    {
+                        if (string.IsNullOrEmpty(areaNombre) && model.FkProyecto.HasValue && model.FkProyecto > 0)
+                        {
+                            var pr = db.Proyectos.Find(model.FkProyecto.Value);
+                            if (pr != null) areaNombre = pr.descripcion;
+                        }
+                        if (string.IsNullOrEmpty(empresaNombre) && model.FkEmpresa.HasValue && model.FkEmpresa > 0)
+                        {
+                            var emp = db.Empresas.Find(model.FkEmpresa.Value);
+                            if (emp != null) empresaNombre = emp.nombre;
+                        }
+                    }
+
                     // Crear candidato nuevo
                     int pkCandidato = CandidatoDal.Insertar(
                         model.NombreCandidato,
-                        model.ApellidoCandidato,
-                        model.PuestoDesc ?? model.PuestoDeseado
+                        model.ApellidoPaterno,
+                        model.ApellidoMaterno,
+                        model.PuestoDesc ?? model.PuestoDeseado,
+                        areaNombre,
+                        empresaNombre,
+                        model.Sexo ?? "" // Sexo desde la solicitud - No defaultear a M
                     );
 
                     fkCandidato = pkCandidato;
@@ -431,7 +412,7 @@ namespace Telerik.Controllers
                 else
                 {
                     return Json(new { success = false, message = "Modalidad no válida." });
-                }
+                }   
 
                 // Crear la orden de servicio médico
                 int pkOrden = OrdenServicioMedicoDal.Insertar(fkEmpleado, fkCandidato, fkProyecto, model.FkTipoServicio);
@@ -443,12 +424,19 @@ namespace Telerik.Controllers
                     empresaDesc = model.EmpresaDesc,
                     proyectoDesc = model.ProyectoDesc,
                     puestoDesc = model.PuestoDesc,
-                    nombreCandidato = (model.NombreCandidato + " " + model.ApellidoCandidato).Trim()
+                    nombreCandidato = (model.NombreCandidato + " " + model.ApellidoPaterno + " " + (model.ApellidoMaterno ?? "")).Trim()
                 });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error al crear la solicitud: " + ex.Message });
+                string msg = ex.Message;
+                if (ex.InnerException != null)
+                {
+                    msg += " | Detalle: " + ex.InnerException.Message;
+                    if (ex.InnerException.InnerException != null)
+                        msg += " | Sub-detalle: " + ex.InnerException.InnerException.Message;
+                }
+                return Json(new { success = false, message = "Error al crear la solicitud: " + msg });
             }
         }
 
@@ -477,7 +465,7 @@ namespace Telerik.Controllers
             try
             {
                 int totalRegistros;
-                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out totalRegistros, 1, 10, null, null, null, null, null);
+                var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(out totalRegistros, 1, 10);
 
                 List<CatalogoItem> tiposServicio;
                 List<CatalogoItem> empresas;
@@ -501,26 +489,34 @@ namespace Telerik.Controllers
 
         [HttpPost]
         public JsonResult CargarPagina(
-            int pagina,
+            int? pagina,
             int tamanoPagina,
             int? filtroNumEmpleado,
             string filtroModalidad,
             int? filtroEstatus,
             DateTime? fechaDesde,
-            DateTime? fechaHasta)
+            DateTime? fechaHasta,
+            int? filtroEmpresa = null,
+            int? filtroArea = null,
+            int? filtroAnio = null,
+            int? filtroSemana = null)
         {
             try
             {
                 int totalRegistros;
                 var solicitudes = OrdenServicioMedicoDal.ObtenerTodas(
                     out totalRegistros,
-                    pagina, 
+                    pagina ?? 1, 
                     tamanoPagina, 
                     filtroNumEmpleado, 
                     filtroModalidad, 
                     filtroEstatus, 
                     fechaDesde, 
-                    fechaHasta
+                    fechaHasta,
+                    filtroEmpresa,
+                    filtroArea,
+                    filtroAnio,
+                    filtroSemana
                 );
 
                 return Json(new { success = true, data = solicitudes, total = totalRegistros });
@@ -612,6 +608,33 @@ namespace Telerik.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerFiltrosSidebar()
+        {
+            try
+            {
+                var empresas = CatalogoDal.ObtenerEmpresas();
+                var areas = CatalogoDal.ObtenerAreas();
+                
+                // Generar años (2024 al actual + 1)
+                var anios = new List<object>();
+                int anioActual = DateTime.Now.Year;
+                for (int i = anioActual + 1; i >= 2024; i--)
+                    anios.Add(new { Id = i, Descripcion = i.ToString() });
+
+                // Semanas (1 a 53)
+                var semanas = new List<object>();
+                for (int i = 1; i <= 53; i++)
+                    semanas.Add(new { Id = i, Descripcion = "SEMANA " + i });
+
+                return Json(new { success = true, empresas, areas, anios, semanas }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
     }

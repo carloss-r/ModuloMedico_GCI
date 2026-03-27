@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Telerik.Models.Entities;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -6,7 +6,7 @@ using System.Linq;
 using Telerik.Models;
 using Telerik.Models.ViewModels;
 
-namespace Telerik.Models.Dal
+namespace Telerik.Models.DAL
 {
     public class EvaluacionDal
     {
@@ -49,7 +49,8 @@ namespace Telerik.Models.Dal
                             escolaridad            = vm.Escolaridad,
                             profesion              = vm.Profesion,
                             alergias               = vm.Alergias,
-                            tipoSangre             = vm.TipoSangre
+                            fkTipoSangre           = vm.FkTipoSangre,
+                            lugarEvaluacion        = vm.LugarEvaluacion
                         };
                         db.EvaluacionesClinicas.Add(eval);
                         db.SaveChanges(); // genera pkEvaluacion
@@ -69,10 +70,24 @@ namespace Telerik.Models.Dal
                                 usaDrogas              = vm.Habitos.UsaDrogas,
                                 tipoDrogas             = vm.Habitos.TipoDrogas,
                                 haceDeporte            = vm.Habitos.HaceDeporte,
-                                descripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre,
-                                vacunaTetanos          = vm.Habitos.VacunaTetanos,
-                                vacunaHepatitis        = vm.Habitos.VacunaHepatitis,
-                                vacunaH1N1             = vm.Habitos.VacunaH1N1
+                                tipoDeporte            = vm.Habitos.TipoDeporte,
+                                descripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre
+                            });
+                        }
+
+                        // 3. Vacunación (Nueva tabla)
+                        if (vm.Vacunacion != null)
+                        {
+                            db.Vacunaciones.Add(new Vacunacion
+                            {
+                                fkEvaluacion            = eval.pkEvaluacion,
+                                tetanosDosis1           = vm.Vacunacion.TetanosDosis1,
+                                tetanosDosis2           = vm.Vacunacion.TetanosDosis2,
+                                tetanosDosis3           = vm.Vacunacion.TetanosDosis3,
+                                hepatitisDosis1         = vm.Vacunacion.HepatitisDosis1,
+                                hepatitisDosis2         = vm.Vacunacion.HepatitisDosis2,
+                                influenzaH1N1           = vm.Vacunacion.InfluenzaH1N1,
+                                observacionesVacunacion = vm.Vacunacion.ObservacionesVacunacion
                             });
                         }
 
@@ -183,8 +198,24 @@ namespace Telerik.Models.Dal
                             });
                         }
 
-                        // 8. Actualizar estatus de la orden a "En Proceso" (2)
+                        // 8. Actualizar datos del Candidato si aplica
                         var orden = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
+                        if (orden != null && orden.fkCandidato.HasValue)
+                        {
+                            var cand = db.Candidatos.Find(orden.fkCandidato.Value);
+                            if (cand != null)
+                            {
+                                if (!string.IsNullOrEmpty(vm.NombreCandidato)) cand.nombre = vm.NombreCandidato;
+                                if (!string.IsNullOrEmpty(vm.ApellidoPaternoCandidato)) cand.aPaterno = vm.ApellidoPaternoCandidato;
+                                if (!string.IsNullOrEmpty(vm.ApellidoMaternoCandidato)) cand.aMaterno = vm.ApellidoMaternoCandidato;
+                                if (!string.IsNullOrEmpty(vm.SexoCandidato)) cand.fkSexo = vm.SexoCandidato;
+                                if (!string.IsNullOrEmpty(vm.PuestoCandidato)) cand.puestoDeseado = vm.PuestoCandidato;
+                                if (!string.IsNullOrEmpty(vm.AreaCandidato)) cand.area = vm.AreaCandidato;
+                                if (!string.IsNullOrEmpty(vm.EmpresaCandidato)) cand.empresa = vm.EmpresaCandidato;
+                            }
+                        }
+
+                        // 9. Actualizar estatus de la orden a "En Proceso" (2)
                         if (orden != null && orden.fkEstatus == 1)
                         {
                             orden.fkEstatus = 2;
@@ -248,7 +279,8 @@ namespace Telerik.Models.Dal
                     Escolaridad            = eval.escolaridad,
                     Profesion              = eval.profesion,
                     Alergias               = eval.alergias,
-                    TipoSangre             = eval.tipoSangre
+                    FkTipoSangre           = eval.fkTipoSangre,
+                    LugarEvaluacion        = eval.lugarEvaluacion
                 };
 
                 if (eval.Habitos != null)
@@ -264,10 +296,24 @@ namespace Telerik.Models.Dal
                         UsaDrogas              = eval.Habitos.usaDrogas ?? false,
                         TipoDrogas             = eval.Habitos.tipoDrogas,
                         HaceDeporte            = eval.Habitos.haceDeporte ?? false,
-                        DescripcionTiempoLibre = eval.Habitos.descripcionTiempoLibre,
-                        VacunaTetanos          = eval.Habitos.vacunaTetanos,
-                        VacunaHepatitis        = eval.Habitos.vacunaHepatitis,
-                        VacunaH1N1             = eval.Habitos.vacunaH1N1 ?? false
+                        TipoDeporte            = eval.Habitos.tipoDeporte,
+                        DescripcionTiempoLibre = eval.Habitos.descripcionTiempoLibre
+                    };
+                }
+
+                // Cargar Vacunación
+                var vac = db.Vacunaciones.FirstOrDefault(v => v.fkEvaluacion == eval.pkEvaluacion);
+                if (vac != null)
+                {
+                    vm.Vacunacion = new VacunacionVm
+                    {
+                        TetanosDosis1           = vac.tetanosDosis1 ?? false,
+                        TetanosDosis2           = vac.tetanosDosis2 ?? false,
+                        TetanosDosis3           = vac.tetanosDosis3 ?? false,
+                        HepatitisDosis1         = vac.hepatitisDosis1 ?? false,
+                        HepatitisDosis2         = vac.hepatitisDosis2 ?? false,
+                        InfluenzaH1N1           = vac.influenzaH1N1 ?? false,
+                        ObservacionesVacunacion = vac.observacionesVacunacion
                     };
                 }
 

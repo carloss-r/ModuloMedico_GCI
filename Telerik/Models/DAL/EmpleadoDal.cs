@@ -1,8 +1,8 @@
-﻿using System.Linq;
+using System.Linq;
 using Telerik.Models;
 using Telerik.Models.ViewModels;
 
-namespace Telerik.Models.Dal
+namespace Telerik.Models.DAL
 {
     public class EmpleadoDal
     {

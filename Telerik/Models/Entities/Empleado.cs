@@ -1,4 +1,4 @@
-﻿    using System;
+    using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,8 +15,11 @@ namespace Telerik.Models.Entities
         public string aPaterno { get; set; }
         public string aMaterno { get; set; }
         
+        [NotMapped]
         public string rfc { get; set; }
+        [NotMapped]
         public string curp { get; set; }
+        [NotMapped]
         public string numeroSeguroSocial { get; set; }
         public string edad { get; set; }
         public DateTime? fechaNacimiento { get; set; }

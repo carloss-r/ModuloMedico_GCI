@@ -43,7 +43,7 @@ namespace Telerik.Models
         public DbSet<EvaluacionColumna>     EvaluacionesColumna     { get; set; }
         public DbSet<DetalleGineco>         DetallesGineco          { get; set; }
         public DbSet<DetalleMasculino>      DetallesMasculino       { get; set; }
-        // NOTA: NO existe DbSet<Vacunacion> — las vacunas están en HabitosPersonales directamente.
+        public DbSet<Vacunacion>            Vacunaciones            { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -72,6 +72,11 @@ namespace Telerik.Models
                 .WithMany()
                 .HasForeignKey(d => d.fkEvaluacion);
 
+            modelBuilder.Entity<Vacunacion>()
+                .HasRequired(v => v.Evaluacion)
+                .WithMany()
+                .HasForeignKey(v => v.fkEvaluacion);
+
             // IGNORAR las propiedades de navegación "1-a-1" en el modelo EvaluacionClinica 
             // para que no intenten generar foreing keys inesperadas, 
             // ya que están mapeadas como colecciones anónimas arriba con 'WithMany()'.
@@ -79,6 +84,7 @@ namespace Telerik.Models
             modelBuilder.Entity<EvaluacionClinica>().Ignore(e => e.Habitos);
             modelBuilder.Entity<EvaluacionClinica>().Ignore(e => e.DetalleGineco);
             modelBuilder.Entity<EvaluacionClinica>().Ignore(e => e.DetalleMasculino);
+            modelBuilder.Entity<EvaluacionClinica>().Ignore(e => e.Vacunacion);
         }
     }
 }

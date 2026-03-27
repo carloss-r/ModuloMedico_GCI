@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -37,8 +37,9 @@ namespace Telerik.Models.Entities
         public string escolaridad { get; set; }
         public string profesion { get; set; }
         public string alergias { get; set; }
-        public string tipoSangre { get; set; }
-        public string recomendaciones { get; set; } // columna presente en DATA_GCI.sql
+        public int? fkTipoSangre { get; set; }
+        public string lugarEvaluacion { get; set; }
+        public string recomendaciones { get; set; }
 
         // Propiedades de navegación (uno a uno)
         public virtual HabitoPersonal Habitos { get; set; }
@@ -50,5 +51,6 @@ namespace Telerik.Models.Entities
         public virtual ICollection<HistoriaMedica> HistoriaMedica { get; set; }
         public virtual ICollection<AntecedenteLaboral> AntecedentesLaborales { get; set; }
         public virtual ICollection<ExamenFisico> ExamenFisico { get; set; }
+        public virtual Vacunacion Vacunacion { get; set; }
     }
 }

@@ -180,7 +180,9 @@ function resetearModal() {
     $('#txtPuestoEmpleado').val('');
     $('#txtProyectoEmpleado').val('');
     $('#txtNombreCandidato').val('');
-    $('#txtApellidoCandidato').val('');
+    $('#txtAPaternoCandidato').val('');
+    $('#txtAMaternoCandidato').val('');
+    $('#cboSexoCandidato').val('M');
     $('#txtPuestoCandidato').val('');
     $('#cboTipoServicio').val('');
     $('#cboProyecto').val('');
@@ -280,7 +282,9 @@ function enviarSolicitud() {
         datos.NumeroEmpleado = parseInt($('#txtNumeroEmpleado').val());
     } else {
         datos.NombreCandidato = $('#txtNombreCandidato').val().trim();
-        datos.ApellidoCandidato = $('#txtApellidoCandidato').val().trim();
+        datos.ApellidoPaterno = $('#txtAPaternoCandidato').val().trim();
+        datos.ApellidoMaterno = $('#txtAMaternoCandidato').val().trim();
+        datos.Sexo = $('#cboSexoCandidato').val();
         datos.PuestoDeseado = $('#txtPuestoCandidato').val().trim();
     }
 

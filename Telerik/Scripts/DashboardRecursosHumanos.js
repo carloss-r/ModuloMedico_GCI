@@ -8,6 +8,12 @@ var datosSolicitudes = [];
         $('#txtNumEmpleado').on('keypress', function (e) {
             if(e.which === 13) buscarEmpleadoParaSolicitud();
         });
+
+        // Escuchar cambios en los filtros del Sidebar
+        $(document).on('gci-sidebar-filter-changed', function() {
+            paginaActualRH = 1;
+            cargarSolicitudes();
+        });
     });
 
     function onCambioTamanoPaginaRH() {
@@ -27,7 +33,7 @@ var datosSolicitudes = [];
     }
 
     function cargarSolicitudes() {
-        $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="7"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
+        $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="10"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
         $('#paginacionControles').empty();
         $('#resultsInfo').text('');
         
@@ -37,7 +43,12 @@ var datosSolicitudes = [];
             tamanoPagina: registrosPorPaginaRH,
             filtroModalidad: 'INGRESO', // Forzar solo INGRESO
             filtroEstatus: null, // Traer todos (pendientes/completadas)
-            filtroNumEmpleado: $('#txtBuscarNumEmpleado').val() || null
+            filtroNumEmpleado: $('#txtBuscarNumEmpleado').val() || null,
+            // Nuevos filtros del Sidebar
+            filtroEmpresa: $('#ddlEmpresa').val() != "0" ? parseInt($('#ddlEmpresa').val()) : null,
+            filtroArea: $('#ddlDepartamento').val() != "0" ? parseInt($('#ddlDepartamento').val()) : null,
+            filtroAnio: $('#ddlAnio').val() != "0" ? parseInt($('#ddlAnio').val()) : null,
+            filtroSemana: $('#ddlSemana').val() != "0" ? parseInt($('#ddlSemana').val()) : null
         };
 
         $.ajax({
@@ -51,7 +62,7 @@ var datosSolicitudes = [];
                     totalRegistrosRH = resp.total || datosSolicitudes.length;
                     renderPagina();
                 } else {
-                    $('#tbodySolicitudes').empty().append('<tr><td colspan="8" class="no-data">' + (resp.message || 'Error al cargar solicitudes.') + '</td></tr>');
+                    $('#tbodySolicitudes').empty().append('<tr><td colspan="10" class="no-data">' + (resp.message || 'Error al cargar solicitudes.') + '</td></tr>');
                 }
             },
             error: function () {
@@ -65,7 +76,7 @@ var datosSolicitudes = [];
         $tbody.empty();
 
         if (!datosSolicitudes || datosSolicitudes.length === 0) {
-            $tbody.append('<tr><td colspan="8" class="no-data">No hay solicitudes registradas.</td></tr>');
+            $tbody.append('<tr><td colspan="10" class="no-data">No hay solicitudes registradas.</td></tr>');
             $('#resultsInfo').text('0 resultados.');
             $('#paginacionControles').empty();
             return;
@@ -101,8 +112,10 @@ var datosSolicitudes = [];
                 '<td>' + s.FolioDisplay + '</td>' +
                 '<td>' + s.FechaOrdenFormateada + '</td>' +
                 '<td>' + badgeMod + '</td>' +
-                '<td>' + (s.NombrePersona || '-') + '</td>' +
-                '<td>' + (s.TipoServicioDesc || '-') + '</td>' +
+                '<td>' + (s.NombrePersona || 'N/A') + '</td>' +
+                '<td>' + (s.EmpresaNombre || s.EmpresaCandidato || 'N/A') + '</td>' +
+                '<td>' + (s.ProyectoDesc || 'N/A') + '</td>' +
+                '<td>' + (s.TipoServicioDesc || 'N/A') + '</td>' +
                 '<td><span class="badge-sm ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span></td>' +
                 '<td>' + aptitudBadge + '</td>' +
                 '<td>' + accionesHtml + '</td>' +
@@ -165,7 +178,9 @@ var datosSolicitudes = [];
         $('#confEmpresa').text('');
          
          $('#txtNombreCandidato').val('');
-         $('#txtApellidoCandidato').val('');
+         $('#txtAPaternoCandidato').val('');
+         $('#txtAMaternoCandidato').val('');
+         $('#ddlSexoCandidato').val(''); // Removed 'M' default
          $('#ddlEmpresaIng').val('');
          $('#ddlProyectoIng').empty().append('<option value="">-- Primero Empresa --</option>');
          $('#ddlPuestoIng').empty().append('<option value="">-- Primero Empresa --</option>');
@@ -318,7 +333,9 @@ var datosSolicitudes = [];
         } else {
             data.Modalidad = 'INGRESO';
             data.NombreCandidato = $('#txtNombreCandidato').val();
-            data.ApellidoCandidato = $('#txtApellidoCandidato').val();
+            data.ApellidoPaterno = $('#txtAPaternoCandidato').val();
+            data.ApellidoMaterno = $('#txtAMaternoCandidato').val();
+            data.Sexo = $('#ddlSexoCandidato').val();
             data.FkEmpresa = $('#ddlEmpresaIng').val();
             data.FkProyecto = $('#ddlProyectoIng').val();
             var puestoSel = $('#ddlPuestoIng option:selected');
@@ -326,6 +343,7 @@ var datosSolicitudes = [];
             data.FkTipoServicio = $('#ddlTipoServicioIng').val() || 1; // Forzar 1 si no hay valor (Default Ingreso)
             
              if(!data.NombreCandidato) { mostrarAlertaModal('Ingrese el nombre del candidato', false); return; }
+             if(!data.ApellidoPaterno) { mostrarAlertaModal('Ingrese el apellido paterno del candidato', false); return; }
              if(!data.FkEmpresa) { mostrarAlertaModal('Seleccione la empresa para el ingreso', false); return; }
         }
 

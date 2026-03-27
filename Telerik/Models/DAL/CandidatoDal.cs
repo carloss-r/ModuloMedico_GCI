@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using Telerik.Models.Entities;
 using Telerik.Models;
 
-namespace Telerik.Models.Dal
+namespace Telerik.Models.DAL
 {
     public class CandidatoDal
     {
-        public static int Insertar(string nombre, string aPaterno, string puestoDeseado)
+        public static int Insertar(string nombre, string aPaterno, string aMaterno = null, string puestoDeseado = null, string area = null, string empresa = null, string sexo = "")
         {
             using (var db = new ApplicationDbContext())
             {
@@ -14,7 +14,11 @@ namespace Telerik.Models.Dal
                 {
                     nombre         = nombre,
                     aPaterno       = aPaterno,
+                    aMaterno       = aMaterno,
                     puestoDeseado  = puestoDeseado,
+                    area           = area,
+                    empresa        = empresa,
+                    fkSexo         = sexo ?? "M",
                     fechaRegistro  = DateTime.Now
                 };
 

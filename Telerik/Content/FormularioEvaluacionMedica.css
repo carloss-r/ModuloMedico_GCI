@@ -92,3 +92,7 @@
     .switch-btn:hover { background: #f5f5f5; }
     .switch-btn.active.pos { background: #e74c3c; color: white; border-color: #e74c3c; }
     .switch-btn.active.neg { background: #27ae60; color: white; border-color: #27ae60; }
+    .switch-btn.active.aplica { background: #1a5276; color: white; border-color: #1a5276; }
+    .switch-btn.active.na { background: #95a5a6; color: white; border-color: #95a5a6; }
+    .switch-group { display: flex; align-items: center; gap: 8px; }
+    .switch-label { width: 140px; font-weight: 600; font-size: 0.9rem; color: #444; }

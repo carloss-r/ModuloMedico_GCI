@@ -42,6 +42,8 @@
                     <th>Fecha</th>
                     <th>Modalidad</th>
                     <th>Candidato / Empleado</th>
+                    <th>Empresa</th>
+                    <th>Proyecto</th>
                     <th>Servicio</th>
                     <th>Estatus</th>
                     <th>Aptitud</th>
@@ -49,7 +51,7 @@
                 </tr>
             </thead>
             <tbody id="tbodySolicitudes">
-                <tr><td colspan="8" class="no-data">Cargando solicitudes...</td></tr>
+                <tr><td colspan="10" class="no-data">Cargando solicitudes...</td></tr>
             </tbody>
         </table>
         <div id="paginacionControles" class="paginacion"></div>
@@ -74,10 +76,22 @@
                         <input type="text" id="txtNombreCandidato" class="form-control" />
                     </div>
                     <div class="form-group">
-                        <label>Apellido(s)</label>
-                        <input type="text" id="txtApellidoCandidato" class="form-control" />
+                        <label>Apellido Paterno</label>
+                        <input type="text" id="txtAPaternoCandidato" class="form-control" />
                     </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
+                    <div class="form-group">
+                        <label>Apellido Materno</label>
+                        <input type="text" id="txtAMaternoCandidato" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Sexo biológico</label>
+                        <select id="ddlSexoCandidato" class="form-control">
+                            <option value="">-- Seleccione --</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Femenino</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; margin-top: 5px;">
                         <label>Empresa</label>
                          <select id="ddlEmpresaIng" class="form-control" onchange="cargarProyectosYPuestos(this.value)">
                             <option value="">-- Seleccione Empresa --</option>

@@ -1,16 +1,16 @@
-ï»¿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// La informaciÃ³n general sobre un ensamblado se controla mediante lo siguiente
-// conjunto de atributos. Cambie los valores de estos atributos para modificar la informaciÃ³n
+// La información general sobre un ensamblado se controla mediante lo siguiente
+// conjunto de atributos. Cambie los valores de estos atributos para modificar la información
 // asociada a un ensamblado.
 [assembly: AssemblyTitle("Telerik")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Telerik")]
-[assembly: AssemblyCopyright("Copyright Â©  2026")]
+[assembly: AssemblyCopyright("Copyright ©  2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -19,17 +19,17 @@ using System.Runtime.InteropServices;
 // COM, establezca el atributo ComVisible en true en este tipo.
 [assembly: ComVisible(false)]
 
-// El siguiente GUID es para el ID. typelib cuando este proyecto estÃ© expuesto a COM
+// El siguiente GUID es para el ID. typelib cuando este proyecto esté expuesto a COM
 [assembly: Guid("d041a778-b978-4591-8c71-caa0776ef421")]
 
-// La informaciÃ³n de versiÃ³n de un ensamblado consta de los siguientes cuatro valores:
+// La información de versión de un ensamblado consta de los siguientes cuatro valores:
 //
-//      VersiÃ³n principal
-//      VersiÃ³n secundaria
-//      NÃºmero de compilaciÃ³n
-//      RevisiÃ³n
+//      Versión principal
+//      Versión secundaria
+//      Número de compilación
+//      Revisión
 //
-// Puede especificar todos los valores o puede predeterminar los nÃºmeros de compilaciÃ³n y de revisiÃ³n
-// mediante el carÃ¡cter '*', como se muestra a continuaciÃ³n:
+// Puede especificar todos los valores o puede predeterminar los números de compilación y de revisión
+// mediante el carácter '*', como se muestra a continuación:
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

@@ -147,32 +147,40 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="width:55%;">OPI (Opiaceos )</td>
-                            <td style="width:45%;">@(Model.ResultadoOpiaceos ? "POSITIVO" : "NEGATIVO")</td>
+                            <td style="width:55%;">ALCOHOL</td>
+                            <td style="width:45%;">@(Model.AplicaAlcohol ? (Model.ResultadoAlcohol ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
                         </tr>
                         <tr>
                             <td>COC (Cocaina)</td>
-                            <td>@(Model.ResultadoCocaina ? "POSITIVO" : "NEGATIVO")</td>
-                        </tr>
-                        <tr>
-                            <td>BZO (Benzodiacepinas)</td>
-                            <td>-</td>
-                        </tr>
-                        <tr>
-                            <td>AMP (Anfetaminas )</td>
-                            <td>@(Model.ResultadoAnfetaminas ? "POSITIVO" : "NEGATIVO")</td>
-                        </tr>
-                        <tr>
-                            <td>MET (Metanfetaminas )</td>
-                            <td>@(Model.ResultadoMetanfetaminas ? "POSITIVO" : "NEGATIVO")</td>
+                            <td>@(Model.AplicaCocaina ? (Model.ResultadoCocaina ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
                         </tr>
                         <tr>
                             <td>THC (Marihuana)</td>
-                            <td>@(Model.ResultadoTHC ? "POSITIVO" : "NEGATIVO")</td>
+                            <td>@(Model.AplicaTHC ? (Model.ResultadoTHC ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
                         </tr>
                         <tr>
-                            <td>ALCOHOL</td>
-                            <td>-</td>
+                            <td>AMP (Anfetaminas )</td>
+                            <td>@(Model.AplicaAnfetaminas ? (Model.ResultadoAnfetaminas ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td>MET (Metanfetaminas )</td>
+                            <td>@(Model.AplicaMetanfetaminas ? (Model.ResultadoMetanfetaminas ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td>OPI (Opiaceos )</td>
+                            <td>@(Model.AplicaOpiaceos ? (Model.ResultadoOpiaceos ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td>MTD (Metilfenidato)</td>
+                            <td>@(Model.AplicaMetilfenidato ? (Model.ResultadoMetilfenidato ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td>FEN (Fentanilo)</td>
+                            <td>@(Model.AplicaFentanilo ? (Model.ResultadoFentanilo ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
+                        </tr>
+                        <tr>
+                            <td>BZO (Benzodiacepinas)</td>
+                            <td>@(Model.AplicaBenzodiacepinas ? (Model.ResultadoBenzodiacepinas ? "POSITIVO" : "NEGATIVO") : "N/A")</td>
                         </tr>
                     </tbody>
                 </table>
