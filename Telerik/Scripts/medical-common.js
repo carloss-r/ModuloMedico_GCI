@@ -38,6 +38,34 @@ function calcImc() {
     if(w > 0 && h > 0) {
         var imc = w / (h * h);
         $('#txtImc').val(imc.toFixed(1));
+        
+        // Determinar Clasificación (Escala OMS)
+        var desc = "";
+        var color = "#2c3e50"; // Default
+        
+        if (imc < 18.5) {
+            desc = "Bajo peso";
+            color = "#3498db"; // Azul
+        } else if (imc >= 18.5 && imc < 25) {
+            desc = "Normal";
+            color = "#27ae60"; // Verde
+        } else if (imc >= 25 && imc < 30) {
+            desc = "Sobrepeso";
+            color = "#f39c12"; // Naranja
+        } else if (imc >= 30 && imc < 35) {
+            desc = "Obesidad Grado I";
+            color = "#e67e22"; // Naranja Fuerte
+        } else if (imc >= 35 && imc < 40) {
+            desc = "Obesidad Grado II";
+            color = "#d35400"; // Rojo Intenso
+        } else if (imc >= 40) {
+            desc = "Obesidad Grado III (M\u00f3rbida)";
+            color = "#c0392b"; // Rojo Oscuro
+        }
+        
+        $('#txtImcDescripcion').val(desc.toUpperCase()).css('color', color);
+    } else {
+        $('#txtImc, #txtImcDescripcion').val('');
     }
 }
 

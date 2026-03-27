@@ -30,15 +30,40 @@
         </div>
     </div>
 
-    <!-- Row 2: IMC | Temp -->
+    <!-- Row 2: IMC | Tipo Obesidad | Temp -->
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>IMC</label>
             <input type="text" id="txtImc" class="form-control" readonly />
         </div>
+        <div class="form-group flex-2">
+            <label>Clasificaci&oacute;n IMC</label>
+            <input type="text" id="txtImcDescripcion" class="form-control" readonly style="background-color: #f9f9f9; font-weight: bold; color: #2c3e50;" />
+        </div>
         <div class="form-group flex-1">
             <label>Temp (&deg;C)</label>
             <input type="text" id="txtTemperatura" class="form-control val-dec" placeholder="36.5" />
+        </div>
+    </div>
+
+    <!-- Row 3: Glucosa | Oximetría -->
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Glucosa (GLC)</label>
+            <div style="display:flex; align-items:center;">
+                <input type="text" id="txtGlucosa" class="form-control val-dec" placeholder="90" />
+                <span style="margin-left:8px; font-size:0.85rem; color:#777;">mg/dl</span>
+            </div>
+        </div>
+        <div class="form-group flex-1">
+            <label>Oximetr&iacute;a (O2)</label>
+            <div style="display:flex; align-items:center;">
+                <input type="text" id="txtOximetria" class="form-control val-num" placeholder="98" maxlength="3" />
+                <span style="margin-left:8px; font-size:0.85rem; color:#777;">% SpO2</span>
+            </div>
+        </div>
+        <div class="form-group flex-2">
+            <!-- Espacio para mantener alineación -->
         </div>
     </div>
 

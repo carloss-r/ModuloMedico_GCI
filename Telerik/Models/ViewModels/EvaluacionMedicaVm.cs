@@ -17,6 +17,9 @@ namespace Telerik.Models.ViewModels
         public decimal? Temperatura { get; set; }
         public int? FrecuenciaCardiaca { get; set; }
         public int? FrecuenciaRespiratoria { get; set; }
+        public decimal? Glucosa { get; set; }
+        public int? Oximetria { get; set; }
+        public string ImcDescripcion { get; set; }
         public string AparatosSistemas { get; set; }
         
         public int? FkAptitudMedica { get; set; }

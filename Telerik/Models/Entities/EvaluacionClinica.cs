@@ -23,6 +23,9 @@ namespace Telerik.Models.Entities
         public decimal? temperatura { get; set; }
         public int? frecuenciaCardiaca { get; set; }
         public int? frecuenciaRespiratoria { get; set; }
+        public decimal? glucosa { get; set; }
+        public int? oximetria { get; set; }
+        public string imcDescripcion { get; set; }
         public string aparatosSistemas { get; set; }
         public int? fkAptitudMedica { get; set; }
         public string observaciones { get; set; }
