@@ -256,8 +256,15 @@ var currentOrdenId = null;
 
             if (estLow.indexOf('complet') >= 0) {
                 $('#btnPrintSol').attr('data-url', '/ServicioMedico/ImprimirSolicitud/' + o.PkOrdenMedico).show();
-                $('#btnPrintEval').attr('data-url', '/ServicioMedico/ImprimirEvaluacion/' + o.PkOrdenMedico).show();
-                $('#btnPrintAnti').attr('data-url', '/ServicioMedico/ImprimirAntidoping/' + o.PkOrdenMedico).show();
+                
+                // Show Antidoping or Evaluation based on FkTipoServicio (3 is Antidoping)
+                if (o.FkTipoServicio === 3) {
+                    $('#btnPrintAnti').attr('data-url', '/ServicioMedico/ImprimirAntidoping/' + o.PkOrdenMedico).show();
+                    $('#btnPrintEval').hide();
+                } else {
+                    $('#btnPrintEval').attr('data-url', '/ServicioMedico/ImprimirEvaluacion/' + o.PkOrdenMedico).show();
+                    $('#btnPrintAnti').hide();
+                }
             } else {
                 $('#btnIrEvaluar').attr('href', evalUrl).show();
                 $('#btnEliminar').show();

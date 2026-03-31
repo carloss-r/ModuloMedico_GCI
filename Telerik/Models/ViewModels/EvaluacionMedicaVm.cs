@@ -41,6 +41,16 @@ namespace Telerik.Models.ViewModels
         public int? FkTipoSangre { get; set; }
         public string LugarEvaluacion { get; set; }
 
+        // Nuevos Campos de Domicilio en Cascada
+        public int? FkPais { get; set; }
+        public int? FkEstado { get; set; }
+        public int? FkMunicipio { get; set; }
+        public int? FkColonia { get; set; }
+        public int? FkCP { get; set; }
+        public string Calle { get; set; }
+        public string NumExterior { get; set; }
+        public string NumInterior { get; set; }
+
         // Secciones (Listas o Objetos anidados)
         public HabitosPersonalesVm Habitos { get; set; }
         public List<HistoriaMedicaVm> Antecedentes { get; set; }
@@ -48,6 +58,7 @@ namespace Telerik.Models.ViewModels
         public List<AntecedenteLaboralVm> AntecedentesLaborales { get; set; }
         public EvaluacionColumnaVm Columna { get; set; }
         public VacunacionVm Vacunacion { get; set; }
+        public AgudezaVisualVm AgudezaVisual { get; set; }
         
         // Específicos por sexo (solo uno vendrá lleno)
         public DetalleGinecoVm DetalleFemenino { get; set; }
@@ -87,6 +98,19 @@ namespace Telerik.Models.ViewModels
         public bool HepatitisDosis2 { get; set; }
         public bool InfluenzaH1N1 { get; set; }
         public string ObservacionesVacunacion { get; set; }
+    }
+
+    public class AgudezaVisualVm
+    {
+        public string OdSinLentes { get; set; }
+        public string OiSinLentes { get; set; }
+        public string AoSinLentes { get; set; }
+        public string OdConLentes { get; set; }
+        public string OiConLentes { get; set; }
+        public string AoConLentes { get; set; }
+        public string UsaLentes { get; set; }
+        public string ReferenciaVisual { get; set; }
+        public string Daltonismo { get; set; }
     }
 
     public class HistoriaMedicaVm

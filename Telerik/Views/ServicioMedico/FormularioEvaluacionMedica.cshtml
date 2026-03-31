@@ -8,11 +8,11 @@
 <div class="page-header">
     @if (ViewBag.TipoServicio == 3)
     {
-        <h2><i class="fas fa-flask"></i> Servicio M&eacute;dico &mdash; Antidoping</h2>
+        <h2 id="pageTitleAd"><i class="fas fa-flask"></i> Serv. Antidoping &mdash; <span id="hdrEmpresaAd">Cargando...</span></h2>
     }
     else
     {
-        <h2><i class="fas fa-user-md"></i> Servicio M&eacute;dico &mdash; Examen M&eacute;dico</h2>
+        <h2 id="pageTitleMed"><i class="fas fa-user-md"></i> Serv. M&eacute;dico &mdash; Examen M&eacute;dico</h2>
     }
 </div>
 
@@ -65,8 +65,7 @@
        <button class="btn-nav btn-next" onclick="nextStep()" id="btnNext">Siguiente</button>
        <button class="btn-nav btn-finish" onclick="saveExam()" id="btnFinish" style="display:none;">Guardar Examen</button>
     </div>
-                </div>                                              
-</div>
+                </div>
 <div class="antidoping-section" id="secAntidoping" style="@(ViewBag.TipoServicio == 3 ? "display:block;" : "")">
     <div class="ad-container">
         <div class="ad-header">
@@ -101,11 +100,10 @@
             </div>
             <div class="switch-field" data-drug="opi">
                 <span class="switch-label">Opi&aacute;ceos (OPI):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'opi')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'opi')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'opi')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'opi')">Positivo</span>
                 </div>
@@ -113,11 +111,10 @@
             
             <div class="switch-field" data-drug="coc">
                 <span class="switch-label">Coca&iacute;na (COC):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'coc')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'coc')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'coc')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'coc')">Positivo</span>
                 </div>
@@ -125,11 +122,10 @@
 
             <div class="switch-field" data-drug="thc">
                 <span class="switch-label">Marihuana (THC):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'thc')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'thc')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'thc')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'thc')">Positivo</span>
                 </div>
@@ -137,11 +133,10 @@
 
             <div class="switch-field" data-drug="alc">
                 <span class="switch-label">Alcohol:</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'alc')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'alc')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'alc')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'alc')">Positivo</span>
                 </div>
@@ -149,11 +144,10 @@
 
             <div class="switch-field" data-drug="anf">
                 <span class="switch-label">Anfetaminas (AMP):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'anf')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'anf')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'anf')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'anf')">Positivo</span>
                 </div>
@@ -161,11 +155,10 @@
 
             <div class="switch-field" data-drug="met">
                 <span class="switch-label">Metanfetaminas (MET):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'met')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'met')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'met')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'met')">Positivo</span>
                 </div>
@@ -173,11 +166,10 @@
 
             <div class="switch-field" data-drug="mfn">
                 <span class="switch-label">Metilfenidato (MTD):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'mfn')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'mfn')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'mfn')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'mfn')">Positivo</span>
                 </div>
@@ -185,11 +177,10 @@
 
             <div class="switch-field" data-drug="fen">
                 <span class="switch-label">Fentanilo (FEN):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'fen')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'fen')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'fen')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'fen')">Positivo</span>
                 </div>
@@ -197,11 +188,10 @@
 
             <div class="switch-field" data-drug="bzd">
                 <span class="switch-label">Benzodiacepinas (BZO):</span>
-                <div class="switch-group">
-                    <span class="switch-btn active aplica" onclick="toggleAplica(this, 'bzd')">Aplica</span>
-                    <span class="switch-btn na" onclick="toggleAplica(this, 'bzd')">N/A</span>
-                </div>
-                <div class="switch-group" style="margin-left: 15px;">
+                <label class="check-item" style="width:auto; margin-right:15px;">
+                    <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
+                </label>
+                <div class="switch-group res-btns">
                     <span class="switch-btn active neg" onclick="toggleResult(this, 'bzd')">Negativo</span>
                     <span class="switch-btn" onclick="toggleResult(this, 'bzd')">Positivo</span>
                 </div>
@@ -249,7 +239,7 @@
                 <h5 style="margin-top:0; text-align:center;">AUTORIZACI&Oacute;N PARA EXAMEN TOXICOL&Oacute;GICO</h5>
                 <p>
                     Considerando el hecho, que el consumo de drogas o alcohol es un factor de riesgo para quienes trabajamos en este proyecto y del inter&eacute;s que tengo por mi seguridad y la de mis compa&ntilde;eros, autorizo a 
-                    <input type="text" id="txtMedicoConsentimiento" class="form-control" style="display:inline-block; width:250px; padding:2px 5px; height:auto; border-bottom:1px solid #000; border-top:none; border-left:none; border-right:none; border-radius:0; background:transparent;" placeholder="Nombre del M&eacute;dico" oninput="validarConsentimiento()" />
+                    <span id="lblAdEmpresaConsent" style="font-weight:700; color:#1a5276; border-bottom:1px solid #1a5276; padding:0 5px;">[EMPRESA]</span>
                     para que se me realicen las pruebas de detecci&oacute;n de consumo de drogas y alcohol que se estime conveniente, en el momento en que se tenga a bien efectuar.
                 </p>
                 <p>
@@ -286,10 +276,10 @@
         var idOrden = @idOrden;
         var initialSexo = '@(ViewBag.Sexo ?? "")';
     </script>
-    <script src="~/Scripts/medical-common.js"></script>
-    <script src="~/Scripts/medical-form-data.js"></script>
-    <script src="~/Scripts/medical-wizard.js"></script>
-    <script src="~/Scripts/medical-save.js"></script>
-    <script src="~/Scripts/medical-antidoping.js"></script>
-    <script src="~/Scripts/FormularioEvaluacionMedica.js"></script>
+    <script src="~/Scripts/medical-common.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/Scripts/medical-form-data.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/Scripts/medical-wizard.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/Scripts/medical-save.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/Scripts/medical-antidoping.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/Scripts/FormularioEvaluacionMedica.js?v=@DateTime.Now.Ticks"></script>
 }

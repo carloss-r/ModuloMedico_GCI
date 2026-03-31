@@ -11,9 +11,8 @@ function cancelarAntidoping() {
 }
 
 function validarConsentimiento() {
-    var nombreMedico = $('#txtMedicoConsentimiento').val().trim();
     var isChecked = $('#chkAceptoConsentimiento').is(':checked');
-    $('#btnAceptoCon').prop('disabled', !(nombreMedico.length > 0 && isChecked));
+    $('#btnAceptoCon').prop('disabled', !isChecked);
 }
 
 function aceptarConsentimiento() {
@@ -21,7 +20,6 @@ function aceptarConsentimiento() {
     showSuccess("Consentimiento aceptado. Iniciando prueba Antidoping...", function() {
         if($('#mainWizard').is(':visible')) {
             $('#mainWizard').slideUp();
-            $('.page-header h2').html('<i class="fas fa-flask"></i> Servicio M&eacute;dico &mdash; Antidoping');
         }
         $('#secAntidoping').show();
         window.scrollTo(0,0);
@@ -51,7 +49,8 @@ function completarSinAntidoping() {
 
 function toggleResult(btn, type) {
     var $btn = $(btn);
-    if($btn.hasClass('disabled')) return;
+    if($btn.closest('.switch-field').find('.res-btns').hasClass('disabled')) return;
+    
     $btn.parent().find('.switch-btn').removeClass('active pos neg');
     if($btn.text() === 'Positivo') {
         $btn.addClass('active pos');
@@ -60,14 +59,73 @@ function toggleResult(btn, type) {
     }
 }
 
-function toggleAplica(btn, drug) {
-    var $btn = $(btn);
-    var row = $btn.closest('tr');
-    if($btn.text() === 'No Aplica') {
-        $btn.addClass('active warn').siblings().removeClass('active pos neg').addClass('disabled');
-        row.find('.switch-btn').not('.warn').addClass('disabled');
+function toggleAplicaRow(chk) {
+    var $chk = $(chk);
+    var $container = $chk.closest('.switch-field');
+    var $resBtns = $container.find('.res-btns');
+    
+    if(!chk.checked) {
+        $resBtns.addClass('disabled').css('opacity', '0.5');
+        // $resBtns.find('.switch-btn').removeClass('active pos neg');
     } else {
-        $btn.removeClass('active warn');
-        row.find('.switch-btn').removeClass('disabled');
+        $resBtns.removeClass('disabled').css('opacity', '1');
+        // Default Negativo
+        if (!$resBtns.find('.switch-btn.active').length) {
+            $resBtns.find('.switch-btn').first().addClass('active neg');
+        }
     }
+}
+
+function saveAntidoping() {
+    var formData = new FormData();
+    formData.append('PkOrdenMedico', idOrden);
+    formData.append('ConsentimientoFirmado', $('#chkAceptoConsentimiento').is(':checked'));
+    formData.append('Comentarios', $('#txtComentariosAd').val());
+
+    // Evidence
+    var $file = $('#fileEvidencia');
+    if ($file.length > 0 && $file[0].files.length > 0) {
+        formData.append('FileEvidencia', $file[0].files[0]);
+    }
+
+    // Data Drugs
+    var drugMappings = [
+        { code: 'alc', name: 'Alcohol' },
+        { code: 'coc', name: 'Cocaina' },
+        { code: 'thc', name: 'THC' },
+        { code: 'anf', name: 'Anfetaminas' },
+        { code: 'met', name: 'Metanfetaminas' },
+        { code: 'opi', name: 'Opiaceos' },
+        { code: 'mfn', name: 'Metilfenidato' },
+        { code: 'fen', name: 'Fentanilo' },
+        { code: 'bzd', name: 'Benzodiacepinas' }
+    ];
+
+    drugMappings.forEach(function(d) {
+        var $row = $('[data-drug="' + d.code + '"]');
+        var aplica = $row.find('.chk-aplica').is(':checked');
+        var result = $row.find('.res-btns .switch-btn.active').text() === 'Positivo';
+        formData.append('Aplica' + d.name, aplica);
+        formData.append('Resultado' + d.name, result);
+    });
+
+    $.ajax({
+        url: '/ServicioMedico/GuardarAntidoping',
+        type: 'POST',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(resp) {
+            if (resp.success) {
+                showSuccess("Examen Antidoping registrado con \u00e9xito.", function() {
+                    window.location.href = '/ServicioMedico/Index';
+                });
+            } else {
+                showError("No se pudo completar el guardado: " + resp.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            showError("Error de conexi\u00f3n al guardar el antidoping: " + error);
+        }
+    });
 }

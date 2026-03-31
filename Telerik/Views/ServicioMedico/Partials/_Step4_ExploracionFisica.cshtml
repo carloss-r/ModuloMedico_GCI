@@ -77,7 +77,123 @@
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>Aparatos y Sistemas (observaci&oacute;n general)</label>
-            <textarea id="txtObservaciones" class="form-control" rows="2"></textarea>
+            <textarea id="txtAparatosSistemas" class="form-control" rows="2" placeholder="Observaciones generales de aparatos y sistemas..."></textarea>
+        </div>
+    </div>
+
+    <!-- Escala de Agudeza Visual Snellen -->
+    <h3 class="section-title" style="margin-top:20px;">Agudeza Visual (Escala de Snellen)</h3>
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Ojo Derecho (OD) Sin Lentes</label>
+            <select id="ddlOdSinLentes" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Ojo Izquierdo (OI) Sin Lentes</label>
+            <select id="ddlOiSinLentes" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Ambos Ojos (AO) Sin Lentes</label>
+            <select id="ddlAoSinLentes" class="form-control">
+                <option value="">-- Seleccione --</option>
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+            </select>
+        </div>
+    </div>
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>OD Con Lentes</label>
+            <select id="ddlOdConLentes" class="form-control">
+                <option value="">-- N/A --</option>
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>OI Con Lentes</label>
+            <select id="ddlOiConLentes" class="form-control">
+                <option value="">-- N/A --</option>
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>AO Con Lentes</label>
+            <select id="ddlAoConLentes" class="form-control">
+                <option value="">-- N/A --</option>
+                <option value="20/20">20/20</option>
+                <option value="20/25">20/25</option>
+                <option value="20/30">20/30</option>
+                <option value="20/40">20/40</option>
+                <option value="20/50">20/50</option>
+                <option value="20/70">20/70</option>
+                <option value="20/100">20/100</option>
+                <option value="20/200">20/200</option>
+            </select>
+        </div>
+    </div>
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Usa Lentes</label>
+            <select id="ddlUsaLentes" class="form-control">
+                <option value="No">No</option>
+                <option value="Si">S&iacute;</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Referencia Visual</label>
+            <select id="ddlReferenciaVisual" class="form-control">
+                <option value="Normal">Normal</option>
+                <option value="Ceguera">Ceguera al color</option>
+                <option value="Astigmatismo">Miop&iacute;a / Astigmatismo</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Test de Ishihara (Daltonismo)</label>
+            <select id="ddlDaltonismo" class="form-control">
+                <option value="Normal">Normal</option>
+                <option value="Anormal">Anormal</option>
+                <option value="No Realizado">No Realizado</option>
+            </select>
         </div>
     </div>
 

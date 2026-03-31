@@ -6,6 +6,18 @@ var totalSteps = 6;
 var currentSexo = '';
 
 function goToStep(step) {
+    // If moving forward, must validate current step
+    if (step > currentStep) {
+        // Validate all steps between current and target
+        for (var s = currentStep; s < step; s++) {
+            if (!validateStep(s)) {
+                // Focus on step indicator if navigation blocked
+                showError("Debe completar correctamente todos los campos obligatorios del paso " + s + " antes de continuar.");
+                return;
+            }
+        }
+    }
+
     $('.step-panel').removeClass('active');
     $('#panel' + step).addClass('active');
     
@@ -18,7 +30,10 @@ function goToStep(step) {
 }
 
 function nextStep() {
-    if (!validateStep(currentStep)) return; 
+    if (!validateStep(currentStep)) {
+        showError("Por favor revise los campos marcados en rojo.");
+        return;
+    } 
     if(currentStep < totalSteps) goToStep(currentStep + 1);
 }
 
@@ -67,113 +82,100 @@ function validateStep(step) {
     clearPanelErrors(step);
     var ok = true;
 
+    // Helper to check mandatory text
+    function checkReq($el, msg) {
+        if (!$el.val() || !$el.val().trim()) {
+            markError($el, msg || 'Campo obligatorio');
+            ok = false;
+        }
+    }
+
     if (step === 1) {
-        var $nom = $('#txtNombre');
-        if (!$nom.val().trim()) { markError($nom, 'El nombre es obligatorio.'); ok = false; }
-
-        var $fec = $('#txtFechaNacimiento');
-        if (!$fec.val()) { markError($fec, 'Ingrese la fecha de nacimiento.'); ok = false; }
-
-        var $ec = $('#ddlEstadoCivil');
-        if (!$ec.val()) { markError($ec, 'Seleccione el estado civil.'); ok = false; }
-
-        var $sx = $('#ddlSexo');
-        if (!$sx.val()) { markError($sx, 'Seleccione el sexo.'); ok = false; }
+        checkReq($('#txtLugarEvaluacion'), 'Ingrese el lugar de la evaluación');
+        checkReq($('#txtFechaExamen'), 'Ingrese la fecha');
+        checkReq($('#txtNombre'), 'Nombre es obligatorio');
+        checkReq($('#txtApellidoPaterno'), 'Apellido paterno obligatorio');
+        checkReq($('#txtNss'), 'No. IMSS obligatorio');
+        checkReq($('#ddlEstadoNacimiento'), 'Seleccione el estado de nacimiento');
+        checkReq($('#txtFechaNacimiento'), 'Ingrese fecha de nacimiento');
+        checkReq($('#ddlEstadoCivil'), 'Seleccione estado civil');
+        checkReq($('#ddlManoDominante'), 'Seleccione mano dominante');
+        checkReq($('#txtTelefono'), 'Teléfono obligatorio');
+        checkReq($('#ddlPais'), 'Seleccione país');
+        checkReq($('#ddlEstado'), 'Seleccione estado');
+        checkReq($('#ddlMunicipio'), 'Seleccione municipio');
+        checkReq($('#ddlColonia'), 'Seleccione colonia');
+        checkReq($('#ddlEscolaridad'), 'Seleccione escolaridad');
+        if (!$('#txtProfesion').is(':disabled')) {
+            checkReq($('#txtProfesion'), 'Indique profesión u oficio');
+        }
+        checkReq($('#ddlSexo'), 'Sexo obligatorio');
+        checkReq($('#ddlTipoSangre'), 'Seleccione tipo de sangre');
 
         var nss = $('#txtNss').val().trim();
-        if (nss && !(/^\d{11}$/.test(nss))) {
-            markError($('#txtNss'), 'El No. IMSS debe tener exactamente 11 dígitos numéricos.');
+        if (nss && nss.length !== 11) {
+            markError($('#txtNss'), 'El No. IMSS debe tener 11 dígitos');
             ok = false;
         }
+    }
 
-        var tel = $('#txtTelefono').val().trim();
-        if (tel && !(/^\d{10,15}$/.test(tel))) {
-            markError($('#txtTelefono'), 'El teléfono debe ser numérico (10-15 dígitos).');
-            ok = false;
-        }
-
-        var $lug = $('#txtLugarEvaluacion');
-        if (!$lug.val().trim()) { markError($lug, 'Ingrese el lugar de evaluación.'); ok = false; }
+    if (step === 2) {
+        // En antecedentes, al menos las alergias/observaciones deberían tener algo o "Negado"
+        checkReq($('#txtAlergias'), 'Indique alergias u "Observaciones negadas"');
     }
 
     if (step === 3) {
         if ($('#chkFuma').is(':checked')) {
-            var anos = $('#txtAnosFuma').val().trim();
-            if (anos && !isOnlyNumbers(anos)) {
-                markError($('#txtAnosFuma'), 'Solo se permiten números.');
-                ok = false;
-            }
-            var cig = $('#txtCigarrillos').val().trim();
-            if (cig && !isOnlyNumbers(cig)) {
-                markError($('#txtCigarrillos'), 'Solo se permiten números.');
-                ok = false;
-            }
+            checkReq($('#txtAnosFuma'), 'Indique años');
+            checkReq($('#txtCigarrillos'), 'Indique cigarros/día');
+        }
+        if ($('#chkDrogas').is(':checked')) {
+            checkReq($('#txtTipoDrogas'), 'Especifique tipo de droga');
+        }
+        if ($('#chkAlcohol').is(':checked')) {
+            checkReq($('#txtFrecAlcohol'), 'Seleccione frecuencia');
         }
     }
 
     if (step === 4) {
         var vitals = [
-            { id: '#txtSistolica',       label: 'TA Sistólica',    type: 'num' },
-            { id: '#txtDiastolica',      label: 'TA Diastólica',   type: 'num' },
-            { id: '#txtFrecCardiaca',    label: 'FC',               type: 'num' },
-            { id: '#txtFrecRespiratoria',label: 'FR',               type: 'num' },
-            { id: '#txtPeso',            label: 'Peso',             type: 'dec' },
-            { id: '#txtEstatura',        label: 'Estatura',         type: 'dec' }
+            { id: '#txtSistolica',       label: 'Sistólica' },
+            { id: '#txtDiastolica',      label: 'Diastólica' },
+            { id: '#txtFrecCardiaca',    label: 'FC' },
+            { id: '#txtFrecRespiratoria',label: 'FR' },
+            { id: '#txtPeso',            label: 'Peso' },
+            { id: '#txtEstatura',        label: 'Estatura' },
+            { id: '#txtTemperatura',     label: 'Temperatura' },
+            { id: '#txtGlucosa',         label: 'Glucosa' },
+            { id: '#txtOximetria',       label: 'Oximetría' }
         ];
+        
         vitals.forEach(function(v) {
-            var $el = $(v.id);
-            var val = $el.val().trim();
-            if (!val) {
-                markError($el, v.label + ' es obligatorio.');
-                ok = false;
-            } else if (v.type === 'num' && !isOnlyNumbers(val)) {
-                markError($el, 'Solo se permiten números enteros.');
-                ok = false;
-            } else if (v.type === 'dec' && !isDecimal(val)) {
-                markError($el, 'Solo se permiten números (use punto decimal).');
-                ok = false;
-            }
+            checkReq($(v.id), v.label + ' obligatorio');
         });
 
-        var temp = $('#txtTemperatura').val().trim();
-        if (temp && !isDecimal(temp)) {
-            markError($('#txtTemperatura'), 'Solo se permiten números decimales (ej. 36.5).');
-            ok = false;
-        }
+        // Agudeza Visual
+        checkReq($('#ddlOdSinLentes'), 'Obligatorio');
+        checkReq($('#ddlOiSinLentes'), 'Obligatorio');
+        checkReq($('#ddlAoSinLentes'), 'Obligatorio');
+        checkReq($('#ddlUsaLentes'), 'Obligatorio');
     }
 
     if (step === 5) {
         if (currentSexo === 'F') {
-            var menarca = $('#txtMenarca').val().trim();
-            if (menarca && !isOnlyNumbers(menarca)) {
-                markError($('#txtMenarca'), 'Solo se permiten números.');
-                ok = false;
-            }
-            var ivsaF = $('#txtIvsaFem').val().trim();
-            if (ivsaF && !isOnlyNumbers(ivsaF)) {
-                markError($('#txtIvsaFem'), 'Solo se permiten números.');
-                ok = false;
-            }
-            ['#txtGestas','#txtPartos','#txtAbortos','#txtCesareas'].forEach(function(id) {
-                var v = $(id).val().trim();
-                if (v && !isOnlyNumbers(v)) {
-                    markError($(id), 'Solo se permiten números.');
-                    ok = false;
-                }
-            });
+            checkReq($('#txtMenarca'), 'Edad menarca obligatoria');
+            checkReq($('#txtCiclos'), 'Seleccione ciclo');
+            checkReq($('#txtFum'), 'Fecha FUM obligatoria');
+            checkReq($('#txtIvsaFem'), 'IVSA obligatorio (0 si no aplica)');
         }
         if (currentSexo === 'M') {
-            var ivsaM = $('#txtIvsaMasc').val().trim();
-            if (ivsaM && !isOnlyNumbers(ivsaM)) {
-                markError($('#txtIvsaMasc'), 'Solo se permiten números.');
-                ok = false;
-            }
+            checkReq($('#txtIvsaMasc'), 'IVSA obligatorio (0 si no aplica)');
         }
     }
 
     if (step === 6) {
-        var $apt = $('#ddlAptitud');
-        if (!$apt.val()) { markError($apt, 'Debe seleccionar el RESULTADO.'); ok = false; }
+        checkReq($('#txtDiagnostico'), 'Diagnóstico obligatorio');
+        checkReq($('#ddlAptitud'), 'Resultado obligatorio');
     }
 
     if (!ok) {

@@ -146,6 +146,11 @@
     <Compile Include="Models\Entities\EstatusSolicitud.cs" />
     <Compile Include="Models\Entities\Proyecto.cs" />
     <Compile Include="Models\Entities\Empresa.cs" />
+    <Compile Include="Models\Entities\Pais.cs" />
+    <Compile Include="Models\Entities\Estado.cs" />
+    <Compile Include="Models\Entities\Municipio.cs" />
+    <Compile Include="Models\Entities\Colonia.cs" />
+    <Compile Include="Models\Entities\CodigoPostal.cs" />
     <Compile Include="Models\Entities\Puesto.cs" />
     <Compile Include="Models\Entities\Area.cs" />
     <Compile Include="Models\Entities\Vacunacion.cs" />
@@ -227,6 +232,12 @@
     <Content Include="Views\ServicioMedico\FormularioEvaluacionMedica.cshtml" />
     <Content Include="Views\ServicioMedico\ImprimirFormularioEvaluacionMedica.cshtml" />
     <Content Include="Views\ServicioMedico\FormatoImpresionAntidoping.cshtml" />
+    <Content Include="Views\ServicioMedico\Partials\_Step1_DatosGenerales.cshtml" />
+    <Content Include="Views\ServicioMedico\Partials\_Step2_Antecedentes.cshtml" />
+    <Content Include="Views\ServicioMedico\Partials\_Step3_Habitos.cshtml" />
+    <Content Include="Views\ServicioMedico\Partials\_Step4_ExploracionFisica.cshtml" />
+    <Content Include="Views\ServicioMedico\Partials\_Step5_Genitales.cshtml" />
+    <Content Include="Views\ServicioMedico\Partials\_Step6_Diagnostico.cshtml" />
     <Content Include="Content\sidebar.css" />
   </ItemGroup>
   <ItemGroup>

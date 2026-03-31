@@ -110,32 +110,31 @@ function clearPanelErrors(panelId) {
 // Input mask and formatting logic
 function initInputFormatters() {
     // Numbers only
-    $('.val-num').on('input', function() { 
+    $(document).on('input', '.val-num', function() { 
         this.value = this.value.replace(/[^0-9]/g, ''); 
     });
     
-    // Decimals (Cursor aware)
-    $('.val-dec').on('input', function() { 
+    // Decimals
+    $(document).on('input', '.val-dec', function() { 
         var start = this.selectionStart;
         var oldVal = this.value;
         var newVal = oldVal.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1'); 
         
         if (oldVal !== newVal) {
             this.value = newVal;
-            if (this.type === 'text' || this.type === 'search') {
+            if (this.setSelectionRange) {
                 var diff = oldVal.length - newVal.length;
-                var newPos = start - diff;
-                if (newPos < 0) newPos = 0;
-                this.setSelectionRange(newPos, newPos);
+                this.setSelectionRange(start - diff, start - diff);
             }
         }
     });
 
-    $('.val-text').on('input', function() { 
-        this.value = this.value.replace(/[^a-zA-Z\u00C0-\u017F\s]/g, ''); 
+    // Text only (with spaces and accents)
+    $(document).on('input', '.val-text', function() { 
+        this.value = this.value.replace(/[^a-zA-Z\u00C0-\u017F\s.]/g, ''); 
     });
 
-    $('.val-slash-num').on('input', function() {
+    $(document).on('input', '.val-slash-num', function() {
         this.value = this.value.replace(/[^0-9/]/g, '');
     });
 }

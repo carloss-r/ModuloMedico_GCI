@@ -33,6 +33,13 @@ namespace Telerik.Models
         public DbSet<Empresa>               Empresas                { get; set; }
         public DbSet<Puesto>                Puestos                 { get; set; }
         public DbSet<Area>                  Areas                   { get; set; }
+        
+        // Catálogos Geográficos
+        public DbSet<Pais>                  Paises                  { get; set; }
+        public DbSet<Estado>                Estados                 { get; set; }
+        public DbSet<Municipio>             Municipios              { get; set; }
+        public DbSet<Colonia>               Colonias                { get; set; }
+        public DbSet<CodigoPostal>          CodigosPostales         { get; set; }
 
         // Evaluación clínica y subtablas
         public DbSet<EvaluacionClinica>     EvaluacionesClinicas    { get; set; }

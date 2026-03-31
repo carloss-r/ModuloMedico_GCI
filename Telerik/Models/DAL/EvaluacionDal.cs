@@ -215,6 +215,16 @@ namespace Telerik.Models.DAL
                                 if (!string.IsNullOrEmpty(vm.PuestoCandidato)) cand.puestoDeseado = vm.PuestoCandidato;
                                 if (!string.IsNullOrEmpty(vm.AreaCandidato)) cand.area = vm.AreaCandidato;
                                 if (!string.IsNullOrEmpty(vm.EmpresaCandidato)) cand.empresa = vm.EmpresaCandidato;
+                                
+                                // Domicilio en Cascada
+                                if (vm.FkPais.HasValue) cand.fkPais = vm.FkPais.Value;
+                                if (vm.FkEstado.HasValue) cand.fkEstado = vm.FkEstado.Value;
+                                if (vm.FkMunicipio.HasValue) cand.fkMunicipio = vm.FkMunicipio.Value;
+                                if (vm.FkColonia.HasValue) cand.fkColonia = vm.FkColonia.Value;
+                                if (vm.FkCP.HasValue) cand.fkCP = vm.FkCP.Value;
+                                if (!string.IsNullOrEmpty(vm.Calle)) cand.calle = vm.Calle;
+                                if (!string.IsNullOrEmpty(vm.NumExterior)) cand.numExterior = vm.NumExterior;
+                                if (!string.IsNullOrEmpty(vm.NumInterior)) cand.numInterior = vm.NumInterior;
                             }
                         }
 

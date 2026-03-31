@@ -18,7 +18,7 @@
         </div>
         <div class="form-group flex-1">
             <label>No. IMSS</label>
-            <input type="text" id="txtNss" class="form-control" maxlength="11" placeholder="11 d&iacute;gitos" />
+            <input type="text" id="txtNss" class="form-control val-num" maxlength="11" placeholder="11 d&iacute;gitos" />
         </div>
     </div>
 
@@ -40,8 +40,10 @@
 
     <div class="paper-row">
         <div class="form-group flex-1">
-            <label>Lugar de Nacimiento</label>
-            <input type="text" id="txtLugarNacimiento" class="form-control" placeholder="Ciudad, Estado" />
+            <label>Estado de Nacimiento</label>
+            <select id="ddlEstadoNacimiento" class="form-control">
+                <option value="">-- Seleccione --</option>
+            </select>
         </div>
         <div class="form-group flex-1">
             <label>Fecha de Nacimiento</label>
@@ -79,16 +81,65 @@
         </div>
         <div class="form-group flex-1">
             <label>Tel&eacute;fono</label>
-            <input type="tel" id="txtTelefono" class="form-control" placeholder="10 d&iacute;gitos" maxlength="15" />
+            <input type="tel" id="txtTelefono" class="form-control val-num" placeholder="10 d&iacute;gitos" maxlength="15" />
         </div>
     </div>
 
-    <!-- Row 4: Domicilio | Nivel Académico | Profesión -->
+    <!-- Row 4: Domicilio (Catálogos) -->
+    <h4 style="margin-top: 20px; margin-bottom: 12px; color: #1a5276; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Domicilio Personal (Completo)</h4>
+    <div id="divGeoError" style="display:none; color:red; background:#fff0f0; border:1px solid red; padding:8px; margin-bottom:8px; border-radius:4px; font-size:0.85rem;"></div>
+    <div class="paper-row">
+        <div class="form-group flex-1">
+            <label>Pa&iacute;s</label>
+            <select id="ddlPais" class="form-control">
+                <option value="">-- Seleccione --</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Estado</label>
+            <select id="ddlEstado" class="form-control">
+                <option value="">-- Seleccione --</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Municipio</label>
+            <select id="ddlMunicipio" class="form-control">
+                <option value="">-- Seleccione --</option>
+            </select>
+        </div>
+        <div class="form-group flex-1">
+            <label>Colonia / Localidad</label>
+            <select id="ddlColonia" class="form-control">
+                <option value="">-- Seleccione --</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- Row 4.1: Calle y Número -->
     <div class="paper-row">
         <div class="form-group flex-2">
-            <label>Domicilio Completo</label>
-            <input type="text" id="txtDomicilio" class="form-control" readonly />
+            <label>Calle</label>
+            <input type="text" id="txtCalle" class="form-control" readonly />
         </div>
+        <div class="form-group flex-1">
+            <label>No. Ext.</label>
+            <input type="text" id="txtNumExt" class="form-control" readonly />
+        </div>
+        <div class="form-group flex-1">
+            <label>No. Int.</label>
+            <input type="text" id="txtNumInt" class="form-control" readonly />
+        </div>
+        <div class="form-group flex-1">
+            <label>C.P.</label>
+            <input type="text" id="txtCp" class="form-control val-num" readonly />
+        </div>
+    </div>
+    
+    <!-- Domicilio Completo Oculto para fallback -->
+    <input type="hidden" id="txtDomicilio" />
+
+    <!-- Row 4.2: Nivel Académico | Profesión -->
+    <div class="paper-row">
         <div class="form-group flex-1">
             <label>Nivel Acad&eacute;mico</label>
             <select id="ddlEscolaridad" class="form-control">
@@ -102,9 +153,9 @@
                 <option value="Ninguno">Ninguno</option>
             </select>
         </div>
-        <div class="form-group flex-1">
+        <div class="form-group flex-2">
             <label>Profesi&oacute;n y/u Oficio</label>
-            <input type="text" id="txtProfesion" class="form-control" />
+            <input type="text" id="txtProfesion" class="form-control val-text" />
         </div>
     </div>
 

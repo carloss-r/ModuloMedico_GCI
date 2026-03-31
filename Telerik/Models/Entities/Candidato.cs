@@ -33,5 +33,15 @@ namespace Telerik.Models.Entities
         public int? fkNumeroHijos { get; set; }
         public int? fkEstadoCivil { get; set; }
         public int? fkTipoSangre { get; set; }
+
+        public int? fkPais { get; set; }
+        public int? fkEstado { get; set; }
+        public int? fkMunicipio { get; set; }
+        public int? fkColonia { get; set; }
+        public int? fkCP { get; set; }
+
+        public string calle { get; set; }
+        public string numExterior { get; set; }
+        public string numInterior { get; set; }
     }
 }

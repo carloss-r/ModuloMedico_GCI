@@ -78,7 +78,18 @@ namespace Telerik.Services
                         Curp = emp.Curp,
                         TieneHijos = emp.TieneHijos,
                         NumeroHijos = emp.NumeroHijosDesc,
-                        Escolaridad = emp.EscolaridadDesc
+                        Escolaridad = emp.EscolaridadDesc,
+                        // Geographic FKs
+                        FkPais = emp.FkPais,
+                        FkEstado = emp.FkEstado,
+                        FkMunicipio = emp.FkMunicipio,
+                        FkColonia = emp.FkColonia,
+                        FkCP = emp.FkCP,
+                        CPDesc = emp.CPDesc,
+                        Calle = emp.Calle,
+                        NumExterior = emp.NumExterior,
+                        NumInterior = emp.NumInterior,
+                        FkEmpresa = emp.FkPais.HasValue ? null : (int?)null // placeholder
                     };
                 }
             }

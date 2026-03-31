@@ -28,19 +28,30 @@ function saveExam() {
         Glucosa: $('#txtGlucosa').val(),
         Oximetria: $('#txtOximetria').val(),
         ImcDescripcion: $('#txtImcDescripcion').val(),
-        AparatosSistemas: null, 
+        AparatosSistemas: $('#txtAparatosSistemas').val(), 
         FkAptitudMedica: $('#ddlAptitud').val(),
-        Observaciones: $('#txtObservaciones').val(),
+        Observaciones: $('#txtDiagnostico').val(), // Maps to Observaciones in View Model
         Recomendaciones: $('#txtRecomendaciones').val(),
         SintomasPaciente: $('#txtSintomas').val(),
         
         Nss: $('#txtNss').val(),
         FechaNacimiento: $('#txtFechaNacimiento').val() || null,
-        LugarNacimiento: $('#txtLugarNacimiento').val(),
+        LugarNacimiento: $('#ddlEstadoNacimiento').val(),
         EstadoCivil: $('#ddlEstadoCivil').val(),
         ManoDominante: $('#ddlManoDominante').val(),
         Telefono: $('#txtTelefono').val(),
-        Domicilio: $('#txtDomicilio').val(),
+        Domicilio: $('#txtDomicilio').val(), // fallback
+        
+        // Catálogos Geográficos
+        FkPais: $('#ddlPais').val() ? parseInt($('#ddlPais').val()) : null,
+        FkEstado: $('#ddlEstado').val() ? parseInt($('#ddlEstado').val()) : null,
+        FkMunicipio: $('#ddlMunicipio').val() ? parseInt($('#ddlMunicipio').val()) : null,
+        FkColonia: $('#ddlColonia').val() ? parseInt($('#ddlColonia').val()) : null,
+        FkCP: $('#txtCp').val() ? parseInt($('#txtCp').val()) : null,
+        Calle: $('#txtCalle').val(),
+        NumExterior: $('#txtNumExt').val(),
+        NumInterior: $('#txtNumInt').val(),
+
         Escolaridad: $('#ddlEscolaridad').val(),
         Profesion: $('#txtProfesion').val(),
         Alergias: $('#txtAlergias').val(),
@@ -77,6 +88,18 @@ function saveExam() {
             HepatitisDosis2: $('#chkHepatitis2').is(':checked'),
             InfluenzaH1N1: $('#chkH1N1').is(':checked'),
             ObservacionesVacunacion: $('#txtObsVacunas').val()
+        },
+        
+        AgudezaVisual: {
+            OdSinLentes: $('#ddlOdSinLentes').val(),
+            OiSinLentes: $('#ddlOiSinLentes').val(),
+            AoSinLentes: $('#ddlAoSinLentes').val(),
+            OdConLentes: $('#ddlOdConLentes').val(),
+            OiConLentes: $('#ddlOiConLentes').val(),
+            AoConLentes: $('#ddlAoConLentes').val(),
+            UsaLentes: $('#ddlUsaLentes').val(),
+            ReferenciaVisual: $('#ddlReferenciaVisual').val(),
+            Daltonismo: $('#ddlDaltonismo').val()
         },
         
         Antecedentes: [],

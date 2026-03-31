@@ -21,6 +21,39 @@ var examSystems = [
 ];
 
 function initForms() {
+    // Inicializar cascada de catálogos geográficos
+    cargarPaises();
+    cargarEstadoNacimiento(1); // Cargar estados de México por defecto
+
+    $('#ddlPais').on('change', function() {
+        var idPais = $(this).val();
+        $('#ddlEstado').html('<option value="">-- Seleccione --</option>').val('');
+        $('#ddlMunicipio').html('<option value="">-- Seleccione --</option>').val('');
+        $('#ddlColonia').html('<option value="">-- Seleccione --</option>').val('');
+        $('#txtCp').val('');
+        if(idPais) cargarEstados(idPais);
+    });
+
+    $('#ddlEstado').on('change', function() {
+        var idEstado = $(this).val();
+        $('#ddlMunicipio').html('<option value="">-- Seleccione --</option>').val('');
+        $('#ddlColonia').html('<option value="">-- Seleccione --</option>').val('');
+        $('#txtCp').val('');
+        if(idEstado) cargarMunicipios(idEstado);
+    });
+
+    $('#ddlMunicipio').on('change', function() {
+        var idMunicipio = $(this).val();
+        $('#ddlColonia').html('<option value="">-- Seleccione --</option>').val('');
+        $('#txtCp').val('');
+        if(idMunicipio) cargarColonias(idMunicipio);
+    });
+
+    $('#ddlColonia').on('change', function() {
+        var cp = $(this).find('option:selected').data('cp');
+        if(cp) $('#txtCp').val(cp);
+    });
+
     var $tbHF = $('#tbAntecedentesHF');
     antecedentesHF.forEach(function(item) {
         var row = `<tr>
@@ -59,6 +92,18 @@ function initForms() {
         if(this.checked) $(this).closest('tr').find('.chk-norm').prop('checked', false);
     });
     
+    // Toggle handling for Hábito checkboxes
+    $('.toggle-habito').on('change', function() {
+        var targetSection = $(this).data('target');
+        if(this.checked) {
+            $(targetSection).show();
+        } else {
+            $(targetSection).hide();
+            // Optional: reset fields inside target
+            $(targetSection).find('input[type=text], input[type=number], select').val('');
+        }
+    });
+
     addLaboralRow();
 }
 
@@ -120,14 +165,77 @@ function loadPatientData(idOrden) {
             
             if(p.Tipo === 'CANDIDATO') {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
-                $('#txtDomicilio, #txtRfc, #txtCurp, #txtEscolaridad, #txtTieneHijos').prop('readonly', false);
+                $('#txtRfc, #txtCurp, #txtEscolaridad, #txtTieneHijos').prop('readonly', false);
+                // Domicilio habilitado
+                $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
+                $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
                 $('#ddlSexo').prop('disabled', false);
                 $('#secLaborales').show();
             } else {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', true);
-                $('#txtDomicilio, #txtRfc, #txtCurp, #txtEscolaridad, #txtTieneHijos').prop('readonly', true);
+                $('#txtRfc, #txtCurp, #txtEscolaridad, #txtTieneHijos').prop('readonly', true);
+                // Domicilio solo lectura para empleados (sus datos vienen de BD y se editan en módulo RH)
+                $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', true);
+                // NOTA: Se desbloquean los selects de zona geográfica para poder utilizarlos y probarlos
+                $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
                 $('#secLaborales').show();
             }
+
+            // Pre-cargar datos geográficos del empleado/candidato
+            if(p.FkPais) {
+                // Esperar a que los países estén cargados, luego seleccionar y cargar cascada
+                var waitPais = setInterval(function(){
+                    if($('#ddlPais option').length > 1) {
+                        clearInterval(waitPais);
+                        $('#ddlPais').val(p.FkPais);
+                        // Cargar Estados y seleccionar
+                        $.getJSON('/ServicioMedico/ObtenerEstados', { idPais: p.FkPais }, function(resp2) {
+                            if(resp2.success && resp2.data) {
+                                var opts = '<option value="">-- Seleccione --</option>';
+                                resp2.data.forEach(function(item) {
+                                    opts += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                                });
+                                $('#ddlEstado').html(opts);
+                                if(p.FkEstado) {
+                                    $('#ddlEstado').val(p.FkEstado);
+                                    // Cargar Municipios
+                                    $.getJSON('/ServicioMedico/ObtenerMunicipios', { idEstado: p.FkEstado }, function(resp3) {
+                                        if(resp3.success && resp3.data) {
+                                            var opts2 = '<option value="">-- Seleccione --</option>';
+                                            resp3.data.forEach(function(item) {
+                                                opts2 += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                                            });
+                                            $('#ddlMunicipio').html(opts2);
+                                            if(p.FkMunicipio) {
+                                                $('#ddlMunicipio').val(p.FkMunicipio);
+                                                // Cargar Colonias
+                                                $.getJSON('/ServicioMedico/ObtenerColonias', { idMunicipio: p.FkMunicipio }, function(resp4) {
+                                                    if(resp4.success && resp4.data) {
+                                                        var opts3 = '<option value="">-- Seleccione --</option>';
+                                                        resp4.data.forEach(function(item) {
+                                                            opts3 += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                                                        });
+                                                        $('#ddlColonia').html(opts3);
+                                                        if(p.FkColonia) {
+                                                            $('#ddlColonia').val(p.FkColonia);
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }, 200);
+            }
+
+            // Pre-llenar campos de dirección
+            if(p.Calle) $('#txtCalle').val(p.Calle);
+            if(p.NumExterior) $('#txtNumExt').val(p.NumExterior);
+            if(p.NumInterior) $('#txtNumInt').val(p.NumInterior);
+            if(p.CPDesc) $('#txtCp').val(p.CPDesc);
 
             if(p.Sexo && p.Sexo.trim() !== "") {
                 $('#ddlSexo').val(p.Sexo).prop('disabled', true);
@@ -142,6 +250,8 @@ function loadPatientData(idOrden) {
             $('#lblAdNombre').text(p.NombreCompleto);
             $('#lblAdNumEmpleado').text(p.NumeroEmpleado || 'N/A');
             $('#lblAdEmpresa').text(p.Empresa);
+            $('#hdrEmpresaAd').text(p.Empresa || 'No especificada');
+            $('#lblAdEmpresaConsent').text(p.Empresa || 'el Proyecto');
             $('#lblAdPuesto').text(p.Puesto);
             $('#lblAdIdOrden').text(idOrden);
 
@@ -150,6 +260,82 @@ function loadPatientData(idOrden) {
             }
         } else {
             showError(resp.message);
+        }
+    });
+}
+
+// ------ CATALOGOS GEOGRAFICOS ------
+function cargarPaises() {
+    $.ajax({
+        url: '/ServicioMedico/ObtenerPaises',
+        type: 'GET',
+        dataType: 'json',
+        success: function(resp) {
+            if(resp.success && resp.data && resp.data.length > 0) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function(item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlPais').html(options);
+                $('#divGeoError').hide();
+            } else {
+                var msg = resp.message || 'El catálogo de Países está vacío en la base de datos.';
+                $('#divGeoError').text('\u26a0 ' + msg).show();
+                console.error('ObtenerPaises - respuesta no exitosa:', resp);
+            }
+        },
+        error: function(xhr, status, err) {
+            var detail = xhr.responseText ? xhr.responseText.substring(0, 300) : err;
+            $('#divGeoError').text('\u274c Error HTTP al cargar Países (' + xhr.status + '): ' + detail).show();
+            console.error('ObtenerPaises - error HTTP:', xhr.status, err, xhr.responseText);
+        }
+    });
+}
+
+function cargarEstados(idPais) {
+    $.getJSON('/ServicioMedico/ObtenerEstados', { idPais: idPais }, function(resp) {
+        if(resp.success && resp.data) {
+            var options = '<option value="">-- Seleccione --</option>';
+            resp.data.forEach(function(item) {
+                options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+            });
+            $('#ddlEstado').html(options);
+        }
+    });
+}
+
+function cargarEstadoNacimiento(idPais) {
+    $.getJSON('/ServicioMedico/ObtenerEstados', { idPais: idPais }, function(resp) {
+        if(resp.success && resp.data) {
+            var options = '<option value="">-- Seleccione --</option>';
+            resp.data.forEach(function(item) {
+                options += '<option value="' + item.Descripcion + '">' + item.Descripcion + '</option>';
+            });
+            $('#ddlEstadoNacimiento').html(options);
+        }
+    });
+}
+
+function cargarMunicipios(idEstado) {
+    $.getJSON('/ServicioMedico/ObtenerMunicipios', { idEstado: idEstado }, function(resp) {
+        if(resp.success && resp.data) {
+            var options = '<option value="">-- Seleccione --</option>';
+            resp.data.forEach(function(item) {
+                options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+            });
+            $('#ddlMunicipio').html(options);
+        }
+    });
+}
+
+function cargarColonias(idMunicipio) {
+    $.getJSON('/ServicioMedico/ObtenerColonias', { idMunicipio: idMunicipio }, function(resp) {
+        if(resp.success && resp.data) {
+            var options = '<option value="">-- Seleccione --</option>';
+            resp.data.forEach(function(item) {
+                options += '<option value="' + item.Id + '" data-cp="' + item.CodigoPostal + '">' + item.Descripcion + '</option>';
+            });
+            $('#ddlColonia').html(options);
         }
     });
 }

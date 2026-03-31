@@ -637,5 +637,95 @@ namespace Telerik.Controllers
                 return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        // --- ENDPOINTS CATÁLOGOS GEOGRÁFICOS ---
+        [HttpGet]
+        public JsonResult ObtenerPaises()
+        {
+            try
+            {
+                using (var db = new ApplicationDbContext())
+                {
+                    var data = db.Paises
+                        .OrderBy(p => p.descripcion)
+                        .Select(p => new CatalogoItem { Id = p.pkPais, Descripcion = p.descripcion })
+                        .ToList();
+                    return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = ex.Message;
+                if(ex.InnerException != null) msg += " | " + ex.InnerException.Message;
+                return Json(new { success = false, message = msg }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerEstados(int idPais)
+        {
+            try
+            {
+                using (var db = new ApplicationDbContext())
+                {
+                    var data = db.Estados
+                        .Where(e => e.fkPais == idPais)
+                        .OrderBy(e => e.descripcion)
+                        .Select(e => new CatalogoItem { Id = e.pkEstado, Descripcion = e.descripcion })
+                        .ToList();
+                    return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerMunicipios(int idEstado)
+        {
+            try
+            {
+                using (var db = new ApplicationDbContext())
+                {
+                    var data = db.Municipios
+                        .Where(m => m.fkEstado == idEstado)
+                        .OrderBy(m => m.descripcion)
+                        .Select(m => new CatalogoItem { Id = m.pkMunicipio, Descripcion = m.descripcion })
+                        .ToList();
+                    return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerColonias(int idMunicipio)
+        {
+            try
+            {
+                using (var db = new ApplicationDbContext())
+                {
+                    var data = db.Colonias
+                        .Where(c => c.fkMunicipio == idMunicipio)
+                        .OrderBy(c => c.descripcion)
+                        .Select(c => new {
+                            Id = c.pkColonia,
+                            Descripcion = c.descripcion,
+                            CodigoPostal = ""
+                        })
+                        .ToList();
+                    return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }

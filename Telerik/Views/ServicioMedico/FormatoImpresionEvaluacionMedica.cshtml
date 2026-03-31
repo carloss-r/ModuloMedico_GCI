@@ -147,7 +147,7 @@
             <span class="field-label" style="margin-left: 10px;">Edad:</span>
             <span class="field-value" style="flex-grow:0; width: 50px; text-align:center;">@paciente.Edad</span>
             <span class="field-label" style="margin-left:5px;">años</span>
-            <span class="field-label" style="margin-left: 15px;">Lugar de nacimiento:</span>
+            <span class="field-label" style="margin-left: 15px;">Estado de nac.:</span>
             <span class="field-value">@Model.LugarNacimiento</span>
         </div>
         
@@ -173,7 +173,7 @@
         </div>
         
         <div class="field-row">
-            <span class="field-label">Domicilio:</span>
+            <span class="field-label">Domicilio Personal:</span>
             <span class="field-value">@Model.Domicilio</span>
         </div>
         
@@ -336,8 +336,40 @@
             </div>
         </div>
 
+        <!-- Agudeza Visual del Empleado (Snellen) -->
+        <div class="section-bar">AGUDEZA VISUAL (SNELLEN)</div>
+        <div style="border: 1px solid #000; border-top:none; padding: 4px;">
+            <div class="field-row">
+                <span class="field-label" style="width:100px;">Sin corrección:</span>
+                <span class="field-label" style="margin-left:20px;">OD:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdSinLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">OI:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiSinLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">Ao:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoSinLentes : "")</span>
+                
+                <span class="field-label" style="margin-left:30px;">Ref. Visual:</span>
+                <span class="field-value" style="width:120px;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.ReferenciaVisual : "")</span>
+            </div>
+            <div class="field-row" style="margin-top:4px;">
+                <span class="field-label" style="width:100px;">Con corrección:</span>
+                <span class="field-label" style="margin-left:20px;">OD:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdConLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">OI:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiConLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">Ao:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoConLentes : "")</span>
+                
+                <span class="field-label" style="margin-left:30px;">Usa Lentes:</span>
+                <span class="field-value" style="width: 50px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.UsaLentes : "")</span>
+                
+                <span class="field-label" style="margin-left:20px;">Daltonismo:</span>
+                <span class="field-value" style="width: 80px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.Daltonismo : "")</span>
+            </div>
+        </div>
+
         <!-- Exploracion de Fisica del empleado -->
-        <div class="section-bar">EXPLORACION FISICA</div>
+        <div class="section-bar">EXPLORACIÓN FÍSICA Y SIGNOS VITALES</div>
         <div style="border: 1px solid #000; border-top:none; padding: 4px;">
             <div class="field-row">
                 <span class="field-label">TA:</span>
@@ -364,7 +396,13 @@
                 <span class="field-label" style="margin-left:20px;">Temp:</span>
                 <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.Temperatura</span>
                 
-                <span class="field-label" style="margin-left:20px;">Aparatos y sistemas:</span>
+                <span class="field-label" style="margin-left:20px;">Glucosa:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.Glucosa</span> mg/dL
+                
+                <span class="field-label" style="margin-left:20px;">Oximetría:</span>
+                <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.Oximetria</span> %
+                
+                <span class="field-label" style="margin-left:20px;">Aparatos y sis:</span>
                 <span class="field-value">@Model.AparatosSistemas</span>
             </div>
             <div class="field-row" style="margin-top:4px;">
