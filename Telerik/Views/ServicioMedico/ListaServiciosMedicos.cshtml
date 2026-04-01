@@ -223,6 +223,16 @@
     </div>
 </div>
 
+<!-- Custom Message Modal (Notificaciones del Sistema) -->
+<div class="modal-overlay" id="msgOverlay" style="z-index: 9999; display: none; align-items: center; justify-content: center;">
+    <div class="modal-box" style="width: 400px; text-align: center; padding: 30px;">
+        <div id="msgIcon" style="font-size: 3.5rem; margin-bottom: 20px;"></div>
+        <h3 id="msgTitle" style="color: #333; margin-bottom: 12px; font-weight: 700;"></h3>
+        <p id="msgBody" style="font-size: 1rem; color: #666; margin-bottom: 25px; line-height: 1.5;"></p>
+        <button class="btn-gci btn-gci-primary" onclick="$('#msgOverlay').css('display','none')" id="btnMsgOk" style="min-width: 120px;">Aceptar</button>
+    </div>
+</div>
+
 @section scripts {
     <script src="~/Scripts/ListaServiciosMedicos.js?v=@DateTime.Now.Ticks"></script>
 }

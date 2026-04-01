@@ -140,13 +140,17 @@ function loadPatientData(idOrden) {
             if(p.Nss) $('#txtNss').val(p.Nss);
             if(p.Rfc) $('#txtRfc').val(p.Rfc);
             if(p.Curp) $('#txtCurp').val(p.Curp);
-            if(p.Escolaridad) $('#ddlEscolaridad').val(p.Escolaridad).trigger('change');
-            
-            if(p.TieneHijos !== undefined) {
-                $('#txtTieneHijos').val(p.TieneHijos ? ('Sí (' + (p.NumeroHijos || '0') + ')') : 'No');
+            if(p.Escolaridad) {
+                var esc = p.Escolaridad.toUpperCase().trim();
+                // Normalizaci\u00f3n para el dropdown
+                if(esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
+                if(esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
+                $('#ddlEscolaridad').val(esc);
             }
+            
             if(p.FechaNacimiento) {
-                $('#txtFechaNacimiento').val(p.FechaNacimiento).trigger('change');
+                var formattedDate = formatDateForInput(p.FechaNacimiento);
+                $('#txtFechaNacimiento').val(formattedDate).trigger('change');
             }
             if(p.Telefono) $('#txtTelefono').val(p.Telefono);
             if(p.Direccion) $('#txtDomicilio').val(p.Direccion);
@@ -165,7 +169,7 @@ function loadPatientData(idOrden) {
             
             if(p.Tipo === 'CANDIDATO') {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
-                $('#txtRfc, #txtCurp, #txtEscolaridad, #txtTieneHijos').prop('readonly', false);
+                $('#txtRfc, #txtCurp, #txtEscolaridad').prop('readonly', false);
                 // Domicilio habilitado
                 $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
                 $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
@@ -173,7 +177,7 @@ function loadPatientData(idOrden) {
                 $('#secLaborales').show();
             } else {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', true);
-                $('#txtRfc, #txtCurp, #txtEscolaridad, #txtTieneHijos').prop('readonly', true);
+                $('#txtRfc, #txtCurp, #txtEscolaridad').prop('readonly', true);
                 // Domicilio solo lectura para empleados (sus datos vienen de BD y se editan en módulo RH)
                 $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', true);
                 // NOTA: Se desbloquean los selects de zona geográfica para poder utilizarlos y probarlos
@@ -243,6 +247,15 @@ function loadPatientData(idOrden) {
             } else {
                 $('#ddlSexo').prop('disabled', false).val("");
                 setSexoDisplay(""); 
+            }
+
+            // Lógica de Expediente Clínico (Pre-cargar historial)
+            if(resp.evaluacionActual) {
+                mapearEvaluacionAlFormulario(resp.evaluacionActual);
+            } else if(resp.evaluacionPrevia) {
+                mapearEvaluacionAlFormulario(resp.evaluacionPrevia, true); // true = es historial
+                // Notificación sutil (Toast) en lugar de alerta invasiva
+                showToast("Se han pre-cargado los antecedentes y h\u00e1bitos de la \u00faltima evaluaci\u00f3n para su verificaci\u00f3n.", "info");
             }
 
             // Populate labels for consent and antidoping explicitly

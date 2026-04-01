@@ -1,8 +1,31 @@
-var currentOrdenId = null;
+    var currentOrdenId = null;
     var paginaActual = 1;
     var registrosPorPagina = 25;
     var totalRegistrosGlobal = 0;
     var todosLosTiposServicio = [];
+
+    // --- Helpers de Notificación del Sistema ---
+    function showError(msg) {
+        $('#msgIcon').html('<i class="fas fa-times-circle" style="color: #e74c3c;"></i>');
+        $('#msgTitle').text('Atenci\u00f3n');
+        $('#msgBody').text(msg);
+        $('#btnMsgOk').css('background', '#e74c3c');
+        $('#msgOverlay').css('display', 'flex');
+    }
+
+    function showSuccess(msg, callback) {
+        $('#msgIcon').html('<i class="fas fa-check-circle" style="color: #27ae60;"></i>');
+        $('#msgTitle').text('\u00c9xito');
+        $('#msgBody').text(msg);
+        $('#btnMsgOk').css('background', '#27ae60').off('click').click(function() {
+            $('#msgOverlay').hide();
+            if(callback) callback();
+        });
+        $('#msgOverlay').css('display', 'flex');
+    }
+
+    // Override global alert for this page
+    window.alert = function(msg) { showError(msg); };
 
     $(document).ready(function () {
         cargarInicial();
@@ -218,7 +241,7 @@ var currentOrdenId = null;
     function verDetalle(pkOrden) {
         currentOrdenId = pkOrden;
         $.getJSON('/ServicioMedico/VerDetalle', { id: pkOrden }, function (resp) {
-            if (!resp.success) { alert(resp.message); return; }
+            if (!resp.success) { showError(resp.message); return; }
             var o = resp.orden;
             $('#modalFolio').text(o.FolioDisplay);
             $('#detFolio').text(o.FolioDisplay);
@@ -284,8 +307,11 @@ var currentOrdenId = null;
 
     function doEliminar(pk, fromModal) {
         $.post('/ServicioMedico/Eliminar', { pkOrdenMedico: pk }, function (resp) {
-            if (resp.success) { if(fromModal) cerrarModal(); cargarSolicitudes(); }
-            else alert(resp.message);
+            if (resp.success) { 
+                if(fromModal) cerrarModal(); 
+                showSuccess("Solicitud eliminada correctamente.", cargarSolicitudes);
+            }
+            else showError(resp.message);
         });
     }
 
@@ -353,11 +379,21 @@ var currentOrdenId = null;
         if(!data.FkTipoServicio) { mostrarAlertaModal('Seleccione un tipo de servicio.', false); return; }
         $.post('/ServicioMedico/CrearSolicitud', data, function(resp) {
             if(resp.success) {
-                mostrarAlertaModal('Solicitud generada con éxito.', true);
-                cargarSolicitudes(); $('#btnCrearSol').hide(); $('#wrapperPerOptions').hide();
+                cargarSolicitudes(); 
+                $('#btnCrearSol').hide(); 
+                $('#wrapperPerOptions').hide();
+                
                 var printUrl = '/ServicioMedico/ImprimirSolicitud/' + resp.pkOrdenMedico;
-                $('#btnPrintNewSol').off('click').on('click', function(e) { e.preventDefault(); abrirImpresion(printUrl); }).show();
-            } else { mostrarAlertaModal(resp.message, false); }
+                
+                // Opción 1: Abrir impresión automáticamente (lo que pidió el usuario)
+                cerrarNuevaSolicitud();
+                abrirImpresion(printUrl);
+                
+                // También mostramos el éxito
+                showSuccess('Solicitud generada con éxito. Abriendo vista previa...');
+            } else { 
+                mostrarAlertaModal(resp.message, false); 
+            }
         });
     }
 

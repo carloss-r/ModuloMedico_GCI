@@ -166,10 +166,6 @@ function validateStep(step) {
             checkReq($('#txtMenarca'), 'Edad menarca obligatoria');
             checkReq($('#txtCiclos'), 'Seleccione ciclo');
             checkReq($('#txtFum'), 'Fecha FUM obligatoria');
-            checkReq($('#txtIvsaFem'), 'IVSA obligatorio (0 si no aplica)');
-        }
-        if (currentSexo === 'M') {
-            checkReq($('#txtIvsaMasc'), 'IVSA obligatorio (0 si no aplica)');
         }
     }
 

@@ -181,5 +181,6 @@ namespace Telerik.Models.ViewModels
         public bool Hernia { get; set; }
         public string Ivsa { get; set; } // string in DB
         public string Psa { get; set; } // Antigeno Prostatico
+        public string MetodoPlanificacion { get; set; }
     }
 }

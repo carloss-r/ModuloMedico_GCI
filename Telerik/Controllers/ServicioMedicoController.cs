@@ -240,7 +240,23 @@ namespace Telerik.Controllers
                     return Json(new { success = false, message = "Orden no encontrada." }, JsonRequestBehavior.AllowGet);
 
                 var paciente = _medicalService.ObtenerInfoPaciente(orden);
-                return Json(new { success = true, paciente }, JsonRequestBehavior.AllowGet);
+
+                // Lógica de Expediente Clínico:
+                // Intentamos buscar si ya existe una evaluación guardada para ESTA orden
+                var evaluacionActual = EvaluacionDal.ObtenerPorOrden(idOrden);
+                
+                // Si NO hay evaluación guardada para esta orden, buscamos la ÚLTIMA historial del paciente
+                var evaluacionPrevia = (evaluacionActual == null) 
+                    ? EvaluacionDal.ObtenerUltimaEvaluacionPorPaciente(orden.FkCandidato, orden.FkEmpleado)
+                    : null;
+
+                return Json(new { 
+                    success = true, 
+                    paciente, 
+                    evaluacionActual, 
+                    evaluacionPrevia,
+                    esNuevoExpediente = (evaluacionActual == null && evaluacionPrevia != null)
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {

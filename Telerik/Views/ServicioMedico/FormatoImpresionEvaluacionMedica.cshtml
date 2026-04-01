@@ -527,22 +527,13 @@
                 
                 <span class="field-label" style="margin-left: 20px;">FUM:</span>
                 <span class="field-value" style="width: 80px; flex-grow:0;">@(Model.DetalleFemenino.FechaUltimaMenstruacion?.ToString("dd/MM/yyyy"))</span>
-                
-                <span class="field-label" style="margin-left: 20px;">No. Hijos/Edades:</span>
-                <span class="field-value">@(paciente.TieneHijos ? paciente.NumeroHijos : "Ninguno")</span>
             </div>
             <div class="field-row">
                 <span class="field-label">Planificación:</span>
                 <span class="field-value">@Model.DetalleFemenino.MetodoPlanificacion</span>
                 
-                <span class="field-label" style="margin-left: 20px;">IVSA:</span>
-                <span class="field-value" style="width: 80px; flex-grow:0;">@Model.DetalleFemenino.Ivsa</span>
-                
                 <span class="field-label" style="margin-left: 20px;">Cit. Vag:</span>
                 <span class="field-value" style="width: 100px; flex-grow:0;">@(Model.DetalleFemenino.FechaUltimoPapanicolau?.ToString("dd/MM/yyyy"))</span>
-                
-                <span class="field-label" style="margin-left: 20px;">ETS:</span>
-                <span class="field-value">@Model.DetalleFemenino.Ets</span>
             </div>
             <div class="field-row">
                 <span class="field-label">Gestas:</span>
@@ -590,18 +581,8 @@
                  <span style="margin-left: 30px;">Hernia:</span>
                  <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.Hernia ? "X" : "")</span>
                  
-                 <span style="margin-left: 30px;">IVSA:</span>
-                 <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@Model.DetalleMasculino.Ivsa</span>
-                 
-                 <span style="margin-left: 10px;">PSA:</span>
-                 <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@Model.DetalleMasculino.Psa</span>
-                 
-                  <span style="margin-left: 10px;">MPF:</span>
-                 <span class="field-value" style="width:40px; flex-grow:0;"></span>
-            </div>
-            <div class="field-row" style="margin-top:4px;">
-                <span style="margin-left: 75px;">No: de Hijos/Edades:</span>
-                <span class="field-value" style="width:200px; flex-grow:0;">@(paciente.TieneHijos ? paciente.NumeroHijos : "Ninguno")</span>
+                <span style="margin-left: 30px;">MPF:</span>
+                <span class="field-value" style="width:120px; flex-grow:0; border-bottom: 1px solid #000;">@Model.DetalleMasculino.MetodoPlanificacion</span>
             </div>
         } else {
             <div class="field-row"><span class="field-label">ANTECEDENTES DE APARATO GENITOURINARIO MASCULINO:</span> <span class="field-value">N/A</span></div>

@@ -215,7 +215,8 @@ namespace Telerik.Models.DAL
                                 hidrocele             = vm.DetalleMasculino.Hidrocele,
                                 hernia                = vm.DetalleMasculino.Hernia,
                                 ivsa                  = vm.DetalleMasculino.Ivsa,
-                                psa                   = vm.DetalleMasculino.Psa
+                                psa                   = vm.DetalleMasculino.Psa,
+                                mpf                   = vm.DetalleMasculino.MetodoPlanificacion
                             });
                         }
 
@@ -443,7 +444,8 @@ namespace Telerik.Models.DAL
                         Hidrocele             = eval.DetalleMasculino.hidrocele ?? false,
                         Hernia                = eval.DetalleMasculino.hernia ?? false,
                         Ivsa                  = eval.DetalleMasculino.ivsa,
-                        Psa                   = eval.DetalleMasculino.psa
+                        Psa                   = eval.DetalleMasculino.psa,
+                        MetodoPlanificacion   = eval.DetalleMasculino.mpf
                     };
                 }
 
@@ -515,6 +517,49 @@ namespace Telerik.Models.DAL
                 }
 
                 return vm;
+            }
+        }
+
+        /// <summary>
+        /// Busca la evaluación más reciente registrada para un Candidato o Empleado específico.
+        /// Esto permite implementar el "Expediente Clínico" heredando datos previos.
+        /// </summary>
+        public static EvaluacionMedicaVm ObtenerUltimaEvaluacionPorPaciente(int? fkCandidato, int? fkEmpleado)
+        {
+            if (!fkCandidato.HasValue && !fkEmpleado.HasValue) return null;
+
+            using (var db = new ApplicationDbContext())
+            {
+                // Unimos Evaluaciones con Ordenes para filtrar por paciente
+                var query = db.EvaluacionesClinicas
+                    .Join(db.OrdenesMedicas,
+                          e => e.fkOrdenMedico,
+                          o => o.pkOrdenMedico,
+                          (e, o) => new { e, o });
+
+                if (fkEmpleado.HasValue && fkEmpleado.Value > 0)
+                {
+                    query = query.Where(x => x.o.fkEmpleado == fkEmpleado.Value);
+                }
+                else if (fkCandidato.HasValue && fkCandidato.Value > 0)
+                {
+                    query = query.Where(x => x.o.fkCandidato == fkCandidato.Value);
+                }
+                else
+                {
+                    return null;
+                }
+
+                // Obtenemos el pkEvaluacion más reciente
+                var ultimaOrdenConEval = query
+                    .OrderByDescending(x => x.e.fechaEvaluacion)
+                    .Select(x => x.e.fkOrdenMedico)
+                    .FirstOrDefault();
+
+                if (ultimaOrdenConEval == 0) return null;
+
+                // Reutilizamos el método existente detallado
+                return ObtenerPorOrden(ultimaOrdenConEval);
             }
         }
     }

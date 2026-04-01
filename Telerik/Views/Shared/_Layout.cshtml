@@ -522,6 +522,18 @@
     @Scripts.Render("~/bundles/bootstrap")
 
     <script>
+        // Override global alert to use system modal if available
+        window.alert = function (msg) {
+            if (typeof showError === "function") {
+                showError(msg);
+            } else if (typeof mostrarAlertaModal === "function") {
+                mostrarAlertaModal(msg, false);
+            } else {
+                console.log("Alert redirected to console: " + msg);
+                // Fallback minimal if no modal is loaded
+            }
+        };
+
         $(document).ready(function() {
             cargarFiltrosSidebar();
             
