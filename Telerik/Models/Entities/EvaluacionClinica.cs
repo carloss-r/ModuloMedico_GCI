@@ -15,17 +15,17 @@ namespace Telerik.Models.Entities
         public int fkOrdenMedico { get; set; }
         public DateTime? fechaEvaluacion { get; set; }
         public string nombreMedico { get; set; }
-        public decimal? pesoKg { get; set; }
         public decimal? alturaMetros { get; set; }
+        public decimal? pesoKg { get; set; }
         public decimal? imc { get; set; }
         public int? presionSistolica { get; set; }
         public int? presionDiastolica { get; set; }
         public decimal? temperatura { get; set; }
         public int? frecuenciaCardiaca { get; set; }
         public int? frecuenciaRespiratoria { get; set; }
-        public decimal? glucosa { get; set; }
-        public int? oximetria { get; set; }
-        public string imcDescripcion { get; set; }
+        [NotMapped] public decimal? glucosa { get; set; }
+        [NotMapped] public int? oximetria { get; set; }
+        [NotMapped] public string imcDescripcion { get; set; }
         public string aparatosSistemas { get; set; }
         public int? fkAptitudMedica { get; set; }
         public string observaciones { get; set; }
@@ -53,7 +53,7 @@ namespace Telerik.Models.Entities
         // Propiedades de navegación (uno a muchos)
         public virtual ICollection<HistoriaMedica> HistoriaMedica { get; set; }
         public virtual ICollection<AntecedenteLaboral> AntecedentesLaborales { get; set; }
-        public virtual ICollection<ExamenFisico> ExamenFisico { get; set; }
+        public virtual ICollection<OrdenExamenFisico> OrdenesExamenesFisicos { get; set; }
         public virtual Vacunacion Vacunacion { get; set; }
     }
 }

@@ -157,7 +157,14 @@ namespace Telerik.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error: " + ex.Message });
+                string msg = ex.Message;
+                if (ex.InnerException != null) 
+                {
+                    msg += " | Inner: " + ex.InnerException.Message;
+                    if (ex.InnerException.InnerException != null)
+                        msg += " | Root: " + ex.InnerException.InnerException.Message;
+                }
+                return Json(new { success = false, message = "Error: " + msg });
             }
         }
 

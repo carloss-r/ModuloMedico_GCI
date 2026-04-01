@@ -104,7 +104,7 @@ function saveExam() {
         
         Antecedentes: [],
         AntecedentesLaborales: [],
-        ExamenFisico: [],
+        OrdenExamenFisico: [],
         
         Columna: {
             LordosisCervical: parseInt($('#ddlLordosisCervical').val()) || 0,
@@ -118,8 +118,8 @@ function saveExam() {
             EscoliosisDorsalIzquierda: $('#chkEscDorsalIzq').is(':checked'),
             EscoliosisLumbarDerecha:   $('#chkEscLumbarDer').is(':checked'),
             EscoliosisLumbarIzquierda: $('#chkEscLumbarIzq').is(':checked'),
-            EscoliosisDoboDerecha:     $('#chkEscDoboDer').is(':checked'),
-            EscoliosisDoboIzquierda:   $('#chkEscDoboIzq').is(':checked')
+            EscoliosisDobleDerecha:     $('#chkEscDoboDer').is(':checked'),
+            EscoliosisDobleIzquierda:   $('#chkEscDoboIzq').is(':checked')
         }
     };
 
@@ -155,7 +155,7 @@ function saveExam() {
     });
 
     $('#tbExamenFisico tr').each(function() {
-        model.ExamenFisico.push({
+        model.OrdenExamenFisico.push({
             SistemaCuerpo: $(this).find('.chk-norm').data('sys'),
             EsNormal: $(this).find('.chk-norm').is(':checked'),
             Hallazgos: $(this).find('.hall-ex').val()

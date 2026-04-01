@@ -54,7 +54,7 @@ namespace Telerik.Models.ViewModels
         // Secciones (Listas o Objetos anidados)
         public HabitosPersonalesVm Habitos { get; set; }
         public List<HistoriaMedicaVm> Antecedentes { get; set; }
-        public List<ExamenFisicoVm> ExamenFisico { get; set; }
+        public List<OrdenExamenFisicoVm> OrdenExamenFisico { get; set; }
         public List<AntecedenteLaboralVm> AntecedentesLaborales { get; set; }
         public EvaluacionColumnaVm Columna { get; set; }
         public VacunacionVm Vacunacion { get; set; }
@@ -130,7 +130,7 @@ namespace Telerik.Models.ViewModels
         public string AccidentesPrevios { get; set; }
     }
 
-    public class ExamenFisicoVm
+    public class OrdenExamenFisicoVm
     {
         public string SistemaCuerpo { get; set; } // "Cabeza", "Ojos", etc.
         public bool EsNormal { get; set; }
@@ -149,8 +149,8 @@ namespace Telerik.Models.ViewModels
         public bool EscoliosisDorsalIzquierda { get; set; }
         public bool EscoliosisLumbarDerecha { get; set; }
         public bool EscoliosisLumbarIzquierda { get; set; }
-        public bool EscoliosisDoboDerecha { get; set; } 
-        public bool EscoliosisDoboIzquierda { get; set; }
+        public bool EscoliosisDobleDerecha { get; set; } 
+        public bool EscoliosisDobleIzquierda { get; set; }
         public string ObservacionesColumna { get; set; }
     }
 

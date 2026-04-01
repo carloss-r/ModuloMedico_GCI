@@ -65,6 +65,33 @@
         .field-value { border-bottom: 1px solid #000; flex-grow: 1; min-height: 14px; padding-bottom: 1px; }
         .field-value-fixed { border-bottom: 1px solid #000; display: inline-block; padding: 0 5px; min-height: 14px; }
         
+        /* Antecedent Items (Revertido a diseño compacto) */
+        .ant-item { display: flex; align-items: flex-end; margin-bottom: 2px; height: 16px; overflow: hidden; }
+        .ant-box { 
+            width: 18px; 
+            border-bottom: 1px solid #000; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 9pt; 
+            margin-right: 4px; 
+            height: 14px; 
+            line-height: 14px; 
+            flex-shrink: 0; 
+        }
+        .ant-label { font-size: 7.5pt; white-space: nowrap; flex-shrink: 0; }
+        .ant-detail { 
+            font-size: 6pt; 
+            color: #444; 
+            margin-left: 4px; 
+            border-bottom: 0.5px solid #ccc; 
+            flex-grow: 1; 
+            height: 13px; 
+            line-height: 13px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        
         /* Checkboxes */
         .chk-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 4px; vertical-align: middle;text-align:center;line-height:10px;font-weight:bold;font-size:10px;}
         .chk-container { display: inline-flex; align-items: center; margin-right: 15px; }
@@ -101,7 +128,25 @@
     </style>
 </head>
 <body>
-    <!-- Botón removido (Impresión externa) -->
+    <!-- Pantalla de Carga -->
+    <div id="loadingOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,1); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div class="spinner" style="width:60px; height:60px; border:6px solid #f3f3f3; border-top:6px solid #1a5276; border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <p style="margin-top:20px; font-family:Arial, sans-serif; font-size:14pt; font-weight:bold; color:#1a5276; letter-spacing:1px;">GENERANDO FORMATO...</p>
+        <p style="margin-top:5px; font-family:Arial, sans-serif; font-size:9pt; color:#666;">Por favor espere un momento</p>
+    </div>
+
+    <style>
+        @@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @@media print { #loadingOverlay { display: none !important; } }
+    </style>
+
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 800); // Pequeño delay para asegurar renderizado suave
+        });
+    </script>
 
     <!-- PAGE 1 -->
     <div class="page-container">
@@ -109,11 +154,11 @@
         <table class="top-header">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/logo GCI.png")" alt="GCI" />
+                    <img src="@Url.Content("~/Content/Images/Logo_GCI.png")" alt="GCI" style="max-height: 55px;" />
                 </td>
                 <td class="title-cell" style="font-size:9pt;">SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
                 <td class="hse-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/HSE.png")" alt="HSE" style="max-height: 40px;" />
+                    <img src="@Url.Content("~/Content/Images/Logo_HSE.png")" alt="HSE" style="max-height: 55px;" />
                 </td>   
             </tr>
             <tr>
@@ -151,12 +196,7 @@
             <span class="field-value">@Model.LugarNacimiento</span>
         </div>
         
-        <div class="field-row">
-            <span class="field-label">RFC:</span>
-            <span class="field-value" style="flex-grow:0; width: 150px;">@paciente.Rfc</span>
-            <span class="field-label" style="margin-left: 10px;">CURP:</span>
-            <span class="field-value">@paciente.Curp</span>
-        </div>
+        <!-- RFC/CURP Omitidos -->
         
         <div class="field-row" style="margin-top: 5px;">
             <span class="field-label">Estado Civil:</span>
@@ -204,27 +244,26 @@
         <div class="section-bar">ANTECEDENTE HEREDO FAMILIARES</div>
         <div class="grid-4col" style="border-top:1px solid #000;">
             <div class="grid-item col-list">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("HTA")</span> HTA <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("HTA")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ENF CORONARIA")</span> ENF CORON <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ENF CORONARIA")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ACV")</span> ACV <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ACV")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("HTA")</span> <span class="ant-label">HTA</span> <span class="ant-detail">@GetAntDet("HTA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ENF CORONARIA")</span> <span class="ant-label">ENF CORON</span> <span class="ant-detail">@GetAntDet("ENF CORONARIA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ACV")</span> <span class="ant-label">ACV</span> <span class="ant-detail">@GetAntDet("ACV")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("DIABETES")</span> DIABETES <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("DIABETES")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("TIROIDES")</span> TIROIDES <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("TIROIDES")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ASMA")</span> ASMA <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ASMA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("DIABETES")</span> <span class="ant-label">DIABETES</span> <span class="ant-detail">@GetAntDet("DIABETES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TIROIDES")</span> <span class="ant-label">TIROIDES</span> <span class="ant-detail">@GetAntDet("TIROIDES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ASMA")</span> <span class="ant-label">ASMA</span> <span class="ant-detail">@GetAntDet("ASMA")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ALERGIA")</span> ALERGIA <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ALERGIA")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("TBC")</span> TBC <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("TBC")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ALCOHOL")</span> ALCOHOL <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ALCOHOL")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALERGIA")</span> <span class="ant-label">ALERGIA</span> <span class="ant-detail">@GetAntDet("ALERGIA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TBC")</span> <span class="ant-label">TBC</span> <span class="ant-detail">@GetAntDet("TBC")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALCOHOL")</span> <span class="ant-label">ALCOHOL</span> <span class="ant-detail">@GetAntDet("ALCOHOL")</span></div>
             </div>
-            <div class="grid-item col-list" style="position:relative;">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("EPILEPSIA")</span> EPILEPSIA <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("EPILEPSIA")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("MENTALES")</span> MENTALES <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("MENTALES")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("CONGÉNITAS")</span> CONGÉNIT <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("CONGÉNITAS")</span></div>
-                
-                <div class="field-row" style="margin-top:2px;"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("CÁNCER")</span> CÁNCER <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("CÁNCER")</span></div>
-                <div class="field-row" style="margin-top:2px;"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("VARICES")</span> VARICES <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("VARICES")</span></div>
+            <div class="grid-item col-list">
+                <div class="ant-item"><span class="ant-box">@GetAntVal("EPILEPSIA")</span> <span class="ant-label">EPILEPSIA</span> <span class="ant-detail">@GetAntDet("EPILEPSIA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("MENTALES")</span> <span class="ant-label">MENTALES</span> <span class="ant-detail">@GetAntDet("MENTALES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("CONGÉNITAS")</span> <span class="ant-label">CONGÉNIT</span> <span class="ant-detail">@GetAntDet("CONGÉNITAS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("CÁNCER")</span> <span class="ant-label">CÁNCER</span> <span class="ant-detail">@GetAntDet("CÁNCER")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("VARICES")</span> <span class="ant-label">VARICES</span> <span class="ant-detail">@GetAntDet("VARICES")</span></div>
             </div>
         </div>
 
@@ -232,27 +271,26 @@
         <div class="section-bar">ANTECEDENTES PERSONALES Patológicos</div>
         <div class="grid-3col" style="border-top:1px solid #000; grid-template-columns: 1.2fr 1fr 1.2fr;">
             <div class="grid-item col-list">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("HIPERTENSIÓN")</span> HTA <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("HIPERTENSIÓN")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("QUIRÚRGICOS")</span> QUIRÚRG <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("QUIRÚRGICOS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("TRAUMÁTICOS")</span> TRAUMAT <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("TRAUMÁTICOS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ALÉRGICOS")</span> ALERGIC <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ALÉRGICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("HIPERTENSIÓN")</span> <span class="ant-label">HTA</span> <span class="ant-detail">@GetAntDet("HIPERTENSIÓN")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("QUIRÚRGICOS")</span> <span class="ant-label">QUIRÚRG</span> <span class="ant-detail">@GetAntDet("QUIRÚRGICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TRAUMÁTICOS")</span> <span class="ant-label">TRAUMAT</span> <span class="ant-detail">@GetAntDet("TRAUMÁTICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALÉRGICOS")</span> <span class="ant-label">ALERGIC</span> <span class="ant-detail">@GetAntDet("ALÉRGICOS")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("CONGÉNITOS")</span> CONGENIT <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("CONGÉNITOS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("METABÓLICOS")</span> METABOL <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("METABÓLICOS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("INFECCIOSOS")</span> INFECCIO <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("INFECCIOSOS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("TUMORALES")</span> TUMORAL <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("TUMORALES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("CONGÉNITOS")</span> <span class="ant-label">CONGENIT</span> <span class="ant-detail">@GetAntDet("CONGÉNITOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("METABÓLICOS")</span> <span class="ant-label">METABOL</span> <span class="ant-detail">@GetAntDet("METABÓLICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("INFECCIOSOS")</span> <span class="ant-label">INFECCIO</span> <span class="ant-detail">@GetAntDet("INFECCIOSOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TUMORALES")</span> <span class="ant-label">TUMORAL</span> <span class="ant-detail">@GetAntDet("TUMORALES")</span></div>
             </div>
-            <div class="grid-item col-list" style="position:relative;">
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ENF. RESPIRATORIAS")</span> RESPIR <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ENF. RESPIRATORIAS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("MEDICAMENTOS")</span> MEDICAM <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("MEDICAMENTOS")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("TRANSFUSIONALES")</span> TRANSF <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("TRANSFUSIONALES")</span></div>
-                <div class="field-row"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("LITIASIS")</span> LITIASIS <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("LITIASIS")</span></div>
-                
-                <div class="field-row" style="margin-top:2px;"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("HACINAMIENTO")</span> HACINAM <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("HACINAMIENTO")</span></div>
-                <div class="field-row" style="margin-top:2px;"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("AGUA POTABLE")</span> AGUA <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("AGUA POTABLE")</span></div>
-                <div class="field-row" style="margin-top:2px;"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("ALCANTARILLADO")</span> ALCANT <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("ALCANTARILLADO")</span></div>
-                <div class="field-row" style="margin-top:2px;"><span class="field-value-fixed" style="width:20px; text-align:center; font-weight:bold;">@GetAntVal("OTROS")</span> OTROS: <span style="font-size:7pt; color:#444; margin-left:5px;">@GetAntDet("OTROS")</span></div>
+            <div class="grid-item col-list">
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ENF. RESPIRATORIAS")</span> <span class="ant-label">RESPIR</span> <span class="ant-detail">@GetAntDet("ENF. RESPIRATORIAS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("MEDICAMENTOS")</span> <span class="ant-label">MEDICAM</span> <span class="ant-detail">@GetAntDet("MEDICAMENTOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TRANSFUSIONALES")</span> <span class="ant-label">TRANSF</span> <span class="ant-detail">@GetAntDet("TRANSFUSIONALES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("LITIASIS")</span> <span class="ant-label">LITIASIS</span> <span class="ant-detail">@GetAntDet("LITIASIS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("HACINAMIENTO")</span> <span class="ant-label">HACINAM</span> <span class="ant-detail">@GetAntDet("HACINAMIENTO")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("AGUA POTABLE")</span> <span class="ant-label">AGUA</span> <span class="ant-detail">@GetAntDet("AGUA POTABLE")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALCANTARILLADO")</span> <span class="ant-label">ALCANT</span> <span class="ant-detail">@GetAntDet("ALCANTARILLADO")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("OTROS")</span> <span class="ant-label">OTROS:</span> <span class="ant-detail">@GetAntDet("OTROS")</span></div>
             </div>
         </div>
         <div style="border: 1px solid #000; border-top:none; padding: 2px 4px;">
@@ -336,37 +374,7 @@
             </div>
         </div>
 
-        <!-- Agudeza Visual del Empleado (Snellen) -->
-        <div class="section-bar">AGUDEZA VISUAL (SNELLEN)</div>
-        <div style="border: 1px solid #000; border-top:none; padding: 4px;">
-            <div class="field-row">
-                <span class="field-label" style="width:100px;">Sin corrección:</span>
-                <span class="field-label" style="margin-left:20px;">OD:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdSinLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">OI:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiSinLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">Ao:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoSinLentes : "")</span>
-                
-                <span class="field-label" style="margin-left:30px;">Ref. Visual:</span>
-                <span class="field-value" style="width:120px;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.ReferenciaVisual : "")</span>
-            </div>
-            <div class="field-row" style="margin-top:4px;">
-                <span class="field-label" style="width:100px;">Con corrección:</span>
-                <span class="field-label" style="margin-left:20px;">OD:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdConLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">OI:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiConLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">Ao:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoConLentes : "")</span>
-                
-                <span class="field-label" style="margin-left:30px;">Usa Lentes:</span>
-                <span class="field-value" style="width: 50px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.UsaLentes : "")</span>
-                
-                <span class="field-label" style="margin-left:20px;">Daltonismo:</span>
-                <span class="field-value" style="width: 80px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.Daltonismo : "")</span>
-            </div>
-        </div>
+       
 
         <!-- Exploracion de Fisica del empleado -->
         <div class="section-bar">EXPLORACIÓN FÍSICA Y SIGNOS VITALES</div>
@@ -410,11 +418,43 @@
                 <span class="field-value">@Model.SintomasPaciente</span>
             </div>
         </div>
+
+         <!-- Agudeza Visual del Empleado (Snellen) -->
+        <div class="section-bar">AGUDEZA VISUAL</div>
+        <div style="border: 1px solid #000; border-top:none; padding: 4px;">
+            <div class="field-row">
+                <span class="field-label" style="width:100px;">Sin corrección:</span>
+                <span class="field-label" style="margin-left:20px;">OD:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdSinLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">OI:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiSinLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">Ao:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoSinLentes : "")</span>
+                
+                <span class="field-label" style="margin-left:30px;">Ref. Visual:</span>
+                <span class="field-value" style="width:120px;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.ReferenciaVisual : "")</span>
+            </div>
+            <div class="field-row" style="margin-top:4px;">
+                <span class="field-label" style="width:100px;">Con corrección:</span>
+                <span class="field-label" style="margin-left:20px;">OD:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdConLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">OI:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiConLentes : "")</span>
+                <span class="field-label" style="margin-left:20px;">Ao:</span>
+                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoConLentes : "")</span>
+                
+                <span class="field-label" style="margin-left:30px;">Usa Lentes:</span>
+                <span class="field-value" style="width: 50px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.UsaLentes : "")</span>
+                
+                <span class="field-label" style="margin-left:20px;">Daltonismo:</span>
+                <span class="field-value" style="width: 80px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.Daltonismo : "")</span>
+            </div>
+        </div>
         
         <table class="data-table" style="border-top:none; font-size: 8pt;">
             <thead>
                 <tr>
-                    <th style="width: 20%;"></th>
+                    <th style="width: 20%;">Aparato / Sistema</th>
                     <th style="width: 10%;">Normal</th>
                     <th style="width: 10%;">Anormal</th>
                     <th style="width: 60%;">Descripción de Hallazgos</th>
@@ -423,46 +463,27 @@
             <tbody>
                 @{
                     string[] sistemas = { 
-                        "1. Cabeza:", "2. Ojos:", "3. Nariz:", "4. Boca:", "5. Dentadura:", 
-                        "6. Faringe:", "7. Amígdalas:", "8. Otoscopia:", "9. Cuello:", 
-                        "10. Columna-espalda:", "11. Extremidades:", "12. Piel:", "13. Ap. Respiratorio",
-                        "14. Cardiaco:", "15. Vascular periférico", "16. Abdomen:", "17. Neurológico:",
-                        "18. Genitales:", "19. Hernias:", "20. Otro:"
+                        "Cabeza", "Nariz", "Boca", "Dentadura", 
+                        "Faringe", "Amígdalas", "Oído", "Cuello", 
+                        "Columna", "Extremidades", "Piel", "Ap. Respiratorio",
+                        "Cardiaco", "Vascular", "Abdomen", "Neurológico",
+                        "Genitales", "Hernias"
                     };
-                    
-                    var exFisicoMap = new Dictionary<string, Telerik.Models.ViewModels.ExamenFisicoVm>();
-                    if (Model.ExamenFisico != null) {
-                         foreach(var x in Model.ExamenFisico) {
-                             if (!exFisicoMap.ContainsKey(x.SistemaCuerpo)) {
-                                 exFisicoMap.Add(x.SistemaCuerpo, x);
-                             }
-                         }
-                    }
 
                     foreach(var s in sistemas)
                     {
-                        string normalMarker = "X";
-                        string anormalMarker = "";
-                        string hallazgosTx = "";
-
-                        if (exFisicoMap.ContainsKey(s)) {
-                            var ef = exFisicoMap[s];
-                            if (ef.EsNormal) {
-                                normalMarker = "X";
-                                anormalMarker = "";
-                                hallazgosTx = ef.Hallazgos;
-                            } else {
-                                normalMarker = "";
-                                anormalMarker = "X";
-                                hallazgosTx = ef.Hallazgos;
-                            }
+                        var ef = Model.OrdenExamenFisico?.FirstOrDefault(x => x.SistemaCuerpo == s);
+                        string hallazgos = ef?.Hallazgos ?? "";
+                        if (hallazgos.Length > 100) 
+                        { 
+                            hallazgos = hallazgos.Substring(0, 97) + "..."; 
                         }
 
                         <tr>
                             <td>@s</td>
-                            <td style="text-align:center;">@normalMarker</td>
-                            <td style="text-align:center;">@anormalMarker</td>
-                            <td>@hallazgosTx</td>
+                            <td style="text-align:center;">@((ef == null || ef.EsNormal) ? "X" : "")</td>
+                            <td style="text-align:center;">@((ef != null && !ef.EsNormal) ? "X" : "")</td>
+                            <td style="font-size: 7.5pt;">@hallazgos</td>
                         </tr>
                     }
                 }
@@ -477,11 +498,11 @@
         <table class="top-header" style="margin-bottom: 20px;">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/logo GCI.png")" alt="GCI" />
+                    <img src="@Url.Content("~/Content/Images/Logo_GCI.png")" alt="GCI" />
                 </td>
                 <td class="title-cell" style="font-size:9pt;">SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
                 <td class="hse-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/HSE.png")" alt="HSE" style="max-height: 40px;" />
+                    <img src="@Url.Content("~/Content/Images/Logo_HSE.png")" alt="HSE" style="max-height: 40px;" />
                 </td>
             </tr>
             <tr>
@@ -626,13 +647,13 @@
                 <td style="text-align:left;">DERECHA</td>
                 <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDorsalDerecha ? "X" : "")</td>
                 <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisLumbarDerecha ? "X" : "")</td>
-                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDoboDerecha ? "X" : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDobleDerecha ? "X" : "")</td>
             </tr>
             <tr>
                 <td style="text-align:left;">IZQUIERDA</td>
                 <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDorsalIzquierda ? "X" : "")</td>
                 <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisLumbarIzquierda ? "X" : "")</td>
-                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDoboIzquierda ? "X" : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.EscoliosisDobleIzquierda ? "X" : "")</td>
             </tr>
         </table>
         

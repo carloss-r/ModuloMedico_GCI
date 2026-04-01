@@ -82,6 +82,11 @@ function saveAntidoping() {
     formData.append('ConsentimientoFirmado', $('#chkAceptoConsentimiento').is(':checked'));
     formData.append('Comentarios', $('#txtComentariosAd').val());
 
+    // Evaluate final verdict based on any positive drug result
+    var hasPositive = false;
+    $('.switch-btn.active.pos').length > 0 ? hasPositive = true : hasPositive = false;
+    formData.append('VeredictoFinal', hasPositive ? 'POSITIVO' : 'NEGATIVO');
+
     // Evidence
     var $file = $('#fileEvidencia');
     if ($file.length > 0 && $file[0].files.length > 0) {

@@ -46,7 +46,7 @@ namespace Telerik.Models
         public DbSet<HabitoPersonal>        HabitosPersonales       { get; set; }
         public DbSet<HistoriaMedica>        HistoriasMedicas        { get; set; }
         public DbSet<AntecedenteLaboral>    AntecedentesLaborales   { get; set; }
-        public DbSet<ExamenFisico>          ExamenesFisicos         { get; set; }
+        public DbSet<OrdenExamenFisico>     OrdenesExamenesFisicos  { get; set; }
         public DbSet<EvaluacionColumna>     EvaluacionesColumna     { get; set; }
         public DbSet<DetalleGineco>         DetallesGineco          { get; set; }
         public DbSet<DetalleMasculino>      DetallesMasculino       { get; set; }

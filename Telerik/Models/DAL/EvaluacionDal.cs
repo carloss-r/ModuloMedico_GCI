@@ -38,7 +38,7 @@ namespace Telerik.Models.DAL
                             glucosa                = vm.Glucosa,
                             oximetria              = vm.Oximetria,
                             imcDescripcion         = vm.ImcDescripcion,
-                            aparatosSistemas       = vm.AparatosSistemas,
+                            aparatosSistemas       = vm.AparatosSistemas + (vm.Glucosa.HasValue || vm.Oximetria.HasValue || !string.IsNullOrEmpty(vm.ImcDescripcion) ? $" [[STOWED-DATA: Glucosa:{vm.Glucosa}|Oxi:{vm.Oximetria}|IMCDesc:{vm.ImcDescripcion}]]" : ""),
                             fkAptitudMedica        = vm.FkAptitudMedica,
                             observaciones          = vm.Observaciones,
                             sintomasPaciente       = vm.SintomasPaciente,
@@ -58,6 +58,23 @@ namespace Telerik.Models.DAL
                         db.EvaluacionesClinicas.Add(eval);
                         db.SaveChanges(); // genera pkEvaluacion
 
+                        // 9. Agudeza Visual (Consolidar en OrdenExamenFisico para evitar tablas extra)
+                        if (vm.AgudezaVisual != null)
+                        {
+                            string snellenData = string.Format("OD:{0}|OI:{1}|AO:{2}|ODC:{3}|OIC:{4}|AOC:{5}|Usa:{6}|Ref:{7}|Ishi:{8}",
+                                vm.AgudezaVisual.OdSinLentes, vm.AgudezaVisual.OiSinLentes, vm.AgudezaVisual.AoSinLentes,
+                                vm.AgudezaVisual.OdConLentes, vm.AgudezaVisual.OiConLentes, vm.AgudezaVisual.AoConLentes,
+                                vm.AgudezaVisual.UsaLentes, vm.AgudezaVisual.ReferenciaVisual, vm.AgudezaVisual.Daltonismo);
+
+                            db.OrdenesExamenesFisicos.Add(new OrdenExamenFisico
+                            {
+                                fkEvaluacion  = eval.pkEvaluacion,
+                                sistemaCuerpo = "AGUDEZA_VISUAL",
+                                esNormal      = (vm.AgudezaVisual.OdSinLentes == "20/20" && vm.AgudezaVisual.OiSinLentes == "20/20"),
+                                hallazgos     = snellenData
+                            });
+                        }
+
                         // 2. Hábitos Personales (incluye vacunas — están en la misma tabla)
                         if (vm.Habitos != null)
                         {
@@ -74,7 +91,7 @@ namespace Telerik.Models.DAL
                                 tipoDrogas             = vm.Habitos.TipoDrogas,
                                 haceDeporte            = vm.Habitos.HaceDeporte,
                                 tipoDeporte            = vm.Habitos.TipoDeporte,
-                                descripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre
+                                descripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre + (!string.IsNullOrEmpty(vm.Habitos.TipoDeporte) ? $" [[STOWED-DATA: TipoDeporte:{vm.Habitos.TipoDeporte}]]" : "")
                             });
                         }
 
@@ -128,17 +145,18 @@ namespace Telerik.Models.DAL
                         }
 
                         // 5. Examen Físico
-                        if (vm.ExamenFisico != null)
+                        if (vm.OrdenExamenFisico != null)
                         {
-                            foreach (var ef in vm.ExamenFisico)
+                            foreach (var item in vm.OrdenExamenFisico)
                             {
-                                db.ExamenesFisicos.Add(new ExamenFisico
+                                var ef = new OrdenExamenFisico
                                 {
                                     fkEvaluacion  = eval.pkEvaluacion,
-                                    sistemaCuerpo = ef.SistemaCuerpo,
-                                    esNormal      = ef.EsNormal,
-                                    hallazgos     = ef.Hallazgos
-                                });
+                                    sistemaCuerpo = item.SistemaCuerpo,
+                                    esNormal      = item.EsNormal,
+                                    hallazgos     = item.Hallazgos
+                                };
+                                db.OrdenesExamenesFisicos.Add(ef);
                             }
                         }
 
@@ -158,8 +176,8 @@ namespace Telerik.Models.DAL
                                 escoliosisDorsalIzquierda = vm.Columna.EscoliosisDorsalIzquierda,
                                 escoliosisLumbarDerecha   = vm.Columna.EscoliosisLumbarDerecha,
                                 escoliosisLumbarIzquierda = vm.Columna.EscoliosisLumbarIzquierda,
-                                escoliosisDobleDerecha    = vm.Columna.EscoliosisDoboDerecha,
-                                escoliosisDobleIzquierda  = vm.Columna.EscoliosisDoboIzquierda,
+                                escoliosisDobleDerecha    = vm.Columna.EscoliosisDobleDerecha,
+                                escoliosisDobleIzquierda  = vm.Columna.EscoliosisDobleIzquierda,
                                 observacionesColumna      = vm.Columna.ObservacionesColumna
                             });
                         }
@@ -237,10 +255,15 @@ namespace Telerik.Models.DAL
                         db.SaveChanges();
                         transaccion.Commit();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         transaccion.Rollback();
-                        throw;
+                        
+                        string inner = (ex.InnerException != null) ? ex.InnerException.Message : "No inner exception";
+                        string root = (ex.InnerException != null && ex.InnerException.InnerException != null) 
+                                      ? ex.InnerException.InnerException.Message : "No root exception";
+                        
+                        throw new Exception($"An error occurred while updating the entries. See the inner exception for details. | Inner: {inner} | Root: {root}", ex);
                     }
                 }
             }
@@ -256,7 +279,7 @@ namespace Telerik.Models.DAL
                 var eval = db.EvaluacionesClinicas
                     .Include(e => e.HistoriaMedica)
                     .Include(e => e.AntecedentesLaborales)
-                    .Include(e => e.ExamenFisico)
+                    .Include(e => e.OrdenesExamenesFisicos)
                     .FirstOrDefault(e => e.fkOrdenMedico == pkOrden);
 
                 if (eval == null) return null;
@@ -299,6 +322,32 @@ namespace Telerik.Models.DAL
                     LugarEvaluacion        = eval.lugarEvaluacion
                 };
 
+                // Unstow clinical data if present (fail-safe logic)
+                if (!string.IsNullOrEmpty(vm.AparatosSistemas) && vm.AparatosSistemas.Contains("[[STOWED-DATA:"))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(vm.AparatosSistemas, @"\[\[STOWED-DATA: Glucosa:(.*?)\|Oxi:(.*?)\|IMCDesc:(.*?)\]\]");
+                    if (match.Success)
+                    {
+                        if (vm.Glucosa == null && !string.IsNullOrEmpty(match.Groups[1].Value))
+                        {
+                            decimal gValue;
+                            if (decimal.TryParse(match.Groups[1].Value, out gValue)) vm.Glucosa = gValue;
+                        }
+                        
+                        if (vm.Oximetria == null && !string.IsNullOrEmpty(match.Groups[2].Value))
+                        {
+                            int oValue;
+                            if (int.TryParse(match.Groups[2].Value, out oValue)) vm.Oximetria = oValue;
+                        }
+                        
+                        if (string.IsNullOrEmpty(vm.ImcDescripcion))
+                            vm.ImcDescripcion = match.Groups[3].Value;
+
+                        // Clean display text
+                        vm.AparatosSistemas = vm.AparatosSistemas.Replace(match.Value, "").Trim();
+                    }
+                }
+
                 if (eval.Habitos != null)
                 {
                     vm.Habitos = new HabitosPersonalesVm
@@ -315,6 +364,17 @@ namespace Telerik.Models.DAL
                         TipoDeporte            = eval.Habitos.tipoDeporte,
                         DescripcionTiempoLibre = eval.Habitos.descripcionTiempoLibre
                     };
+
+                    // Unstow Habit data
+                    if (!string.IsNullOrEmpty(vm.Habitos.DescripcionTiempoLibre) && vm.Habitos.DescripcionTiempoLibre.Contains("[[STOWED-DATA:"))
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(vm.Habitos.DescripcionTiempoLibre, @"\[\[STOWED-DATA: TipoDeporte:(.*?)\]\]");
+                        if (match.Success)
+                        {
+                            vm.Habitos.TipoDeporte = match.Groups[1].Value;
+                            vm.Habitos.DescripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre.Replace(match.Value, "").Trim();
+                        }
+                    }
                 }
 
                 // Cargar Vacunación
@@ -347,8 +407,8 @@ namespace Telerik.Models.DAL
                         EscoliosisDorsalIzquierda  = eval.Columna.escoliosisDorsalIzquierda ?? false,
                         EscoliosisLumbarDerecha    = eval.Columna.escoliosisLumbarDerecha ?? false,
                         EscoliosisLumbarIzquierda  = eval.Columna.escoliosisLumbarIzquierda ?? false,
-                        EscoliosisDoboDerecha      = eval.Columna.escoliosisDobleDerecha ?? false,
-                        EscoliosisDoboIzquierda    = eval.Columna.escoliosisDobleIzquierda ?? false,
+                        EscoliosisDobleDerecha     = eval.Columna.escoliosisDobleDerecha ?? false,
+                        EscoliosisDobleIzquierda   = eval.Columna.escoliosisDobleIzquierda ?? false,
                         ObservacionesColumna       = eval.Columna.observacionesColumna
                     };
                 }
@@ -418,12 +478,34 @@ namespace Telerik.Models.DAL
                     }
                 }
 
-                if (eval.ExamenFisico != null)
+                if (eval.OrdenesExamenesFisicos != null)
                 {
-                    vm.ExamenFisico = new List<ExamenFisicoVm>();
-                    foreach (var ef in eval.ExamenFisico)
+                    vm.OrdenExamenFisico = new List<OrdenExamenFisicoVm>();
+                    foreach (var ef in eval.OrdenesExamenesFisicos)
                     {
-                        vm.ExamenFisico.Add(new ExamenFisicoVm
+                        if (ef.sistemaCuerpo == "AGUDEZA_VISUAL")
+                        {
+                            // Desfragmentar: OD:20/20|OI:20/20|AO:20/20|ODC:N/A|OIC:N/A|AOC:N/A|Usa:Si|Ref:Normal|Ishi:Normal
+                            var parts = ef.hallazgos.Split('|').Select(p => p.Split(':').LastOrDefault()).ToArray();
+                            if (parts.Length >= 9)
+                            {
+                                vm.AgudezaVisual = new AgudezaVisualVm
+                                {
+                                    OdSinLentes      = parts[0],
+                                    OiSinLentes      = parts[1],
+                                    AoSinLentes      = parts[2],
+                                    OdConLentes      = parts[3],
+                                    OiConLentes      = parts[4],
+                                    AoConLentes      = parts[5],
+                                    UsaLentes        = parts[6],
+                                    ReferenciaVisual = parts[7],
+                                    Daltonismo       = parts[8]
+                                };
+                            }
+                            continue;
+                        }
+
+                        vm.OrdenExamenFisico.Add(new OrdenExamenFisicoVm
                         {
                             SistemaCuerpo = ef.sistemaCuerpo,
                             EsNormal      = ef.esNormal,
