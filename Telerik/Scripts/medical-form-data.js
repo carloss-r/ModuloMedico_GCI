@@ -2,14 +2,14 @@
 // Handles patient data loading and initial form population
 
 var antecedentesHF = [
-    "HTA", "ENF CORONARIA", "ACV", "DIABETES", "TIROIDES", 
-    "ASMA", "ALERGIA", "TBC", "ALCOHOL", "EPILEPSIA", 
-    "MENTALES", "CONG\u00c9NITAS", "C\u00c1NCER", "VARICES"
+    "HIPERTENSI&Oacute;N (HTA)", "ENFERMEDAD CORONARIA", "ACCIDENTE CEREBROVAS. (ACV)", "DIABETES MELLITUS", "TIROIDES / END&Oacute;CRINO", 
+    "ASMA BRONQUIAL", "ALERGIAS", "TUBERCULOSIS (TBC)", "ALCOHOLISMO", "EPILEPSIA / CONVUL.", 
+    "ENFERM. MENTALES", "MALFORM. CONG&Eacute;NITAS", "C&Aacute;NCER / TUMORALES", "V&Aacute;RICES"
 ];
 var antecedentesPP = [
-    "HIPERTENSI\u00d3N", "QUIR\u00daRGICOS", "TRAUM\u00c1TICOS", "AL\u00c9RGICOS", "CONG\u00c9NITOS", 
-    "METAB\u00d3LICOS", "INFECCIOSOS", "TUMORALES", "ENF. RESPIRATORIAS", "MEDICAMENTOS", 
-    "TRANSFUSIONALES", "LITIASIS", "HACINAMIENTO", "AGUA POTABLE", "ALCANTARILLADO", "OTROS"
+    "HIPERTENSI&Oacute;N (HTA)", "QUIR&Uacute;RGICOS", "TRAUM&Aacute;TICOS", "AL&Eacute;RGICOS", "CONG&Eacute;NITOS", 
+    "METAB&Oacute;LICOS", "INFECTOCONTAGIOSOS", "TUMORALES / C&Aacute;NCER", "ENF. RESPIRATORIAS", "CONSUMO MEDICAMENTOS", 
+    "TRANSFUSIONALES", "LITIASIS (PIEDRAS)", "HACINAMIENTO", "SERVICIOS: AGUA", "SERVICIOS: DRENAJE", "OTROS ANTECEDENTES"
 ];
 
 var examSystems = [
@@ -50,8 +50,12 @@ function initForms() {
     });
 
     $('#ddlColonia').on('change', function() {
-        var cp = $(this).find('option:selected').data('cp');
+        var $opt = $(this).find('option:selected');
+        var cp = $opt.data('cp');
+        var cpId = $opt.data('cp-id');
         if(cp) $('#txtCp').val(cp);
+        if(cpId) $('#hdnFkCp').val(cpId);
+        else $('#hdnFkCp').val('');
     });
 
     var $tbHF = $('#tbAntecedentesHF');
@@ -237,6 +241,7 @@ function loadPatientData(idOrden) {
             if(p.Calle) $('#txtCalle').val(p.Calle);
             if(p.NumExterior) $('#txtNumExt').val(p.NumExterior);
             if(p.NumInterior) $('#txtNumInt').val(p.NumInterior);
+            if(p.FkCP) $('#hdnFkCp').val(p.FkCP);
             if(p.CPDesc) $('#txtCp').val(p.CPDesc);
 
             if(p.Sexo && p.Sexo.trim() !== "") {
@@ -344,7 +349,7 @@ function cargarColonias(idMunicipio) {
         if(resp.success && resp.data) {
             var options = '<option value="">-- Seleccione --</option>';
             resp.data.forEach(function(item) {
-                options += '<option value="' + item.Id + '" data-cp="' + item.CodigoPostal + '">' + item.Descripcion + '</option>';
+                options += '<option value="' + item.Id + '" data-cp="' + item.CodigoPostal + '" data-cp-id="' + item.pkCP + '">' + item.Descripcion + '</option>';
             });
             $('#ddlColonia').html(options);
         }

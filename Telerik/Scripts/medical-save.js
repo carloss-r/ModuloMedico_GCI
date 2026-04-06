@@ -40,14 +40,23 @@ function saveExam() {
         EstadoCivil: $('#ddlEstadoCivil').val(),
         ManoDominante: $('#ddlManoDominante').val(),
         Telefono: $('#txtTelefono').val(),
-        Domicilio: $('#txtDomicilio').val(), // fallback
+        Domicilio: (function() {
+            var parts = [];
+            if ($('#txtCalle').val()) parts.push($('#txtCalle').val());
+            if ($('#txtNumExt').val()) parts.push('#' + $('#txtNumExt').val());
+            if ($('#txtNumInt').val()) parts.push('Int.' + $('#txtNumInt').val());
+            if ($('#ddlColonia option:selected').val()) parts.push($('#ddlColonia option:selected').text());
+            if ($('#ddlMunicipio option:selected').val()) parts.push($('#ddlMunicipio option:selected').text());
+            if ($('#ddlEstado option:selected').val()) parts.push($('#ddlEstado option:selected').text());
+            return parts.length > 0 ? parts.join(', ') : ($('#txtDomicilio').val() || '');
+        })(),
         
         // Catálogos Geográficos
         FkPais: $('#ddlPais').val() ? parseInt($('#ddlPais').val()) : null,
         FkEstado: $('#ddlEstado').val() ? parseInt($('#ddlEstado').val()) : null,
         FkMunicipio: $('#ddlMunicipio').val() ? parseInt($('#ddlMunicipio').val()) : null,
         FkColonia: $('#ddlColonia').val() ? parseInt($('#ddlColonia').val()) : null,
-        FkCP: $('#txtCp').val() ? parseInt($('#txtCp').val()) : null,
+        FkCP: $('#hdnFkCp').val() ? parseInt($('#hdnFkCp').val()) : null,
         Calle: $('#txtCalle').val(),
         NumExterior: $('#txtNumExt').val(),
         NumInterior: $('#txtNumInt').val(),

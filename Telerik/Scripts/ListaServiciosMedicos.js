@@ -188,9 +188,10 @@
                     '<div style="display:flex; justify-content:center; gap:5px;">' +
                     '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); verDetalle(' + s.PkOrdenMedico + ')" title="Ver Detalles"><i class="fas fa-eye"></i></button>' +
                     (s.FkTipoServicio !== 3 ? '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirSolicitud/' + s.PkOrdenMedico + '\')" title="Imprimir Solicitud"><i class="fas fa-file-alt"></i></button>' : '') +
-                    (s.FkEstatus === 3 ? (s.FkTipoServicio === 3 ? 
-                        '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirAntidoping/' + s.PkOrdenMedico + '\')" title="Imprimir Antidoping"><i class="fas fa-flask"></i></button>' :
-                        '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirEvaluacion/' + s.PkOrdenMedico + '\')" title="Imprimir Evaluación"><i class="fas fa-file-medical"></i></button>') : '') +
+                    (s.TieneEvaluacion ? 
+                        '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirEvaluacion/' + s.PkOrdenMedico + '\')" title="Imprimir Evaluación"><i class="fas fa-file-medical"></i></button>' : '') +
+                    (s.TieneAntidoping ? 
+                        '<button class="btn-gci btn-gci-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="event.stopPropagation(); abrirImpresion(\'/ServicioMedico/ImprimirAntidoping/' + s.PkOrdenMedico + '\')" title="Imprimir Antidoping"><i class="fas fa-flask"></i></button>' : '') +
                     '</div>' +
                     '</td>' +
                     '</tr>'
@@ -279,16 +280,9 @@
 
             if (estLow.indexOf('complet') >= 0) {
                 // Show Solicitud button only if NOT Antidoping
-                if (o.FkTipoServicio !== 3) {
-                    $('#btnPrintSol').attr('data-url', '/ServicioMedico/ImprimirSolicitud/' + o.PkOrdenMedico).show();
-                    $('#btnPrintEval').attr('data-url', '/ServicioMedico/ImprimirEvaluacion/' + o.PkOrdenMedico).show();
-                    $('#btnPrintAnti').hide();
-                } else {
-                    // Antidoping
-                    $('#btnPrintAnti').attr('data-url', '/ServicioMedico/ImprimirAntidoping/' + o.PkOrdenMedico).show();
-                    $('#btnPrintSol').hide();
-                    $('#btnPrintEval').hide();
-                }
+                $('#btnPrintSol').attr('data-url', '/ServicioMedico/ImprimirSolicitud/' + o.PkOrdenMedico).show();
+                if (o.TieneEvaluacion) $('#btnPrintEval').attr('data-url', '/ServicioMedico/ImprimirEvaluacion/' + o.PkOrdenMedico).show();
+                if (o.TieneAntidoping) $('#btnPrintAnti').attr('data-url', '/ServicioMedico/ImprimirAntidoping/' + o.PkOrdenMedico).show();
             } else {
                 $('#btnIrEvaluar').attr('href', evalUrl).show();
                 $('#btnEliminar').show();

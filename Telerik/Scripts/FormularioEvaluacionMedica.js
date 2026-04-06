@@ -9,13 +9,7 @@ $(document).ready(function() {
         cambiosSinGuardar = true;
     });
 
-    window.onbeforeunload = function (e) {
-        if (cambiosSinGuardar) {
-            var message = 'Tiene cambios sin guardar. Si sale de la página, los datos se perderán.';
-            e.returnValue = message;
-            return message;
-        }
-    };
+    window.onbeforeunload = null;
 
     // Initialize formatting and input masks
     initInputFormatters();
@@ -32,10 +26,10 @@ $(document).ready(function() {
     });
 
     $('#ddlEscolaridad').on('change', function() {
-        var val = $(this).val();
-        var show = (val === 'Universidad' || val === 'Posgrado');
+        var val = ($(this).val() || "").toUpperCase().trim();
+        var show = (val === 'UNIVERSIDAD' || val === 'POSGRADO' || val === 'LICENCIATURA');
         if (!show) $('#txtProfesion').val('');
-        $('#txtProfesion').prop('disabled', !show);
+        $('#txtProfesion').prop('disabled', !show).prop('placeholder', show ? 'Especifique su carrera' : 'N/A');
     });
 
     // Antecedentes Checkboxes toggle detalles

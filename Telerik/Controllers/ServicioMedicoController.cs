@@ -734,15 +734,17 @@ namespace Telerik.Controllers
             {
                 using (var db = new ApplicationDbContext())
                 {
-                    var data = db.Colonias
-                        .Where(c => c.fkMunicipio == idMunicipio)
-                        .OrderBy(c => c.descripcion)
-                        .Select(c => new {
-                            Id = c.pkColonia,
-                            Descripcion = c.descripcion,
-                            CodigoPostal = ""
-                        })
-                        .ToList();
+                    var data = (from c in db.Colonias
+                                join cp in db.CodigosPostales on c.pkColonia equals cp.fkColonia into cps
+                                from cp in cps.DefaultIfEmpty()
+                                where c.fkMunicipio == idMunicipio
+                                orderby c.descripcion
+                                select new {
+                                    Id = c.pkColonia,
+                                    Descripcion = c.descripcion,
+                                    CodigoPostal = cp != null ? cp.descripcion : "",
+                                    pkCP = cp != null ? (int?)cp.pkCP : null
+                                }).ToList();
                     return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
                 }
             }

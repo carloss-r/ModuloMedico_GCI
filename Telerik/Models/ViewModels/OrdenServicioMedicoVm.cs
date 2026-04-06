@@ -62,5 +62,9 @@ namespace Telerik.Models.ViewModels
                 return "SOL-SM-" + PkOrdenMedico.ToString("D4");
             }
         }
+
+        // Flags para UI
+        public bool TieneEvaluacion { get; set; }
+        public bool TieneAntidoping { get; set; }
     }
 }

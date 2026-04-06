@@ -8,14 +8,17 @@
     Func<string, string> GetAntVal = (condicion) =>
     {
         if (Model.Antecedentes == null) return "";
-        var ant = Model.Antecedentes.FirstOrDefault(x => x.NombreCondicion != null && x.NombreCondicion.ToUpper() == condicion.ToUpper());
+        // Look for exact match or contains (for legacy support if abbreviation is within the new name)
+        var ant = Model.Antecedentes.FirstOrDefault(x => x.NombreCondicion != null && 
+            (x.NombreCondicion.ToUpper() == condicion.ToUpper() || condicion.ToUpper().Contains(x.NombreCondicion.ToUpper())));
         return (ant != null && ant.EsPositivo) ? "X" : "";
     };
 
     Func<string, string> GetAntDet = (condicion) =>
     {
         if (Model.Antecedentes == null) return "";
-        var ant = Model.Antecedentes.FirstOrDefault(x => x.NombreCondicion != null && x.NombreCondicion.ToUpper() == condicion.ToUpper());
+        var ant = Model.Antecedentes.FirstOrDefault(x => x.NombreCondicion != null && 
+            (x.NombreCondicion.ToUpper() == condicion.ToUpper() || condicion.ToUpper().Contains(x.NombreCondicion.ToUpper())));
         return ant?.Detalles ?? "";
     };
 
@@ -40,85 +43,105 @@
 <head>
     <meta charset="utf-8" />
     <title>Examen Médico - @orden.FolioDisplay</title>
-    <style>
-        @@page { size: letter; margin: 10mm; }
+    <style>        @@page { size: letter; margin: 10mm; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 8pt; line-height: 1.2; color: #000; background: #fff; }
+        body { font-family: Arial, sans-serif; font-size: 7.5pt; line-height: 1.1; color: #000; background: #fff; }
         
-        .page-container { width: 100%; max-width: 800px; margin: 0 auto; padding: 0; page-break-after: always; }
+        .page-container { 
+            width: 100%; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 0; 
+            min-height: 255mm; 
+            display: flex; 
+            flex-direction: column; 
+            page-break-after: always;
+        }
         .page-container:last-child { page-break-after: auto; }
         
         /* Main Header Table */
-        .top-header { width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 2px; }
+        .top-header { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 5px; }
         .top-header td { border: 1px solid #000; text-align: center; vertical-align: middle; }
-        .logo-cell { width: 25%; padding: 5px; }
-        .logo-cell img { max-width: 120px; height: auto; }
-        .title-cell { width: 50%; font-weight: bold; font-size: 10pt; background: #fff; }
-        .hse-cell { width: 25%; padding: 5px; }
-        .hse-cell img { max-width: 100px; height: auto; }
+        .logo-cell { width: 22%; padding: 4px; }
+        .logo-cell img { max-height: 48px; width: auto; }
+        .title-cell { width: 56%; font-weight: bold; font-size: 9pt; background: #fff; }
+        .hse-cell { width: 22%; padding: 4px; }
+        .hse-cell img { max-height: 48px; width: auto; }
         
-        .hoja-count { text-align: right; font-weight: bold; font-size: 8pt; margin: 2px 0 5px 0; }
+        .hoja-count { text-align: right; font-weight: bold; font-size: 7.5pt; margin: 1px 15px 3px 0; }
         
         /* Form Inputs & Lines */
-        .field-row { display: flex; margin-bottom: 4px; align-items: flex-end; }
-        .field-label { font-weight: bold; margin-right: 5px; white-space: nowrap; }
-        .field-value { border-bottom: 1px solid #000; flex-grow: 1; min-height: 14px; padding-bottom: 1px; }
-        .field-value-fixed { border-bottom: 1px solid #000; display: inline-block; padding: 0 5px; min-height: 14px; }
+        .field-row { display: flex; margin-bottom: 2px; align-items: flex-end; }
+        .field-label { font-weight: bold; margin-right: 4px; white-space: nowrap; }
+        .field-value { border-bottom: 1px solid #000; flex-grow: 1; min-height: 12px; padding-bottom: 0px; }
+        .field-value-fixed { border-bottom: 1px solid #000; display: inline-block; padding: 0 3px; min-height: 12px; }
         
-        /* Antecedent Items (Revertido a diseño compacto) */
-        .ant-item { display: flex; align-items: flex-end; margin-bottom: 2px; height: 16px; overflow: hidden; }
+        /* Antecedent Items (Compact layout) */
+        .ant-item { display: flex; align-items: center; margin-bottom: 1px; height: 12px; overflow: hidden; }
         .ant-box { 
-            width: 18px; 
-            border-bottom: 1px solid #000; 
+            width: 15px; 
+            border-bottom: 0.5px solid #000; 
             text-align: center; 
             font-weight: bold; 
-            font-size: 9pt; 
-            margin-right: 4px; 
-            height: 14px; 
-            line-height: 14px; 
+            font-size: 7pt; 
+            margin-right: 3px; 
+            height: 11px; 
+            line-height: 11px; 
             flex-shrink: 0; 
         }
-        .ant-label { font-size: 7.5pt; white-space: nowrap; flex-shrink: 0; }
+        .ant-label { font-size: 6.8pt; white-space: nowrap; flex-shrink: 0; font-weight: 500; text-transform: uppercase; }
         .ant-detail { 
             font-size: 6pt; 
             color: #444; 
-            margin-left: 4px; 
-            border-bottom: 0.5px solid #ccc; 
+            margin-left: 3px; 
+            border-bottom: 0.1px solid #ddd; 
             flex-grow: 1; 
-            height: 13px; 
-            line-height: 13px; 
+            height: 10px; 
+            line-height: 10px; 
             overflow: hidden; 
             text-overflow: ellipsis; 
         }
 
-        
         /* Checkboxes */
-        .chk-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 4px; vertical-align: middle;text-align:center;line-height:10px;font-weight:bold;font-size:10px;}
-        .chk-container { display: inline-flex; align-items: center; margin-right: 15px; }
+        .chk-box { display: inline-block; width: 10px; height: 10px; border: 1px solid #000; margin-right: 3px; vertical-align: middle; text-align:center; line-height:8px; font-weight:bold; font-size:8pt; }
+        .chk-container { display: inline-flex; align-items: center; margin-right: 12px; }
         
         /* Section Bars */
-        .section-bar { width: 100%; background: #e6e6e6; border: 1px solid #000; padding: 2px 0; text-align: center; font-weight: bold; font-size: 8pt; letter-spacing: 0.5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 5px 0;}
+        .section-bar { width: 100%; background: #e6e6e6; border: 1px solid #000; padding: 1px 0; text-align: center; font-weight: bold; font-size: 7pt; letter-spacing: 0.3px; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 2px 0;}
         
         /* Grids & Tables */
         .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; border: 1px solid #000; border-top:none; }
         .grid-4col { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border: 1px solid #000; border-top:none; }
-        .grid-item { padding: 4px; border-right: 1px solid #000; font-size: 8pt; }
+        .grid-item { padding: 2px; border-right: 1px solid #000; font-size: 7pt; }
         .grid-item:last-child { border-right: none; }
         
-        .col-list { display: flex; flex-direction: column; gap: 4px; }
+        .col-list { display: flex; flex-direction: column; gap: 1px; }
         
         /* Tables */
         .data-table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
-        .data-table th, .data-table td { border: 1px solid #000; padding: 3px 5px; text-align: left; }
-        .data-table th { background: #e6e6e6; text-align: center; font-weight: block; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+        .data-table th, .data-table td { border: 1px solid #000; padding: 1px 3px; text-align: left; }
+        .data-table th { background: #e6e6e6; text-align: center; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
         
-        .text-area-box { width: 100%; border: 1px solid #000; min-height: 50px; padding: 5px; margin-bottom: 5px; }
+        .text-area-box { width: 100%; border: 1px solid #000; min-height: 35px; padding: 3px; margin-bottom: 2px; }
         
-        .signature-area { margin-top: 40px; display: flex; justify-content: space-around; text-align: center; }
-        .signature-line { border-top: 1px solid #000; width: 250px; margin: 0 auto; padding-top: 2px; }
+        .signature-area { margin-top: 20px; display: flex; justify-content: space-around; text-align: center; }
+        .signature-line { border-top: 1px solid #000; width: 220px; margin: 0 auto; padding-top: 2px; }
         
-        /* Small fixes */
-        .footer-rev { font-weight: bold; font-size: 10pt; margin-top: 10px; }
+        /* Footer precisely at the bottom */
+        .footer-rev { 
+            margin-top: auto;
+            font-weight: bold; 
+            font-size: 8pt; 
+            text-align: left; 
+            padding-bottom: 5px;
+        }
+        
+        @@media print { 
+            .no-print { display: none !important; } 
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+        .print-btn { position: fixed; top: 10px; right: 10px; padding: 8px 15px; background: #333; color: white; border: none; cursor: pointer; border-radius: 4px; z-index: 1000;}
+
         
         @@media print { 
             .no-print { display: none !important; } 
@@ -151,18 +174,18 @@
     <!-- PAGE 1 -->
     <div class="page-container">
         <!-- HEADER ROW -->
-        <table class="top-header">
+        <table class="top-header" style="margin-bottom: 5px;">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/Logo_GCI.png")" alt="GCI" style="max-height: 55px;" />
+                    <img src="@Url.Content("~/Content/Images/Logo_GCI.png")" alt="GCI" style="max-height: 48px;" />
                 </td>
                 <td class="title-cell" style="font-size:9pt;">SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
                 <td class="hse-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/Logo_HSE.png")" alt="HSE" style="max-height: 55px;" />
+                    <img src="@Url.Content("~/Content/Images/Logo_HSE.png")" alt="HSE" style="max-height: 48px;" />
                 </td>   
             </tr>
             <tr>
-                <td class="title-cell" style="padding: 4px;">
+                <td class="title-cell" style="padding: 2px;">
                     EXAMEN MÉDICO<br/>
                     <span style="font-size: 8pt; font-weight: normal;">GRUPO CONSTRUCTOR INDUSTRIAL OÍL & GAS S.A. DE C.V.</span>
                 </td>
@@ -214,7 +237,19 @@
         
         <div class="field-row">
             <span class="field-label">Domicilio Personal:</span>
-            <span class="field-value">@Model.Domicilio</span>
+            <span class="field-value">
+                @{
+                    string dirFull = Model.Domicilio;
+                    if (string.IsNullOrEmpty(dirFull)) {
+                        var parts = new List<string>();
+                        if (!string.IsNullOrEmpty(Model.Calle)) { parts.Add(Model.Calle); }
+                        if (!string.IsNullOrEmpty(Model.NumExterior)) { parts.Add("#" + Model.NumExterior); }
+                        if (!string.IsNullOrEmpty(Model.NumInterior)) { parts.Add("Int. " + Model.NumInterior); }
+                        if (parts.Count > 0) { dirFull = string.Join(" ", parts); }
+                    }
+                }
+                @dirFull
+            </span>
         </div>
         
         <div class="field-row" style="margin-top:5px;">
@@ -244,53 +279,53 @@
         <div class="section-bar">ANTECEDENTE HEREDO FAMILIARES</div>
         <div class="grid-4col" style="border-top:1px solid #000;">
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("HTA")</span> <span class="ant-label">HTA</span> <span class="ant-detail">@GetAntDet("HTA")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ENF CORONARIA")</span> <span class="ant-label">ENF CORON</span> <span class="ant-detail">@GetAntDet("ENF CORONARIA")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ACV")</span> <span class="ant-label">ACV</span> <span class="ant-detail">@GetAntDet("ACV")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("HIPERTENSIÓN (HTA)")</span> <span class="ant-label">HIPERTENSI&Oacute;N (HTA)</span> <span class="ant-detail">@GetAntDet("HIPERTENSIÓN (HTA)")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ENFERMEDAD CORONARIA")</span> <span class="ant-label">ENFERMEDAD CORONARIA</span> <span class="ant-detail">@GetAntDet("ENFERMEDAD CORONARIA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ACCIDENTE CEREBROVAS. (ACV)")</span> <span class="ant-label">ACCIDENTE CEREBROVAS. (ACV)</span> <span class="ant-detail">@GetAntDet("ACCIDENTE CEREBROVAS. (ACV)")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("DIABETES MELLITUS")</span> <span class="ant-label">DIABETES MELLITUS</span> <span class="ant-detail">@GetAntDet("DIABETES MELLITUS")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("DIABETES")</span> <span class="ant-label">DIABETES</span> <span class="ant-detail">@GetAntDet("DIABETES")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("TIROIDES")</span> <span class="ant-label">TIROIDES</span> <span class="ant-detail">@GetAntDet("TIROIDES")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ASMA")</span> <span class="ant-label">ASMA</span> <span class="ant-detail">@GetAntDet("ASMA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TIROIDES / ENDÓCRINO")</span> <span class="ant-label">TIROIDES / END&Oacute;CRINO</span> <span class="ant-detail">@GetAntDet("TIROIDES / ENDÓCRINO")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ASMA BRONQUIAL")</span> <span class="ant-label">ASMA BRONQUIAL</span> <span class="ant-detail">@GetAntDet("ASMA BRONQUIAL")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALERGIAS")</span> <span class="ant-label">ALERGIAS</span> <span class="ant-detail">@GetAntDet("ALERGIAS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TUBERCULOSIS (TBC)")</span> <span class="ant-label">TUBERCULOSIS (TBC)</span> <span class="ant-detail">@GetAntDet("TUBERCULOSIS (TBC)")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ALERGIA")</span> <span class="ant-label">ALERGIA</span> <span class="ant-detail">@GetAntDet("ALERGIA")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("TBC")</span> <span class="ant-label">TBC</span> <span class="ant-detail">@GetAntDet("TBC")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ALCOHOL")</span> <span class="ant-label">ALCOHOL</span> <span class="ant-detail">@GetAntDet("ALCOHOL")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALCOHOLISMO")</span> <span class="ant-label">ALCOHOLISMO</span> <span class="ant-detail">@GetAntDet("ALCOHOLISMO")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("EPILEPSIA / CONVUL.")</span> <span class="ant-label">EPILEPSIA / CONVUL.</span> <span class="ant-detail">@GetAntDet("EPILEPSIA / CONVUL.")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ENFERM. MENTALES")</span> <span class="ant-label">ENFERM. MENTALES</span> <span class="ant-detail">@GetAntDet("ENFERM. MENTALES")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("EPILEPSIA")</span> <span class="ant-label">EPILEPSIA</span> <span class="ant-detail">@GetAntDet("EPILEPSIA")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("MENTALES")</span> <span class="ant-label">MENTALES</span> <span class="ant-detail">@GetAntDet("MENTALES")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("CONGÉNITAS")</span> <span class="ant-label">CONGÉNIT</span> <span class="ant-detail">@GetAntDet("CONGÉNITAS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("CÁNCER")</span> <span class="ant-label">CÁNCER</span> <span class="ant-detail">@GetAntDet("CÁNCER")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("VARICES")</span> <span class="ant-label">VARICES</span> <span class="ant-detail">@GetAntDet("VARICES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("MALFORM. CONGÉNITAS")</span> <span class="ant-label">MALFORM. CONG&Eacute;NITAS</span> <span class="ant-detail">@GetAntDet("MALFORM. CONGÉNITAS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("CÁNCER / TUMORALES")</span> <span class="ant-label">C&Aacute;NCER / TUMORALES</span> <span class="ant-detail">@GetAntDet("CÁNCER / TUMORALES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("VÁRICES")</span> <span class="ant-label">V&Aacute;RICES</span> <span class="ant-detail">@GetAntDet("VÁRICES")</span></div>
             </div>
         </div>
 
         <!-- Antecedentes Patologicos -->
         <div class="section-bar">ANTECEDENTES PERSONALES Patológicos</div>
-        <div class="grid-3col" style="border-top:1px solid #000; grid-template-columns: 1.2fr 1fr 1.2fr;">
+        <div class="grid-3col" style="border-top:1px solid #000; grid-template-columns: 1fr 1fr 1fr;">
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("HIPERTENSIÓN")</span> <span class="ant-label">HTA</span> <span class="ant-detail">@GetAntDet("HIPERTENSIÓN")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("QUIRÚRGICOS")</span> <span class="ant-label">QUIRÚRG</span> <span class="ant-detail">@GetAntDet("QUIRÚRGICOS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("TRAUMÁTICOS")</span> <span class="ant-label">TRAUMAT</span> <span class="ant-detail">@GetAntDet("TRAUMÁTICOS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ALÉRGICOS")</span> <span class="ant-label">ALERGIC</span> <span class="ant-detail">@GetAntDet("ALÉRGICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("HIPERTENSIÓN (HTA)")</span> <span class="ant-label">HIPERTENSI&Oacute;N (HTA)</span> <span class="ant-detail">@GetAntDet("HIPERTENSIÓN (HTA)")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("QUIRÚRGICOS")</span> <span class="ant-label">QUIR&Uacute;RGICOS</span> <span class="ant-detail">@GetAntDet("QUIRÚRGICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TRAUMÁTICOS")</span> <span class="ant-label">TRAUM&Aacute;TICOS</span> <span class="ant-detail">@GetAntDet("TRAUMÁTICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ALÉRGICOS")</span> <span class="ant-label">AL&Eacute;RGICOS</span> <span class="ant-detail">@GetAntDet("ALÉRGICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("CONGÉNITOS")</span> <span class="ant-label">CONG&Eacute;NITOS</span> <span class="ant-detail">@GetAntDet("CONGÉNITOS")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("CONGÉNITOS")</span> <span class="ant-label">CONGENIT</span> <span class="ant-detail">@GetAntDet("CONGÉNITOS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("METABÓLICOS")</span> <span class="ant-label">METABOL</span> <span class="ant-detail">@GetAntDet("METABÓLICOS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("INFECCIOSOS")</span> <span class="ant-label">INFECCIO</span> <span class="ant-detail">@GetAntDet("INFECCIOSOS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("TUMORALES")</span> <span class="ant-label">TUMORAL</span> <span class="ant-detail">@GetAntDet("TUMORALES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("METABÓLICOS")</span> <span class="ant-label">METAB&Oacute;LICOS</span> <span class="ant-detail">@GetAntDet("METABÓLICOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("INFECTOCONTAGIOSOS")</span> <span class="ant-label">INFECTOCONTAGIOSOS</span> <span class="ant-detail">@GetAntDet("INFECTOCONTAGIOSOS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TUMORALES / CÁNCER")</span> <span class="ant-label">TUMORALES / C&Aacute;NCER</span> <span class="ant-detail">@GetAntDet("TUMORALES / CÁNCER")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("ENF. RESPIRATORIAS")</span> <span class="ant-label">ENF. RESPIRATORIAS</span> <span class="ant-detail">@GetAntDet("ENF. RESPIRATORIAS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("CONSUMO MEDICAMENTOS")</span> <span class="ant-label">CONSUMO MEDICAMENTOS</span> <span class="ant-detail">@GetAntDet("CONSUMO MEDICAMENTOS")</span></div>
             </div>
             <div class="grid-item col-list">
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ENF. RESPIRATORIAS")</span> <span class="ant-label">RESPIR</span> <span class="ant-detail">@GetAntDet("ENF. RESPIRATORIAS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("MEDICAMENTOS")</span> <span class="ant-label">MEDICAM</span> <span class="ant-detail">@GetAntDet("MEDICAMENTOS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("TRANSFUSIONALES")</span> <span class="ant-label">TRANSF</span> <span class="ant-detail">@GetAntDet("TRANSFUSIONALES")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("LITIASIS")</span> <span class="ant-label">LITIASIS</span> <span class="ant-detail">@GetAntDet("LITIASIS")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("HACINAMIENTO")</span> <span class="ant-label">HACINAM</span> <span class="ant-detail">@GetAntDet("HACINAMIENTO")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("AGUA POTABLE")</span> <span class="ant-label">AGUA</span> <span class="ant-detail">@GetAntDet("AGUA POTABLE")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("ALCANTARILLADO")</span> <span class="ant-label">ALCANT</span> <span class="ant-detail">@GetAntDet("ALCANTARILLADO")</span></div>
-                <div class="ant-item"><span class="ant-box">@GetAntVal("OTROS")</span> <span class="ant-label">OTROS:</span> <span class="ant-detail">@GetAntDet("OTROS")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("TRANSFUSIONALES")</span> <span class="ant-label">TRANSFUSIONALES</span> <span class="ant-detail">@GetAntDet("TRANSFUSIONALES")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("LITIASIS (PIEDRAS)")</span> <span class="ant-label">LITIASIS (PIEDRAS)</span> <span class="ant-detail">@GetAntDet("LITIASIS (PIEDRAS)")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("HACINAMIENTO")</span> <span class="ant-label">HACINAMIENTO</span> <span class="ant-detail">@GetAntDet("HACINAMIENTO")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("SERVICIOS: AGUA")</span> <span class="ant-label">SERVICIOS: AGUA</span> <span class="ant-detail">@GetAntDet("SERVICIOS: AGUA")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("SERVICIOS: DRENAJE")</span> <span class="ant-label">SERVICIOS: DRENAJE</span> <span class="ant-detail">@GetAntDet("SERVICIOS: DRENAJE")</span></div>
+                <div class="ant-item"><span class="ant-box">@GetAntVal("OTROS ANTECEDENTES")</span> <span class="ant-label">OTROS ANTECEDENTES:</span> <span class="ant-detail">@GetAntDet("OTROS ANTECEDENTES")</span></div>
             </div>
         </div>
         <div style="border: 1px solid #000; border-top:none; padding: 2px 4px;">
@@ -409,8 +444,9 @@
                 
                 <span class="field-label" style="margin-left:20px;">Oximetría:</span>
                 <span class="field-value" style="flex-grow:0; width:50px; text-align:center;">@Model.Oximetria</span> %
-                
-                <span class="field-label" style="margin-left:20px;">Aparatos y sis:</span>
+            </div>
+            <div class="field-row" style="margin-top:4px;">
+                <span class="field-label">Aparatos y Sistemas (Obs. Gral):</span>
                 <span class="field-value">@Model.AparatosSistemas</span>
             </div>
             <div class="field-row" style="margin-top:4px;">
@@ -419,72 +455,61 @@
             </div>
         </div>
 
-         <!-- Agudeza Visual del Empleado (Snellen) -->
-        <div class="section-bar">AGUDEZA VISUAL</div>
-        <div style="border: 1px solid #000; border-top:none; padding: 4px;">
-            <div class="field-row">
-                <span class="field-label" style="width:100px;">Sin corrección:</span>
-                <span class="field-label" style="margin-left:20px;">OD:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdSinLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">OI:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiSinLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">Ao:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoSinLentes : "")</span>
-                
-                <span class="field-label" style="margin-left:30px;">Ref. Visual:</span>
-                <span class="field-value" style="width:120px;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.ReferenciaVisual : "")</span>
-            </div>
-            <div class="field-row" style="margin-top:4px;">
-                <span class="field-label" style="width:100px;">Con corrección:</span>
-                <span class="field-label" style="margin-left:20px;">OD:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OdConLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">OI:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.OiConLentes : "")</span>
-                <span class="field-label" style="margin-left:20px;">Ao:</span>
-                <span class="field-value" style="width:40px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.AoConLentes : "")</span>
-                
-                <span class="field-label" style="margin-left:30px;">Usa Lentes:</span>
-                <span class="field-value" style="width: 50px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.UsaLentes : "")</span>
-                
-                <span class="field-label" style="margin-left:20px;">Daltonismo:</span>
-                <span class="field-value" style="width: 80px; text-align:center;">@(Model.AgudezaVisual != null ? Model.AgudezaVisual.Daltonismo : "")</span>
-            </div>
-        </div>
-        
-        <table class="data-table" style="border-top:none; font-size: 8pt;">
+        <table class="data-table" style="border-top:none; font-size: 7.5pt;">
             <thead>
                 <tr>
-                    <th style="width: 20%;">Aparato / Sistema</th>
-                    <th style="width: 10%;">Normal</th>
-                    <th style="width: 10%;">Anormal</th>
-                    <th style="width: 60%;">Descripción de Hallazgos</th>
+                    <th style="width: 25%;">Aparato / Sistema</th>
+                    <th style="width: 8%; text-align:center;">Normal</th>
+                    <th style="width: 8%; text-align:center;">Anormal</th>
+                    <th style="width: 59%;">Descripción de Hallazgos</th>
                 </tr>
             </thead>
             <tbody>
                 @{
-                    string[] sistemas = { 
-                        "Cabeza", "Nariz", "Boca", "Dentadura", 
-                        "Faringe", "Amígdalas", "Oído", "Cuello", 
-                        "Columna", "Extremidades", "Piel", "Ap. Respiratorio",
-                        "Cardiaco", "Vascular", "Abdomen", "Neurológico",
-                        "Genitales", "Hernias"
+                    string[] sistemasFijos = { 
+                        "1. Cabeza", "2. Ojos", "3. Nariz", "4. Boca",
+                        "5. Dentadura", "6. Faringe", "7. Amígdalas", "8. Otoscopia",
+                        "9. Cuello", "10. Columna-espalda", "11. Extremidades", "12. Piel",
+                        "13. Ap. Respiratorio", "14. Cardiaco", "15. Vascular periférico",
+                        "16. Abdomen", "17. Neurológico", "18. Genitales", "19. Hernias", "20. Otro"
                     };
 
-                    foreach(var s in sistemas)
+                    var renderedNames = new HashSet<string>();
+
+                    foreach(var s in sistemasFijos)
                     {
-                        var ef = Model.OrdenExamenFisico?.FirstOrDefault(x => x.SistemaCuerpo == s);
-                        string hallazgos = ef?.Hallazgos ?? "";
-                        if (hallazgos.Length > 100) 
-                        { 
-                            hallazgos = hallazgos.Substring(0, 97) + "..."; 
+                        var ef = Model.OrdenExamenFisico?.FirstOrDefault(x => x.SistemaCuerpo != null && x.SistemaCuerpo.Trim().ToUpper() == s.Trim().ToUpper());
+                        string hallazgos = "";
+                        bool? esNormal = true; // Use nullable to detect if record exists
+                        
+                        if (ef != null) {
+                            renderedNames.Add(ef.SistemaCuerpo.Trim().ToUpper());
+                            hallazgos = ef.Hallazgos ?? "";
+                            esNormal = ef.EsNormal;
+                        } else {
+                            esNormal = null; // Mark as "not in DB" to show empty checkboxes or default Normal
                         }
 
+                        if (hallazgos.Length > 150) { hallazgos = hallazgos.Substring(0, 147) + "..."; }
+
                         <tr>
-                            <td>@s</td>
-                            <td style="text-align:center;">@((ef == null || ef.EsNormal) ? "X" : "")</td>
-                            <td style="text-align:center;">@((ef != null && !ef.EsNormal) ? "X" : "")</td>
-                            <td style="font-size: 7.5pt;">@hallazgos</td>
+                            <td style="font-size: 7.2pt; font-weight: bold; padding-left: 5px;">@s</td>
+                            <td style="text-align:center;">@(esNormal == true ? "X" : "")</td>
+                            <td style="text-align:center;">@(esNormal == false ? "X" : "")</td>
+                            <td style="font-size: 7.2pt;">@hallazgos</td>
                         </tr>
+                    }
+                    
+                    // Fallback para sistemas dinámicos o extras que no están en la lista fija
+                    if (Model.OrdenExamenFisico != null) {
+                        foreach(var ef in Model.OrdenExamenFisico.Where(x => x.SistemaCuerpo != "AGUDEZA_VISUAL" && !renderedNames.Contains(x.SistemaCuerpo.Trim().ToUpper()))) {
+                             <tr>
+                                <td style="font-size: 7.2pt; font-weight: bold; padding-left: 5px;">@ef.SistemaCuerpo</td>
+                                <td style="text-align:center;">@(ef.EsNormal ? "X" : "")</td>
+                                <td style="text-align:center;">@(!ef.EsNormal ? "X" : "")</td>
+                                <td style="font-size: 7.2pt;">@ef.Hallazgos</td>
+                            </tr>
+                        }
                     }
                 }
             </tbody>
@@ -493,21 +518,21 @@
     </div>
 
     <!-- PAGE 2 -->
-    <div class="page-container" style="padding-top: 20px;">
+    <div class="page-container">
         <!-- HEADER ROW PAGE 2 -->
-        <table class="top-header" style="margin-bottom: 20px;">
+        <table class="top-header" style="margin-bottom: 5px;">
             <tr>
                 <td class="logo-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/Logo_GCI.png")" alt="GCI" />
+                    <img src="@Url.Content("~/Content/Images/Logo_GCI.png")" alt="GCI" style="max-height: 48px;" />
                 </td>
                 <td class="title-cell" style="font-size:9pt;">SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
                 <td class="hse-cell" rowspan="2">
-                    <img src="@Url.Content("~/Content/Images/Logo_HSE.png")" alt="HSE" style="max-height: 40px;" />
+                    <img src="@Url.Content("~/Content/Images/Logo_HSE.png")" alt="HSE" style="max-height: 48px;" />
                 </td>
             </tr>
             <tr>
-                <td class="title-cell" style="padding: 4px;">
-                    EXAMEN MEDICO<br/>
+                <td class="title-cell" style="padding: 2px;">
+                    EXAMEN MÉDICO<br/>
                     <span style="font-size: 8pt; font-weight: normal;">GRUPO CONSTRUCTOR INDUSTRIAL OIL & GAS S.A DE C.V.</span>
                 </td>
             </tr>
@@ -553,48 +578,46 @@
         }
 
         <!-- APARATO GENITOURINARIO -->
-        <br/>
         @if (paciente.Sexo == "M" && Model.DetalleMasculino != null) {
             <div class="field-row">
                 <span class="field-label">ANTECEDENTES DE APARATO GENITOURINARIO MASCULINO:</span>
             </div>
-            <div class="field-row" style="margin-top:10px;">
+            <div class="field-row" style="margin-top:2px;">
                 <span class="field-label">Examen Clínico:</span> Prepicio retráctil 
-                <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.PrepucioRetractil ? "X" : "")</span>
+                <span class="field-value-fixed" style="width:16px; height:16px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.PrepucioRetractil ? "X" : "")</span>
                 
-                <span style="margin-left: 30px;">Testículos: Descendidos:</span>
-                <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino.TesticulosDescendidos ? "X" : "")</span>
+                <span style="margin-left: 15px;">Testículos: Descendidos:</span>
+                <span class="field-value-fixed" style="width:12px; height:12px; border:1px solid #000; display:inline-block; margin-left:3px; text-align:center; font-weight:bold; font-size:8px;">@(Model.DetalleMasculino.TesticulosDescendidos ? "X" : "")</span>
                 
-                 <span style="margin-left: 30px;">Fimosis:</span>
-                <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino.Fimosis ? "X" : "")</span>
+                 <span style="margin-left: 15px;">Fimosis:</span>
+                <span class="field-value-fixed" style="width:12px; height:12px; border:1px solid #000; display:inline-block; margin-left:3px; text-align:center; font-weight:bold; font-size:8px;">@(Model.DetalleMasculino.Fimosis ? "X" : "")</span>
                 
                  <span style="margin-left: 10px;">Criptorquidia:</span>
-                <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino.Criptorquidia ? "X" : "")</span>
+                <span class="field-value-fixed" style="width:12px; height:12px; border:1px solid #000; display:inline-block; margin-left:3px; text-align:center; font-weight:bold; font-size:8px;">@(Model.DetalleMasculino.Criptorquidia ? "X" : "")</span>
                 
                 <span style="margin-left: 10px;">Varicocele:</span>
-                <span class="field-value-fixed" style="width:15px; height:15px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold; font-size:10px;">@(Model.DetalleMasculino.Varicocele ? "X" : "")</span>
+                <span class="field-value-fixed" style="width:12px; height:12px; border:1px solid #000; display:inline-block; margin-left:3px; text-align:center; font-weight:bold; font-size:8px;">@(Model.DetalleMasculino.Varicocele ? "X" : "")</span>
             </div>
-            <div class="field-row" style="margin-top:4px;">
+            <div class="field-row" style="margin-top:2px;">
                  <span style="margin-left: 75px;">Hidrocele:</span>
-                 <span class="field-value-fixed" style="width:20px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.Hidrocele ? "X" : "")</span>
+                 <span class="field-value-fixed" style="width:16px; height:16px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.Hidrocele ? "X" : "")</span>
                  
-                 <span style="margin-left: 30px;">Hernia:</span>
-                 <span class="field-value-fixed" style="width:30px; height:20px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.Hernia ? "X" : "")</span>
+                 <span style="margin-left: 15px;">Hernia:</span>
+                 <span class="field-value-fixed" style="width:25px; height:16px; border:1px solid #000; display:inline-block; margin-left:5px; text-align:center; font-weight:bold;">@(Model.DetalleMasculino.Hernia ? "X" : "")</span>
                  
-                <span style="margin-left: 30px;">MPF:</span>
-                <span class="field-value" style="width:120px; flex-grow:0; border-bottom: 1px solid #000;">@Model.DetalleMasculino.MetodoPlanificacion</span>
+                <span style="margin-left: 15px;">MPF:</span>
+                <span class="field-value" style="width:100px; flex-grow:0; border-bottom: 1px solid #000;">@Model.DetalleMasculino.MetodoPlanificacion</span>
             </div>
         } else {
             <div class="field-row"><span class="field-label">ANTECEDENTES DE APARATO GENITOURINARIO MASCULINO:</span> <span class="field-value">N/A</span></div>
         }
 
         <!-- COLUMNA -->
-        <br/>
-        <div class="field-row">
+        <div class="field-row" style="margin-top:5px;">
             <span class="field-label">COLUMNA VERTEBRAL:</span>
-            <span style="margin-left: 50px;">N: Normal</span>
-            <span style="margin-left: 50px;">A: Aumentada</span>
-            <span style="margin-left: 50px;">D: Disminuida</span>
+            <span style="margin-left: 30px;">N: Normal</span>
+            <span style="margin-left: 30px;">A: Aumentada</span>
+            <span style="margin-left: 30px;">D: Disminuida</span>
         </div>
         <table class="data-table" style="margin-top:5px; text-align:center;">
             <tr>
@@ -638,24 +661,23 @@
             </tr>
         </table>
         
-        <br/><br/>
         <!-- DIAGNOSTIC -->
-        <div class="field-row" style="margin-bottom: 20px;">
-            <span class="field-label" style="width: 120px;">DIAGNÓSTICO</span>
+        <div class="field-row" style="margin-top:10px;">
+            <span class="field-label" style="width: 100px;">DIAGNÓSTICO</span>
             <span class="field-value">@Model.Observaciones</span>
         </div>
         
-        <div class="field-row" style="margin-bottom: 30px;">
-            <span class="field-label" style="width: 120px;">RESULTADO:</span>
+        <div class="field-row" style="margin-top: 5px;">
+            <span class="field-label" style="width: 100px;">RESULTADO:</span>
             
             <span class="field-label">APTO:</span>
-            <span class="field-value" style="width: 80px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 1 ? "X" : "")</span>
+            <span class="field-value" style="width: 60px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 1 ? "X" : "")</span>
             
-            <span class="field-label" style="margin-left: 30px;">NO APTO:</span>
-            <span class="field-value" style="width: 80px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 3 ? "X" : "")</span>
+            <span class="field-label" style="margin-left: 20px;">NO APTO:</span>
+            <span class="field-value" style="width: 60px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 3 ? "X" : "")</span>
             
-            <span class="field-label" style="margin-left: 30px;">CON RESTRICCIONES:</span>
-            <span class="field-value" style="width: 80px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 2 ? "X" : "")</span>
+            <span class="field-label" style="margin-left: 20px;">RESTRICCIONES:</span>
+            <span class="field-value" style="width: 60px; flex-grow:0; text-align:center; font-weight:bold;">@(Model.FkAptitudMedica == 2 ? "X" : "")</span>
         </div>
         
         <div class="field-row" style="margin-bottom: 8px;">
@@ -676,21 +698,21 @@
             </span>
         </div>
         
-        <div style="font-size: 7.5pt; text-align: justify; margin-top:20px; line-height:1.2;">
+        <div style="font-size: 6.8pt; text-align: justify; margin-top:10px; line-height:1.1;">
             Declaro que toda la información suministrada es verídica y que no he ocultado ningún dato sobre mis antecedentes y/o estado de salud y estoy consciente que
             cualquier omisión o falsificación la empresa tendrá la facultad de anular cualquier tramite relacionado conmigo y autorizo al servicio médico (salud ocupacional) de la
             empresa para que realice los exámenes necesarios con motivo de mi trabajo y sean utilizados con fines estadísticos y epidemiológicos. Así mismo autorizo al medico
             referente para poner en conocimiento de la empresa todo lo referente a los resultados del examen físico y de las pruebas auxiliares de diagnóstico.
         </div>
         
-        <div class="field-row" style="margin-top: 30px;">
-            <span class="field-label" style="width: 250px;">NOMBRE Y FIRMA DEL TRABAJADOR (A):</span>
-            <span class="field-value" style="text-align:center; font-weight:bold; text-transform:uppercase;">
+        <div class="field-row" style="margin-top: 20px;">
+            <span class="field-label" style="width: 220px;">NOMBRE Y FIRMA DEL TRABAJADOR (A):</span>
+            <span class="field-value" style="text-align:center; font-weight:bold; text-transform:uppercase; font-size: 8pt;">
                  @paciente.NombreCompleto
             </span>
         </div>
         
-        <div class="footer-rev" style="margin-top: 40px; font-size: 11pt;">GCI-FOR-SYM-45 REV. 0</div>
+        <div class="footer-rev">GCI-FOR-SYM-45 REV. 0</div>
     </div>
 
 </body>

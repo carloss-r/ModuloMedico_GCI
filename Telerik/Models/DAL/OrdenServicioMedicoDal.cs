@@ -194,7 +194,10 @@ namespace Telerik.Models.DAL
                                    x.anti.veredictoFinal != null && x.anti.veredictoFinal.ToUpper().Contains("NO APTO") ? 3 : (int?)null) 
                                 : (int?)null)
                             : (x.eval != null ? x.eval.fkAptitudMedica : (int?)null),
-                        Recomendaciones = x.o.fkTipoServicio == 3 ? (x.anti != null ? x.anti.veredictoFinal : null) : (x.eval != null ? x.eval.recomendaciones : null)
+                        Recomendaciones = x.o.fkTipoServicio == 3 ? (x.anti != null ? x.anti.veredictoFinal : null) : (x.eval != null ? x.eval.recomendaciones : null),
+                        // Presencia de datos
+                        TieneEvaluacion = x.eval != null,
+                        TieneAntidoping = x.anti != null
                     })
                     .ToList();
 
@@ -277,7 +280,9 @@ namespace Telerik.Models.DAL
                                          anti.veredictoFinal != null && anti.veredictoFinal.ToUpper().Contains("NO APTO") ? 3 : (int?)null) 
                                       : (int?)null)
                                   : (eval != null ? eval.fkAptitudMedica : (int?)null),
-                              Recomendaciones = o.fkTipoServicio == 3 ? (anti != null ? anti.veredictoFinal : null) : (eval != null ? eval.recomendaciones : null)
+                              Recomendaciones = o.fkTipoServicio == 3 ? (anti != null ? anti.veredictoFinal : null) : (eval != null ? eval.recomendaciones : null),
+                              TieneEvaluacion  = eval != null,
+                              TieneAntidoping  = anti != null
                           }).FirstOrDefault();
 
                 return vm;

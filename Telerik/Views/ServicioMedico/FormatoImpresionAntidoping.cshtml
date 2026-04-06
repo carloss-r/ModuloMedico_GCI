@@ -195,12 +195,13 @@
             </div>
         </div>
 
-        <div class="footer-msg">
-            NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES
+        <div class="footer-msg" style="text-align:center; color:@(Model.VeredictoFinal == "POSITIVO" ? "red" : "blue");">
+            @((Model.VeredictoFinal == "POSITIVO") ? "NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES" : "APTO PARA REALIZAR ACTIVIDADES OPERACIONALES")
         </div>
 
         <div class="footer-sign">
-            <div class="fs-name">LIC. NATALY MARTINEZ PUGA</div>
+            <
+
             <div class="fs-line">Nombre y Firma de quien toma la muestra</div>
         </div>
 
