@@ -28,7 +28,7 @@ namespace Telerik.Controllers
         public ActionResult Index()
         {
             ViewBag.Title = "Servicio Médico - Solicitudes Recibidas";
-            return View("~/Views/ServicioMedico/ListaServiciosMedicos.cshtml");
+            return PartialView("~/Views/ServicioMedico/ListaServiciosMedicos.cshtml");
         }
 
         // GET: /ServicioMedico/IniciarEvaluacion/5
@@ -61,7 +61,7 @@ namespace Telerik.Controllers
             ViewBag.IdOrden = id;
             ViewBag.TipoServicio = orden.FkTipoServicio;
             ViewBag.Sexo = _medicalService.NormalizarSexo(orden.SexoCandidato);
-            return View("~/Views/ServicioMedico/FormularioEvaluacionMedica.cshtml");
+            return PartialView("~/Views/ServicioMedico/FormularioEvaluacionMedica.cshtml");
         }
 
         // GET: /ServicioMedico/ObtenerSolicitudes?pagina=1&tamanoPagina=25
@@ -200,7 +200,7 @@ namespace Telerik.Controllers
 
                 ViewBag.Orden = orden;
                 ViewBag.Paciente = _medicalService.ObtenerInfoPaciente(orden);
-                return View("~/Views/ServicioMedico/FormatoImpresionEvaluacionMedica.cshtml", evaluacion);
+                return PartialView("~/Views/ServicioMedico/FormatoImpresionEvaluacionMedica.cshtml", evaluacion);
             }
             catch (Exception ex)
             {
@@ -222,7 +222,7 @@ namespace Telerik.Controllers
 
                 ViewBag.Orden = orden;
                 ViewBag.Paciente = _medicalService.ObtenerInfoPaciente(orden);
-                return View("~/Views/ServicioMedico/FormatoImpresionAntidoping.cshtml", antidoping);
+                return PartialView("~/Views/ServicioMedico/FormatoImpresionAntidoping.cshtml", antidoping);
             }
             catch (Exception ex)
             {
@@ -617,7 +617,7 @@ namespace Telerik.Controllers
                 }
             }
 
-            return View("~/Views/Solicitud/FormatoImpresionInstruccionesRH.cshtml", orden);
+            return PartialView("~/Views/Solicitud/FormatoImpresionInstruccionesRH.cshtml", orden);
         }
 
         // POST: /ServicioMedico/Eliminar
