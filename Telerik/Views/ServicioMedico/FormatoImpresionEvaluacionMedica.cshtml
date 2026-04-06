@@ -223,10 +223,10 @@
         
         <div class="field-row" style="margin-top: 5px;">
             <span class="field-label">Estado Civil:</span>
-            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Soltero" ? "X" : "")</span> soltero</span>
-            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Casado" ? "X" : "")</span> casado</span>
-            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Unión Libre" ? "X" : "")</span> union libre</span>
-            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "Divorciado" || Model.EstadoCivil == "Viudo" ? "X" : "")</span> separado/otro</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "1" || Model.EstadoCivil?.ToUpper() == "SOLTERO" ? "X" : "")</span> soltero</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "2" || Model.EstadoCivil?.ToUpper() == "CASADO" ? "X" : "")</span> casado</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "3" || Model.EstadoCivil?.ToUpper() == "UNIÓN LIBRE" || Model.EstadoCivil?.ToUpper() == "UNION LIBRE" ? "X" : "")</span> union libre</span>
+            <span class="chk-container"><span class="chk-box">@(Model.EstadoCivil == "4" || Model.EstadoCivil?.ToUpper() == "DIVORCIADO" || Model.EstadoCivil?.ToUpper() == "VIUDO" || Model.EstadoCivil?.ToUpper() == "SEPARADO / OTRO" ? "X" : "")</span> separado/otro</span>
             
             <span class="field-label" style="margin-left: 10px;">Mano dominante:</span>
             <span class="field-value" style="flex-grow:0; width: 120px; text-align:center;">@Model.ManoDominante</span>
@@ -254,10 +254,10 @@
         
         <div class="field-row" style="margin-top:5px;">
             <span class="field-label">Nivel Académico:</span>
-            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Primaria" ? "X" : "")</span> Primaria</span>
-            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Secundaria" ? "X" : "")</span> Secundaria</span>
-            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Preparatoria" ? "X" : "")</span> Media Sup.</span>
-            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad == "Universidad" ? "X" : "")</span> Universidad</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad?.ToUpper() == "PRIMARIA" ? "X" : "")</span> Primaria</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad?.ToUpper() == "SECUNDARIA" ? "X" : "")</span> Secundaria</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad?.ToUpper() == "PREPARATORIA" || Model.Escolaridad?.ToUpper() == "MEDIA SUPERIOR" || Model.Escolaridad?.ToUpper() == "BACHILLERATO" ? "X" : "")</span> Media Sup.</span>
+            <span class="chk-container"><span class="chk-box">@(Model.Escolaridad?.ToUpper() == "UNIVERSIDAD" || Model.Escolaridad?.ToUpper() == "PROFESIONAL" || Model.Escolaridad?.ToUpper() == "LICENCIATURA" || Model.Escolaridad?.ToUpper() == "POSGRADO" ? "X" : "")</span> Universidad</span>
             <span class="field-label" style="margin-left: 10px;">Profesión:</span>
             <span class="field-value">@Model.Profesion</span>
         </div>
@@ -578,7 +578,10 @@
         }
 
         <!-- APARATO GENITOURINARIO -->
-        @if (paciente.Sexo == "M" && Model.DetalleMasculino != null) {
+        @{
+            bool esMasculino = (paciente != null && (paciente.Sexo == "M" || paciente.Sexo?.ToUpper() == "MASCULINO"));
+        }
+        @if (esMasculino && Model.DetalleMasculino != null) {
             <div class="field-row">
                 <span class="field-label">ANTECEDENTES DE APARATO GENITOURINARIO MASCULINO:</span>
             </div>
@@ -628,15 +631,15 @@
             </tr>
             <tr>
                 <td>LORDOSIS</td>
-                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisCervical.HasValue ? (Model.Columna.LordosisCervical == 1 ? "N" : (Model.Columna.LordosisCervical == 2 ? "A" : "D")) : "")</td>
-                <td style="background:#a0a0a0; font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisDorsal.HasValue ? (Model.Columna.LordosisDorsal == 1 ? "N" : (Model.Columna.LordosisDorsal == 2 ? "A" : "D")) : "")</td>
-                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisLumbar.HasValue ? (Model.Columna.LordosisLumbar == 1 ? "N" : (Model.Columna.LordosisLumbar == 2 ? "A" : "D")) : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisCervical.HasValue && Model.Columna.LordosisCervical > 0 ? (Model.Columna.LordosisCervical == 1 ? "N" : (Model.Columna.LordosisCervical == 2 ? "A" : "D")) : "")</td>
+                <td style="background:#dcdcdc; font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisDorsal.HasValue && Model.Columna.LordosisDorsal > 0 ? (Model.Columna.LordosisDorsal == 1 ? "N" : (Model.Columna.LordosisDorsal == 2 ? "A" : "D")) : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.LordosisLumbar.HasValue && Model.Columna.LordosisLumbar > 0 ? (Model.Columna.LordosisLumbar == 1 ? "N" : (Model.Columna.LordosisLumbar == 2 ? "A" : "D")) : "")</td>
             </tr>
             <tr>
                 <td>CIFOSIS</td>
-                <td style="background:#a0a0a0; font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisCervical.HasValue ? (Model.Columna.CifosisCervical == 1 ? "N" : (Model.Columna.CifosisCervical == 2 ? "A" : "D")) : "")</td>
-                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisDorsal.HasValue ? (Model.Columna.CifosisDorsal == 1 ? "N" : (Model.Columna.CifosisDorsal == 2 ? "A" : "D")) : "")</td>
-                <td style="background:#a0a0a0; font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisLumbar.HasValue ? (Model.Columna.CifosisLumbar == 1 ? "N" : (Model.Columna.CifosisLumbar == 2 ? "A" : "D")) : "")</td>
+                <td style="background:#dcdcdc; font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisCervical.HasValue && Model.Columna.CifosisCervical > 0 ? (Model.Columna.CifosisCervical == 1 ? "N" : (Model.Columna.CifosisCervical == 2 ? "A" : "D")) : "")</td>
+                <td style="font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisDorsal.HasValue && Model.Columna.CifosisDorsal > 0 ? (Model.Columna.CifosisDorsal == 1 ? "N" : (Model.Columna.CifosisDorsal == 2 ? "A" : "D")) : "")</td>
+                <td style="background:#dcdcdc; font-weight:bold;">@(Model.Columna != null && Model.Columna.CifosisLumbar.HasValue && Model.Columna.CifosisLumbar > 0 ? (Model.Columna.CifosisLumbar == 1 ? "N" : (Model.Columna.CifosisLumbar == 2 ? "A" : "D")) : "")</td>
             </tr>
         </table>
         

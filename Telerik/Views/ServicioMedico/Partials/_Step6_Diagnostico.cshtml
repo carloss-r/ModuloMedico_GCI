@@ -107,26 +107,37 @@
 
     <h3 class="section-title">Diagn&oacute;stico</h3>
 
-    <div class="form-group" style="margin-bottom:25px;">
-        <label>DIAGN&Oacute;STICO M&Eacute;DICO</label>
-        <textarea id="txtDiagnostico" class="form-control" rows="4" placeholder="Escriba el diagnóstico clínico detallado..."></textarea>
+    <!-- Resultado arriba, destacado -->
+    <div style="margin-bottom: 20px;">
+        <label style="display:block; font-size:0.82rem; color:#34495e; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:6px;">RESULTADO / APTITUD</label>
+        <select id="ddlAptitud" class="form-control" style="max-width: 320px;">
+            <option value="">-- Seleccione --</option>
+            <option value="1">APTO</option>
+            <option value="2">CON RESTRICCIONES</option>
+            <option value="3">NO APTO</option>
+            <option value="4">Pendiente de Evaluaci&oacute;n</option>
+        </select>
     </div>
 
-    <div class="paper-row">
-        <div class="form-group flex-1">
-            <label>RESULTADO</label>
-            <select id="ddlAptitud" class="form-control">
-                <option value="">-- Seleccione --</option>
-                <option value="1">APTO</option>
-                <option value="2">CON RESTRICCIONES</option>
-                <option value="3">NO APTO</option>
-                <option value="4">Pendiente de Evaluaci&oacute;n</option>
-            </select>
+    <!-- Diagnóstico y Recomendaciones lado a lado -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%;">
+        <div>
+            <label style="display:block; font-size:0.82rem; color:#34495e; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:6px;">DIAGN&Oacute;STICO M&Eacute;DICO</label>
+            <textarea id="txtDiagnostico" class="form-control" rows="4" placeholder="Escriba el diagnóstico clínico detallado..." style="width:100%; resize:vertical; min-height:90px;"></textarea>
+        </div>
+        <div>
+            <label style="display:block; font-size:0.82rem; color:#34495e; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:6px;">RECOMENDACIONES AL TRABAJADOR</label>
+            <textarea id="txtRecomendaciones" class="form-control" rows="4" placeholder="Indique las recomendaciones preventivas o de seguimiento..." style="width:100%; resize:vertical; min-height:90px;"></textarea>
         </div>
     </div>
 
-    <div class="form-group">
-        <label>RECOMENDACIONES AL TRABAJADOR</label>
-        <textarea id="txtRecomendaciones" class="form-control" rows="4" placeholder="Indique las recomendaciones preventivas o de seguimiento..."></textarea>
-    </div>
-</div>
+
+<script>
+    $(document).ready(function() {
+        // Bloquear sectores que no aplican según el formato oficial (sombreados)
+        $('#ddlLordosisDorsal, #ddlCifosisCervical, #ddlCifosisLumbar').css('background', '#f5f5f5').prop('disabled', true).val('0');
+        
+        // Tooltip o aviso sutil
+        $('#ddlLordosisDorsal, #ddlCifosisCervical, #ddlCifosisLumbar').attr('title', 'Esta curva no aplica para evaluación estándar');
+    });
+</script>

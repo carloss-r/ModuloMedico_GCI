@@ -15,7 +15,7 @@ namespace Telerik.Services
             if (string.IsNullOrEmpty(sexo)) return null; 
             string s = sexo.Trim().ToUpper();
             if (s == "HOMBRE" || s == "H" || s == "1" || s == "MASCULINO" || s == "MASC" || s == "M") return "M";
-            if (s == "MUJER" || s == "M" || s == "2" || s == "FEMENINO" || s == "FEM" || s == "F") return "F";
+            if (s == "MUJER" || s == "2" || s == "FEMENINO" || s == "FEM" || s == "F") return "F";
             return null; 
         }
 
