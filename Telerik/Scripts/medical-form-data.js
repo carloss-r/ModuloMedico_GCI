@@ -138,8 +138,6 @@ function loadPatientData(idOrden) {
             $('#txtEmpresa').val(p.Empresa || '');
            
             if(p.Nss) $('#txtNss').val(p.Nss);
-            if(p.Rfc) $('#txtRfc').val(p.Rfc);
-            if(p.Curp) $('#txtCurp').val(p.Curp);
             if(p.Escolaridad) {
                 var esc = p.Escolaridad.toUpperCase().trim();
                 // Normalizaci\u00f3n para el dropdown
@@ -169,7 +167,7 @@ function loadPatientData(idOrden) {
             
             if(p.Tipo === 'CANDIDATO') {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
-                $('#txtRfc, #txtCurp, #txtEscolaridad').prop('readonly', false);
+                $('#txtEscolaridad').prop('readonly', false);
                 // Domicilio habilitado
                 $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
                 $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
@@ -177,7 +175,7 @@ function loadPatientData(idOrden) {
                 $('#secLaborales').show();
             } else {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', true);
-                $('#txtRfc, #txtCurp, #txtEscolaridad').prop('readonly', true);
+                $('#txtEscolaridad').prop('readonly', true);
                 // Domicilio solo lectura para empleados (sus datos vienen de BD y se editan en módulo RH)
                 $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', true);
                 // NOTA: Se desbloquean los selects de zona geográfica para poder utilizarlos y probarlos

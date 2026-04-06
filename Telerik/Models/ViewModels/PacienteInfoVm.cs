@@ -28,6 +28,7 @@ namespace Telerik.Models.ViewModels
         public bool TieneHijos { get; set; }
         public string NumeroHijos { get; set; }
         public string Escolaridad { get; set; }
+        public int? FkTipoSangre { get; set; }
 
         // Geographic FKs for pre-populating cascading dropdowns
         public int? FkPais { get; set; }

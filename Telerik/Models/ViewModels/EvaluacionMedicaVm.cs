@@ -29,6 +29,8 @@ namespace Telerik.Models.ViewModels
 
         // New Demographic Fields
         public string Nss { get; set; }
+        public string Curp { get; set; }
+        public string Email { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public string LugarNacimiento { get; set; }
         public string EstadoCivil { get; set; }

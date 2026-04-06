@@ -289,6 +289,7 @@ var datosSolicitudes = [];
         $.each(empresas, function(_, e) {
            $empIng.append('<option value="' + e.Id + '">' + e.Descripcion + '</option>');
         });
+
         catalogosLoaded = true;
     }
 
@@ -337,10 +338,17 @@ var datosSolicitudes = [];
             data.ApellidoMaterno = $('#txtAMaternoCandidato').val();
             data.Sexo = $('#ddlSexoCandidato').val();
             data.FkEmpresa = $('#ddlEmpresaIng').val();
+            var empSel = $('#ddlEmpresaIng option:selected');
+            if(empSel.val()) data.EmpresaDesc = empSel.text();
+            
             data.FkProyecto = $('#ddlProyectoIng').val();
+            var proySel = $('#ddlProyectoIng option:selected');
+            if(proySel.val()) data.ProyectoDesc = proySel.text();
+
             var puestoSel = $('#ddlPuestoIng option:selected');
             if(puestoSel.val()) data.PuestoDeseado = puestoSel.text();
-            data.FkTipoServicio = $('#ddlTipoServicioIng').val() || 1; // Forzar 1 si no hay valor (Default Ingreso)
+
+            data.FkTipoServicio = $('#ddlTipoServicioIng').val() || 1;
             
              if(!data.NombreCandidato) { mostrarAlertaModal('Ingrese el nombre del candidato', false); return; }
              if(!data.ApellidoPaterno) { mostrarAlertaModal('Ingrese el apellido paterno del candidato', false); return; }

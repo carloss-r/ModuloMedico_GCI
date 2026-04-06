@@ -41,6 +41,7 @@ namespace Telerik.Models.DAL
                             aparatosSistemas       = vm.AparatosSistemas + (vm.Glucosa.HasValue || vm.Oximetria.HasValue || !string.IsNullOrEmpty(vm.ImcDescripcion) ? $" [[STOWED-DATA: Glucosa:{vm.Glucosa}|Oxi:{vm.Oximetria}|IMCDesc:{vm.ImcDescripcion}]]" : ""),
                             fkAptitudMedica        = vm.FkAptitudMedica,
                             observaciones          = vm.Observaciones,
+                            recomendaciones        = vm.Recomendaciones,
                             sintomasPaciente       = vm.SintomasPaciente,
                             nss                    = vm.Nss,
                             fechaNacimiento        = vm.FechaNacimiento,
@@ -220,37 +221,53 @@ namespace Telerik.Models.DAL
                             });
                         }
 
-                        // 8. Actualizar datos del Candidato si aplica
-                        var orden = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
-                        if (orden != null && orden.fkCandidato.HasValue)
+                        // 8. Sincronizar datos del Candidato (Si aplica)
+                        try
                         {
-                            var cand = db.Candidatos.Find(orden.fkCandidato.Value);
-                            if (cand != null)
+                            var o = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
+                            if (o != null && o.fkCandidato.HasValue)
                             {
-                                if (!string.IsNullOrEmpty(vm.NombreCandidato)) cand.nombre = vm.NombreCandidato;
-                                if (!string.IsNullOrEmpty(vm.ApellidoPaternoCandidato)) cand.aPaterno = vm.ApellidoPaternoCandidato;
-                                if (!string.IsNullOrEmpty(vm.ApellidoMaternoCandidato)) cand.aMaterno = vm.ApellidoMaternoCandidato;
-                                if (!string.IsNullOrEmpty(vm.SexoCandidato)) cand.fkSexo = vm.SexoCandidato;
-                                if (!string.IsNullOrEmpty(vm.PuestoCandidato)) cand.puestoDeseado = vm.PuestoCandidato;
-                                if (!string.IsNullOrEmpty(vm.AreaCandidato)) cand.area = vm.AreaCandidato;
-                                if (!string.IsNullOrEmpty(vm.EmpresaCandidato)) cand.empresa = vm.EmpresaCandidato;
-                                
-                                // Domicilio en Cascada
-                                if (vm.FkPais.HasValue) cand.fkPais = vm.FkPais.Value;
-                                if (vm.FkEstado.HasValue) cand.fkEstado = vm.FkEstado.Value;
-                                if (vm.FkMunicipio.HasValue) cand.fkMunicipio = vm.FkMunicipio.Value;
-                                if (vm.FkColonia.HasValue) cand.fkColonia = vm.FkColonia.Value;
-                                if (vm.FkCP.HasValue) cand.fkCP = vm.FkCP.Value;
-                                if (!string.IsNullOrEmpty(vm.Calle)) cand.calle = vm.Calle;
-                                if (!string.IsNullOrEmpty(vm.NumExterior)) cand.numExterior = vm.NumExterior;
-                                if (!string.IsNullOrEmpty(vm.NumInterior)) cand.numInterior = vm.NumInterior;
+                                var cand = db.Candidatos.Find(o.fkCandidato.Value);
+                                if (cand != null)
+                                {
+                                    // Identidad y Datos Generales
+                                    cand.nss             = vm.Nss;
+                                    cand.telefono        = vm.Telefono;
+                                    cand.fechaNacimiento = vm.FechaNacimiento;
+                                    cand.manoDominante   = vm.ManoDominante;
+                                    cand.fkTipoSangre    = (vm.FkTipoSangre != null && vm.FkTipoSangre > 0) ? vm.FkTipoSangre : null;
+
+                                    if (!string.IsNullOrEmpty(vm.EstadoCivil)) {
+                                        int ecVal;
+                                        if (int.TryParse(vm.EstadoCivil, out ecVal)) cand.fkEstadoCivil = ecVal;
+                                    }
+
+                                    // Localización Geográfica
+                                    if (vm.FkPais.HasValue)      cand.fkPais      = vm.FkPais;
+                                    if (vm.FkEstado.HasValue)    cand.fkEstado    = vm.FkEstado;
+                                    if (vm.FkMunicipio.HasValue) cand.fkMunicipio = vm.FkMunicipio;
+                                    if (vm.FkColonia.HasValue)   cand.fkColonia   = vm.FkColonia;
+                                    if (vm.FkCP.HasValue)        cand.fkCP        = vm.FkCP;
+                                    
+                                    if (!string.IsNullOrEmpty(vm.Calle))       cand.calle       = vm.Calle;
+                                    if (!string.IsNullOrEmpty(vm.NumExterior)) cand.numExterior = vm.NumExterior;
+                                    if (!string.IsNullOrEmpty(vm.NumInterior)) cand.numInterior = vm.NumInterior;
+
+                                    // Sincronizar Sexo (Ahora con IDs correctos M/F)
+                                    if (!string.IsNullOrEmpty(vm.SexoCandidato)) cand.fkSexo = vm.SexoCandidato;
+                                }
+                            }
+
+                            // 9. Actualizar estatus de la orden a "En Proceso" (2)
+                            if (o != null && o.fkEstatus == 1)
+                            {
+                                o.fkEstatus = 2;
                             }
                         }
-
-                        // 9. Actualizar estatus de la orden a "En Proceso" (2)
-                        if (orden != null && orden.fkEstatus == 1)
+                        catch (Exception syncEx)
                         {
-                            orden.fkEstatus = 2;
+                            // Registramos el error de sincronización pero NO bloqueamos el guardado clínico
+                            System.Diagnostics.Debug.WriteLine("Sincronización de candidato falló: " + syncEx.Message);
                         }
 
                         db.SaveChanges();
@@ -308,6 +325,7 @@ namespace Telerik.Models.DAL
                     AparatosSistemas       = eval.aparatosSistemas,
                     FkAptitudMedica        = eval.fkAptitudMedica,
                     Observaciones          = eval.observaciones,
+                    Recomendaciones        = eval.recomendaciones,
                     SintomasPaciente       = eval.sintomasPaciente,
                     Nss                    = eval.nss,
                     FechaNacimiento        = eval.fechaNacimiento,

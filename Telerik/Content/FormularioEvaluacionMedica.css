@@ -3,7 +3,7 @@
     .page-header h2 { color: #1a5276; margin: 0; font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
     /* Wizard Container - reduced from 1000px to tighten up the layout */
-    .wizard-container { background: #fff; border: 1px solid #d0d0d0; border-radius: 6px; padding: 0; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); max-width: 850px; margin: 0 auto; }
+    .wizard-container { background: #fff; border: 1px solid #d0d0d0; border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); max-width: 900px; margin: 0 auto; }
     .wizard-steps { display: flex; background: #f5f8fc; border-bottom: 1px solid #d0d0d0; }
     .wizard-step { flex: 1; padding: 15px; text-align: center; cursor: pointer; border-right: 1px solid #e0e0e0; color: #777; font-weight: 600; font-size: 0.85rem; position: relative; transition: all 0.2s; }
     .wizard-step:last-child { border-right: none; }
@@ -12,13 +12,13 @@
     .wizard-step i { display: block; font-size: 1.3rem; margin-bottom: 5px; }
     .wizard-step:hover:not(.active) { background: #eaf2f8; color: #1a5276; }
 
-    .wizard-content { padding: 15px 25px; }
-    .step-panel { display: none; animation: fadeIn 0.4s; }
+    .wizard-content { padding: 30px 40px; }
+    .step-panel { display: none; animation: fadeIn 0.4s; text-align: center; }
     .step-panel.active { display: block; }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
-    .section-title { font-size: 1.1rem; color: #1a5276; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; font-weight: 700; letter-spacing: 0.3px; grid-column: 1 / -1; }
+    .section-title { font-size: 1.25rem; color: #1a5276; border-bottom: 2px solid #eaf2f8; padding-bottom: 15px; margin-bottom: 25px; font-weight: 800; letter-spacing: 0.5px; grid-column: 1 / -1; text-align: center; }
     
     /* Paper Row Layout - Replaces form-grid to mimic the physical document rows */
     .paper-row { 
@@ -28,7 +28,11 @@
         align-items: flex-end; 
         width: 100%;
     }
-    .paper-row .form-group { flex: 1; margin: 0; min-width: 0; }
+    .paper-row .form-group { flex: 1; margin: 0; min-width: 0; text-align: left; }
+    
+    /* Center textareas and large inputs */
+    .form-group textarea { width: 100%; border-radius: 8px; border: 1.5px solid #dee2e6; padding: 12px; font-family: inherit; }
+    .form-group textarea:focus { border-color: #1a5276; box-shadow: 0 0 0 3px rgba(26, 82, 118, 0.1); }
     
     /* Utility flex sizing for rows */
     .flex-05 { flex: 0.5 !important; }
@@ -75,12 +79,12 @@
     .ad-header h3 { color: #c0392b; margin: 0; font-size: 1.3rem; }
 
     /* Custom Modals */
-    .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(2px); }
-    .custom-modal { background: #fff; width: 500px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; animation: slideDown 0.3s; }
-    .cm-header { background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-    .cm-header h4 { margin: 0; color: #1a5276; font-size: 1.1rem; }
-    .cm-body { padding: 20px; color: #444; font-size: 0.95rem; line-height: 1.5; }
-    .cm-footer { padding: 15px 20px; background: #f8f9fa; border-top: 1px solid #eee; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
+    .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); transition: all 0.3s; }
+    .custom-modal { background: #fff; width: 520px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .cm-header { background: #fff; padding: 25px 30px 15px; border-bottom: none; display: flex; justify-content: center; align-items: center; text-align: center; }
+    .cm-header h4 { margin: 0; color: #1a5276; font-size: 1.4rem; font-weight: 800; }
+    .cm-body { padding: 10px 40px 30px; color: #555; font-size: 1.05rem; line-height: 1.6; text-align: center; }
+    .cm-footer { padding: 20px 40px 30px; background: #fff; border-top: none; text-align: center; display: flex; justify-content: center; gap: 15px; }
     
     .consent-text { max-height: 300px; overflow-y: auto; background: #fcfcfc; border: 1px solid #eee; padding: 15px; border-radius: 4px; font-size: 0.85rem; color: #555; text-align: justify; margin-bottom: 10px; }
     

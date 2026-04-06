@@ -238,6 +238,7 @@ function mapearEvaluacionAlFormulario(d, esHistorial) {
 
     // Datos persistentes (Identidad) siempre se cargan
     if(d.Nss) $('#txtNss').val(d.Nss);
+    if(d.Email) $('#txtEmail').val(d.Email);
     
     if(d.FechaNacimiento) {
         var formattedDate = formatDateForInput(d.FechaNacimiento);

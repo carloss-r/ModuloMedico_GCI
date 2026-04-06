@@ -27,9 +27,9 @@ function aceptarConsentimiento() {
 }
 
 function rechazarConsentimiento() {
-    if(confirm("Si rechaza el consentimiento, no se podr\u00e1 realizar el Antidoping. La solicitud se marcar\u00e1 como Completada. \u00bfDesea salir?")) {
-        completarSinAntidoping();
-    }
+    showConfirm("Al rechazar el consentimiento, no se podr\u00e1 realizar el Antidoping. La solicitud se marcar\u00e1 como completada solo con el examen m\u00e9dico. \u00bfDesea salir?", function(res) {
+        if(res) completarSinAntidoping();
+    });
 }
 
 function completarSinAntidoping() {

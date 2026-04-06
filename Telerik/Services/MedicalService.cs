@@ -12,11 +12,11 @@ namespace Telerik.Services
     {
         public string NormalizarSexo(string sexo)
         {
-            if (string.IsNullOrEmpty(sexo)) return "";
+            if (string.IsNullOrEmpty(sexo)) return null; 
             string s = sexo.Trim().ToUpper();
-            if (s == "M" || s == "MASCULINO" || s == "MASC" || s == "1" || s == "HOMBRE" || s == "H") return "M";
-            if (s == "F" || s == "FEMENINO" || s == "FEM" || s == "2" || s == "MUJER") return "F";
-            return ""; // Fallback to empty if not recognized, to allow user selection
+            if (s == "HOMBRE" || s == "H" || s == "1" || s == "MASCULINO" || s == "MASC" || s == "M") return "M";
+            if (s == "MUJER" || s == "M" || s == "2" || s == "FEMENINO" || s == "FEM" || s == "F") return "F";
+            return null; 
         }
 
         public PacienteInfoVm ObtenerInfoPaciente(OrdenServicioMedicoVm orden)
@@ -75,7 +75,7 @@ namespace Telerik.Services
                         EstadoCivil = emp.EstadoCivil,
                         TipoSangre = emp.TipoSangre,
                         Rfc = emp.Rfc,
-                        Curp = emp.Curp,
+                        Curp = "", // Retired as not needed in UI
                         TieneHijos = emp.TieneHijos,
                         NumeroHijos = emp.NumeroHijosDesc,
                         Escolaridad = emp.EscolaridadDesc,
@@ -100,7 +100,9 @@ namespace Telerik.Services
                 ApellidoPaterno = cand != null ? cand.aPaterno : null,
                 ApellidoMaterno = cand != null ? cand.aMaterno : null,
                 NombreCompleto = (cand != null ? (cand.nombre + " " + cand.aPaterno + " " + cand.aMaterno) : (orden.NombrePersona ?? "")).Trim(),
-                Edad = orden.EdadCandidato ?? "",
+                Edad = (cand != null && cand.fechaNacimiento.HasValue) ? 
+                       (DateTime.Today.Year - cand.fechaNacimiento.Value.Year - (DateTime.Today < cand.fechaNacimiento.Value.AddYears(DateTime.Today.Year - cand.fechaNacimiento.Value.Year) ? 1 : 0)).ToString() : 
+                       (orden.EdadCandidato ?? ""),
                 Puesto = (cand != null ? cand.puestoDeseado : orden.PuestoCandidato) ?? "",
                 Area = (cand != null ? cand.area : orden.AreaCandidato) ?? "",
                 Empresa = cand != null ? cand.empresa : (!string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : (orden.ProyectoDesc ?? "")),
@@ -108,7 +110,27 @@ namespace Telerik.Services
                 Tipo = "CANDIDATO",
                 TipoServicioId = orden.FkTipoServicio,
                 TipoServicioDesc = orden.TipoServicioDesc,
-                NumeroEmpleado = "N/A"
+                NumeroEmpleado = "N/A",
+
+                // New fields for synchronization
+                FechaNacimiento = cand != null && cand.fechaNacimiento.HasValue ? cand.fechaNacimiento.Value.ToString("yyyy-MM-dd") : "",
+                Nss = cand != null ? cand.nss : "",
+                Curp = "", // Retired as not needed in UI
+                Telefono = cand != null ? cand.telefono : "",
+                EstadoCivil = (cand != null && cand.fkEstadoCivil.HasValue) ? cand.fkEstadoCivil.Value.ToString() : "", 
+                FkTipoSangre = cand != null ? cand.fkTipoSangre : null,
+                Escolaridad = cand != null ? cand.escolaridad : "",
+                
+                // Address data
+                FkPais = cand != null ? cand.fkPais : null,
+                FkEstado = cand != null ? cand.fkEstado : null,
+                FkMunicipio = cand != null ? cand.fkMunicipio : null,
+                FkColonia = cand != null ? cand.fkColonia : null,
+                FkCP = cand != null ? cand.fkCP : null,
+                Calle = cand != null ? cand.calle : "",
+                NumExterior = cand != null ? cand.numExterior : "",
+                NumInterior = cand != null ? cand.numInterior : "",
+                CPDesc = (cand != null && cand.fkCP.HasValue) ? cand.fkCP.Value.ToString() : ""
             };
         }
 

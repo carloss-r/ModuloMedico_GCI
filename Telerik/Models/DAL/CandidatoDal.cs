@@ -18,7 +18,7 @@ namespace Telerik.Models.DAL
                     puestoDeseado  = puestoDeseado,
                     area           = area,
                     empresa        = empresa,
-                    fkSexo         = sexo ?? "M",
+                    fkSexo         = !string.IsNullOrEmpty(sexo) ? sexo : (string)null,
                     fechaRegistro  = DateTime.Now
                 };
 

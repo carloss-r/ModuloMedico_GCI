@@ -22,17 +22,14 @@ namespace Telerik.Models.Entities
         public string empresa { get; set; }
         public string telefono { get; set; }
         public string email { get; set; }
-        [NotMapped]
-        public string curp { get; set; }
-        [NotMapped]
-        public string rfc { get; set; }
-        [NotMapped]
         public string nss { get; set; }
         public string manoDominante { get; set; }
         public bool? tieneHijos { get; set; }
         public int? fkNumeroHijos { get; set; }
         public int? fkEstadoCivil { get; set; }
         public int? fkTipoSangre { get; set; }
+        [NotMapped]
+        public string escolaridad { get; set; }
 
         public int? fkPais { get; set; }
         public int? fkEstado { get; set; }

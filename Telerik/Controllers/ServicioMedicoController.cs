@@ -315,7 +315,8 @@ namespace Telerik.Controllers
                         orden.EstatusDesc,
                         orden.FechaOrdenFormateada,
                         orden.NombrePersona,
-                        orden.ProyectoDesc
+                        orden.ProyectoDesc,
+                        EmpresaNombre = orden.EmpresaNombre ?? orden.EmpresaCandidato
                     },
                     empleado = datosEmpleado
                 }, JsonRequestBehavior.AllowGet);

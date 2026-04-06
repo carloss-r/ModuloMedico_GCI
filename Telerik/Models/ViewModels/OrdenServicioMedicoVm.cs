@@ -26,6 +26,7 @@ namespace Telerik.Models.ViewModels
 
         // Resultado Aptitud Medica
         public int? FkAptitudMedica { get; set; }
+        public string Recomendaciones { get; set; }
         public string AptitudDesc { 
             get {
                 if (!FkAptitudMedica.HasValue) return "";

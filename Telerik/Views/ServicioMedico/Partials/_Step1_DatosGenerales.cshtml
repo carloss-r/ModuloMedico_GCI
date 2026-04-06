@@ -16,9 +16,9 @@
             <label>Cargo</label>
             <input type="text" id="txtPuesto" class="form-control" readonly />
         </div>
-        <div class="form-group flex-1">
+        <div class="form-group flex-2">
             <label>No. IMSS</label>
-            <input type="text" id="txtNss" class="form-control val-num" maxlength="11" placeholder="11 d&iacute;gitos" />
+            <input type="text" id="txtNss" class="form-control val-num" maxlength="11" placeholder="11 dígitos" />
         </div>
     </div>
 
@@ -98,10 +98,10 @@
             <label>Estado Civil</label>
             <select id="ddlEstadoCivil" class="form-control">
                 <option value="">-- Seleccione --</option>
-                <option value="Soltero">Soltero(a)</option>
-                <option value="Casado">Casado(a)</option>
-                <option value="Union Libre">Uni&oacute;n Libre</option>
-                <option value="Separado">Separado(a)</option>
+                <option value="1">Soltero(a)</option>
+                <option value="2">Casado(a)</option>
+                <option value="3">Uni&oacute;n Libre</option>
+                <option value="4">Separado / Otro</option>
             </select>
         </div>
         <div class="form-group flex-1">
@@ -112,14 +112,14 @@
                 <option value="Zurdo">Zurdo(a)</option>
             </select>
         </div>
-        <div class="form-group flex-1">
+        <div class="form-group flex-2">
             <label>Tel&eacute;fono</label>
             <input type="tel" id="txtTelefono" class="form-control val-num" placeholder="10 d&iacute;gitos" maxlength="15" />
         </div>
     </div>
 
     <!-- Row 4: Domicilio (Catálogos) -->
-    <h4 style="margin-top: 20px; margin-bottom: 12px; color: #1a5276; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Domicilio Personal (Completo)</h4>
+    <h3 class="section-title">Domiciolio Personal</h3>
     <div id="divGeoError" style="display:none; color:red; background:#fff0f0; border:1px solid red; padding:8px; margin-bottom:8px; border-radius:4px; font-size:0.85rem;"></div>
     <div class="paper-row">
         <div class="form-group flex-1">
@@ -147,7 +147,7 @@
             </select>
         </div>
     </div>
-    
+
     <!-- Row 4.1: Calle y Número -->
     <div class="paper-row">
         <div class="form-group flex-2">
@@ -167,7 +167,7 @@
             <input type="text" id="txtCp" class="form-control val-num" readonly />
         </div>
     </div>
-    
+
     <!-- Domicilio Completo Oculto para fallback -->
     <input type="hidden" id="txtDomicilio" />
 
@@ -191,16 +191,16 @@
     </div>
 
     <!-- Row 5: Sexo | Tipo Sangre -->
-    <div class="paper-row" style="justify-content: flex-start;">
-        <div class="form-group flex-1" style="max-width:300px;">
+    <div class="paper-row">
+        <div class="form-group flex-1">
             <label>Sexo biológico</label>
-            <select id="ddlSexo" class="form-control" disabled>
+            <select id="ddlSexo" class="form-control" onchange="window.setSexoDisplay(this.value)">
                 <option value="">-- Seleccione --</option>
                 <option value="M">Masculino (Masc)</option>
                 <option value="F">Femenino (Fem)</option>
             </select>
         </div>
-        <div class="form-group flex-1" style="max-width:300px;">
+        <div class="form-group flex-1">
             <label>Tipo de Sangre</label>
             <select id="ddlTipoSangre" class="form-control">
                 <option value="">-- Seleccione --</option>

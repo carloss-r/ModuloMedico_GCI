@@ -83,14 +83,6 @@
                         <label>Apellido Materno</label>
                         <input type="text" id="txtAMaternoCandidato" class="form-control" />
                     </div>
-                    <div class="form-group">
-                        <label>Sexo biológico</label>
-                        <select id="ddlSexoCandidato" class="form-control">
-                            <option value="">-- Seleccione --</option>
-                            <option value="M">Masculino</option>
-                            <option value="F">Femenino</option>
-                        </select>
-                    </div>
                     <div class="form-group" style="grid-column: 1 / -1; margin-top: 5px;">
                         <label>Empresa</label>
                          <select id="ddlEmpresaIng" class="form-control" onchange="cargarProyectosYPuestos(this.value)">
@@ -108,6 +100,10 @@
                         <select id="ddlPuestoIng" class="form-control">
                             <option value="">-- Primero Empresa --</option>
                         </select>
+                    </div>
+                    <!-- Hidden fields to keep logic but simplify UI -->
+                    <div style="display:none;">
+                        <input type="hidden" id="ddlSexoCandidato" value="" />
                     </div>
                      <div class="form-group" style="grid-column: 1 / -1; display:none;">
                           <label>Tipo de Servicio</label>
