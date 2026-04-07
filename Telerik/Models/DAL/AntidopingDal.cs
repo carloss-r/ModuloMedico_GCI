@@ -20,26 +20,30 @@ namespace Telerik.Models.DAL
                 {
                     try
                     {
-                        // 1. Insertar prueba toxicológica
-                        var prueba = new PruebaToxicologica
+                        // 1. Buscar si ya existe la prueba para esta orden
+                        var prueba = db.PruebasToxicologicas.FirstOrDefault(p => p.fkOrdenMedico == vm.PkOrdenMedico);
+                        if (prueba == null)
                         {
-                            fkOrdenMedico          = vm.PkOrdenMedico,
-                            codigoMuestra          = vm.CodigoMuestra ?? "N/A",
-                            consentimientoFirmado  = vm.ConsentimientoFirmado,
-                            resultadoAlcohol       = vm.AplicaAlcohol ? vm.ResultadoAlcohol : (bool?)null,
-                            resultadoCocaina       = vm.AplicaCocaina ? vm.ResultadoCocaina : (bool?)null,
-                            resultadoTHC           = vm.AplicaTHC     ? vm.ResultadoTHC     : (bool?)null,
-                            resultadoAnfetaminas   = vm.AplicaAnfetaminas ? vm.ResultadoAnfetaminas : (bool?)null,
-                            resultadoMetanfetaminas = vm.AplicaMetanfetaminas ? vm.ResultadoMetanfetaminas : (bool?)null,
-                            resultadoOpiaceos      = vm.AplicaOpiaceos    ? vm.ResultadoOpiaceos    : (bool?)null,
-                            resultadoMetilfenidato = vm.AplicaMetilfenidato ? vm.ResultadoMetilfenidato : (bool?)null,
-                            resultadoFentanilo     = vm.AplicaFentanilo    ? vm.ResultadoFentanilo    : (bool?)null,
-                            resultadoBenzodiacepinas = vm.AplicaBenzodiacepinas ? vm.ResultadoBenzodiacepinas : (bool?)null,
-                            veredictoFinal         = vm.VeredictoFinal ?? "NEGATIVO",
-                            comentarios           = vm.Comentarios ?? "",
-                            urlFotoEvidencia      = vm.UrlFotoEvidencia
-                        };
-                        db.PruebasToxicologicas.Add(prueba);
+                            prueba = new PruebaToxicologica { fkOrdenMedico = vm.PkOrdenMedico };
+                            db.PruebasToxicologicas.Add(prueba);
+                        }
+
+                        prueba.codigoMuestra          = vm.CodigoMuestra ?? "N/A";
+                        prueba.consentimientoFirmado  = vm.ConsentimientoFirmado;
+                        prueba.resultadoAlcohol       = vm.AplicaAlcohol ? vm.ResultadoAlcohol : (bool?)null;
+                        prueba.resultadoCocaina       = vm.AplicaCocaina ? vm.ResultadoCocaina : (bool?)null;
+                        prueba.resultadoTHC           = vm.AplicaTHC     ? vm.ResultadoTHC     : (bool?)null;
+                        prueba.resultadoAnfetaminas   = vm.AplicaAnfetaminas ? vm.ResultadoAnfetaminas : (bool?)null;
+                        prueba.resultadoMetanfetaminas = vm.AplicaMetanfetaminas ? vm.ResultadoMetanfetaminas : (bool?)null;
+                        prueba.resultadoOpiaceos      = vm.AplicaOpiaceos    ? vm.ResultadoOpiaceos    : (bool?)null;
+                        prueba.resultadoMetilfenidato = vm.AplicaMetilfenidato ? vm.ResultadoMetilfenidato : (bool?)null;
+                        prueba.resultadoFentanilo     = vm.AplicaFentanilo    ? vm.ResultadoFentanilo    : (bool?)null;
+                        prueba.resultadoBenzodiacepinas = vm.AplicaBenzodiacepinas ? vm.ResultadoBenzodiacepinas : (bool?)null;
+                        prueba.veredictoFinal         = vm.VeredictoFinal ?? "NEGATIVO";
+                        prueba.comentarios           = vm.Comentarios ?? "";
+                        
+                        if(!string.IsNullOrEmpty(vm.UrlFotoEvidencia))
+                            prueba.urlFotoEvidencia = vm.UrlFotoEvidencia;
 
                         // 2. Actualizar estatus de la orden a Completado (3)
                         var orden = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
@@ -59,6 +63,7 @@ namespace Telerik.Models.DAL
                 }
             }
         }
+
 
         /// <summary>
         /// Obtiene los datos de antidoping de una orden existente.

@@ -138,4 +138,30 @@
 
 @section scripts {
 <script src="~/Scripts/DashboardRecursosHumanos.js"></script>
+<script>
+    $(document).ready(function() {
+        // Bloqueo agresivo de entrada (Letras sólamente)
+        // se aplica mediante delegación para asegurar que siempre funcione
+        $(document).on('keypress', '#txtNombreCandidato, #txtAPaternoCandidato, #txtAMaternoCandidato', function (e) {
+            // Permitir teclas de control (flechas, borrar, etc. en algunos navegadores)
+            if (e.ctrlKey || e.altKey || e.metaKey || e.which === 0 || e.which === 8 || e.which === 13) return true;
+
+            var regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
+            var key = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+            if (!regex.test(key)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Refuerzo para copiado/pegado e input en móviles
+        $(document).on('input', '#txtNombreCandidato, #txtAPaternoCandidato, #txtAMaternoCandidato', function() {
+            var val = $(this).val();
+            var clean = val.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            if (val !== clean) {
+                $(this).val(clean);
+            }
+        });
+    });
+</script>
 }

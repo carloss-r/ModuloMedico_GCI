@@ -154,52 +154,65 @@
 
     <!-- ══════════ Modal de Detalle ══════════ -->
     <div class="modal-overlay" id="modalDetalle">
-        <div class="modal-box">
+        <div class="modal-box" style="width: 720px;">
             <div class="modal-header">
                 <h3><i class="fas fa-file-medical-alt"></i> Detalle de Solicitud &mdash; <span id="modalFolio"></span></h3>
                 <button class="modal-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
-                <!-- Sección Info Solicitud -->
-                <div class="detail-section">
-                    <div class="ds-title"><i class="fas fa-info-circle"></i> Informaci&oacute;n de la Solicitud</div>
-                    <div class="detail-grid">
-                        <div class="detail-item"><label>Folio</label><span id="detFolio">&mdash;</span></div>
-                        <div class="detail-item"><label>Fecha de Solicitud</label><span id="detFecha">&mdash;</span></div>
-                        <div class="detail-item"><label>Modalidad</label><span id="detModalidad">&mdash;</span></div>
-                        <div class="detail-item"><label>Tipo de Servicio</label><span id="detTipoServicio">&mdash;</span></div>
-                        <div class="detail-item"><label>Estatus Actual</label><span id="detEstatus">&mdash;</span></div>
-                        <div class="detail-item"><label>Proyecto / Obra</label><span id="detProyecto">&mdash;</span></div>
-                    </div>
-                </div>
-
-                <!-- Sección Empleado (si es periódico) -->
-                <div class="detail-section" id="seccionEmpleado" style="display:none;">
-                    <div class="emp-detail-box">
-                        <div class="edb-title"><i class="fas fa-user-tie"></i> Datos del Empleado (Pre-llenados)</div>
-                        <div class="emp-detail-grid">
-                            <div class="emp-detail-item"><label>No. Empleado</label><span id="detEmpNum">&mdash;</span></div>
-                            <div class="emp-detail-item"><label>Nombre Completo</label><span id="detEmpNombre">&mdash;</span></div>
-                            <div class="emp-detail-item"><label>CURP</label><span id="detEmpCurp">&mdash;</span></div>
-                            <div class="emp-detail-item"><label>RFC</label><span id="detEmpRfc">&mdash;</span></div>
-                            <div class="emp-detail-item"><label>NSS</label><span id="detEmpNss">&mdash;</span></div>
-                            <div class="emp-detail-item"><label>Puesto</label><span id="detEmpPuesto">&mdash;</span></div>
-                            <div class="emp-detail-item" style="grid-column: span 3;"><label>Proyecto</label><span id="detEmpProyecto">&mdash;</span></div>
+                <!-- Sección 1: Organización (Destaque Superior) -->
+                <div class="detail-section" style="background: #f4f7f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #1a5276;">
+                    <div class="detail-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="detail-item">
+                            <label><i class="fas fa-building"></i> Empresa</label>
+                            <span id="detGeneralEmpresa" style="font-size: 1.1rem; color: #1a5276;">&mdash;</span>
+                        </div>
+                        <div class="detail-item">
+                            <label><i class="fas fa-map-marked-alt"></i> Proyecto / Obra</label>
+                            <span id="detGeneralProyecto" style="font-size: 1.1rem; color: #1a5276;">&mdash;</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sección Candidato (si es ingreso) -->
-                <div class="detail-section" id="seccionIngreso" style="display:none;">
-                    <div class="ingreso-notice">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Nuevo Ingreso:</strong> Solicitud para candidato nuevo. Los datos se completar&aacute;n durante la evaluaci&oacute;n.
+                <!-- Sección 2: Info de la Solicitud -->
+                <div class="detail-section">
+                    <div class="ds-title"><i class="fas fa-info-circle"></i> Datos de la Solicitud</div>
+                    <div class="detail-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="detail-item"><label>Fecha</label><span id="detFecha">&mdash;</span></div>
+                        <div class="detail-item"><label>Modalidad</label><span id="detModalidad">&mdash;</span></div>
+                        <div class="detail-item"><label>Tipo de Servicio</label><span id="detTipoServicio">&mdash;</span></div>
+                        <div class="detail-item"><label>Estatus</label><span id="detEstatus">&mdash;</span></div>
+                        <div class="detail-item"><label>Folio Interno</label><span id="detFolio">&mdash;</span></div>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <div class="detail-grid">
-                            <div class="detail-item"><label>Nombre del Candidato</label><span id="detCandNombre">&mdash;</span></div>
-                            <div class="detail-item"><label>Empresa</label><span id="detCandNombreEmpresa">&mdash;</span></div>
-                            <div class="detail-item"><label>Proyecto / &Aacute;rea</label><span id="detCandArea">&mdash;</span></div>
+                </div>
+
+                <!-- Sección 3: Datos de la Persona (Candidato o Empleado) -->
+                <div class="detail-section" style="margin-top:20px;">
+                    <div class="ds-title"><i class="fas fa-user"></i> Datos de la Persona</div>
+                    
+                    <!-- Caso: Candidato -->
+                    <div id="seccionIngreso" style="display:none;">
+                        <div class="ingreso-notice" style="margin-bottom:15px;">
+                            <i class="fas fa-user-plus"></i> NUEVO INGRESO: Los datos clínicos se capturarán durante el examen.
+                        </div>
+                        <div class="detail-item">
+                            <label>Nombre del Candidato</label>
+                            <span id="detCandNombre" style="font-size: 1.3rem; border-bottom:none; color:#333;">&mdash;</span>
+                        </div>
+                    </div>
+
+                    <!-- Caso: Empleado -->
+                    <div id="seccionEmpleado" style="display:none;">
+                        <div class="emp-detail-box" style="background:#fff; border:1px solid #eee;">
+                            <div class="detail-grid">
+                                <div class="detail-item" style="grid-column: span 2;">
+                                    <label>Nombre Completo</label>
+                                    <span id="detEmpNombre" style="font-size: 1.3rem; border:none; color:#333;">&mdash;</span>
+                                </div>
+                                <div class="detail-item"><label>No. Empleado</label><span id="detEmpNum">&mdash;</span></div>
+                                <div class="detail-item"><label>Puesto</label><span id="detEmpPuesto">&mdash;</span></div>
+                                <div class="detail-item"><label>NSS</label><span id="detEmpNss">&mdash;</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -180,7 +180,7 @@
                     '<td>' + badgeMod + '</td>' +
                     '<td>' + (s.NombrePersona || 'N/A') + '</td>' +
                     '<td>' + (numEmp || 'N/A') + '</td>' +
-                    '<td>' + (s.EmpresaNombre || s.EmpresaCandidato || 'N/A') + '</td>' +
+                    '<td>' + (s.EmpresaNombre || s.EmpresaCandidato || s.ProyectoDesc || 'N/A') + '</td>' +
                     '<td>' + (s.ProyectoDesc || 'N/A') + '</td>' +
                     '<td>' + (s.TipoServicioDesc || 'N/A') + '</td>' +
                     '<td><span class="badge-sm ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span></td>' +
@@ -244,30 +244,31 @@
         $.getJSON('/ServicioMedico/VerDetalle', { id: pkOrden }, function (resp) {
             if (!resp.success) { showError(resp.message); return; }
             var o = resp.orden;
+            var empresa = o.EmpresaNombre || o.ProyectoDesc || '-';
+            
+            // Header y Sección Organización (Superior)
             $('#modalFolio').text(o.FolioDisplay);
             $('#detFolio').text(o.FolioDisplay);
             $('#detFecha').text(o.FechaOrdenFormateada);
-            var modUpper = (o.Modalidad || '').toUpperCase();
+            $('#detGeneralEmpresa').text(empresa);
+            $('#detGeneralProyecto').text(o.ProyectoDesc || '-');
+
+            // Sección Solicitud
             $('#detModalidad').text(o.Modalidad || '-');
             $('#detTipoServicio').text(o.TipoServicioDesc || '-');
             $('#detEstatus').text(o.EstatusDesc || 'Pendiente');
-            $('#detProyecto').text(o.ProyectoDesc || '-');
 
+            var modUpper = (o.Modalidad || '').toUpperCase();
             if (modUpper.indexOf('PERI') >= 0 && resp.empleado) {
                 var emp = resp.empleado;
-                $('#detEmpNum').text(emp.PkEmpleado);
+                $('#detEmpNum').text(emp.PkEmpleado || '-');
                 $('#detEmpNombre').text(emp.NombreCompleto || '-');
-                $('#detEmpCurp').text(emp.Curp || '-');
-                $('#detEmpRfc').text(emp.Rfc || '-');
                 $('#detEmpNss').text(emp.Nss || '-');
                 $('#detEmpPuesto').text(emp.PuestoDesc || '-');
-                $('#detEmpProyecto').text(emp.ProyectoDesc || '-');
                 $('#seccionEmpleado').show();
                 $('#seccionIngreso').hide();
             } else {
                 $('#detCandNombre').text(o.NombrePersona || '-');
-                $('#detCandEmpresa').text(o.EmpresaNombre || o.EmpresaCandidato || '-');
-                $('#detCandArea').text(o.ProyectoDesc || o.AreaCandidato || '-');
                 $('#seccionEmpleado').hide();
                 $('#seccionIngreso').show();
             }

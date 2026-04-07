@@ -22,44 +22,77 @@ namespace Telerik.Models.DAL
                 {
                     try
                     {
-                        // 1. Evaluación Principal
-                        var eval = new EvaluacionClinica
-                        {
-                            fkOrdenMedico          = vm.PkOrdenMedico,
-                            fechaEvaluacion        = DateTime.Now,
-                            pesoKg                 = vm.PesoKg,
-                            alturaMetros           = vm.AlturaMetros,
-                            imc                    = vm.Imc,
-                            presionSistolica       = vm.PresionSistolica,
-                            presionDiastolica      = vm.PresionDiastolica,
-                            temperatura            = vm.Temperatura,
-                            frecuenciaCardiaca     = vm.FrecuenciaCardiaca,
-                            frecuenciaRespiratoria = vm.FrecuenciaRespiratoria,
-                            glucosa                = vm.Glucosa,
-                            oximetria              = vm.Oximetria,
-                            imcDescripcion         = vm.ImcDescripcion,
-                            aparatosSistemas       = vm.AparatosSistemas + (vm.Glucosa.HasValue || vm.Oximetria.HasValue || !string.IsNullOrEmpty(vm.ImcDescripcion) ? $" [[STOWED-DATA: Glucosa:{vm.Glucosa}|Oxi:{vm.Oximetria}|IMCDesc:{vm.ImcDescripcion}]]" : ""),
-                            fkAptitudMedica        = vm.FkAptitudMedica,
-                            observaciones          = vm.Observaciones,
-                            recomendaciones        = vm.Recomendaciones,
-                            sintomasPaciente       = vm.SintomasPaciente,
-                            nss                    = vm.Nss,
-                            fechaNacimiento        = vm.FechaNacimiento,
-                            lugarNacimiento        = vm.LugarNacimiento,
-                            estadoCivil            = vm.EstadoCivil,
-                            manoDominante          = vm.ManoDominante,
-                            telefono               = vm.Telefono,
-                            domicilio              = vm.Domicilio,
-                            escolaridad            = vm.Escolaridad,
-                            profesion              = vm.Profesion,
-                            alergias               = vm.Alergias,
-                            fkTipoSangre           = vm.FkTipoSangre,
-                            lugarEvaluacion        = vm.LugarEvaluacion
-                        };
-                        db.EvaluacionesClinicas.Add(eval);
-                        db.SaveChanges(); // genera pkEvaluacion
+                        // 1. Buscar si ya existe la evaluación para esta orden
+                        var eval = db.EvaluacionesClinicas.FirstOrDefault(e => e.fkOrdenMedico == vm.PkOrdenMedico);
+                        bool isNew = eval == null;
 
-                        // 9. Agudeza Visual (Consolidar en OrdenExamenFisico para evitar tablas extra)
+                        if (isNew)
+                        {
+                            eval = new EvaluacionClinica { fkOrdenMedico = vm.PkOrdenMedico };
+                            db.EvaluacionesClinicas.Add(eval);
+                        }
+
+                        eval.fechaEvaluacion        = DateTime.Now;
+                        eval.pesoKg                 = vm.PesoKg;
+                        eval.alturaMetros           = vm.AlturaMetros;
+                        eval.imc                    = vm.Imc;
+                        eval.presionSistolica       = vm.PresionSistolica;
+                        eval.presionDiastolica      = vm.PresionDiastolica;
+                        eval.temperatura            = vm.Temperatura;
+                        eval.frecuenciaCardiaca     = vm.FrecuenciaCardiaca;
+                        eval.frecuenciaRespiratoria = vm.FrecuenciaRespiratoria;
+                        eval.glucosa                = vm.Glucosa;
+                        eval.oximetria              = vm.Oximetria;
+                        eval.imcDescripcion         = vm.ImcDescripcion;
+                        eval.aparatosSistemas       = vm.AparatosSistemas + (vm.Glucosa.HasValue || vm.Oximetria.HasValue || !string.IsNullOrEmpty(vm.ImcDescripcion) ? $" [[STOWED-DATA: Glucosa:{vm.Glucosa}|Oxi:{vm.Oximetria}|IMCDesc:{vm.ImcDescripcion}]]" : "");
+                        eval.fkAptitudMedica        = vm.FkAptitudMedica;
+                        eval.observaciones          = vm.Observaciones;
+                        eval.recomendaciones        = vm.Recomendaciones;
+                        eval.sintomasPaciente       = vm.SintomasPaciente;
+                        eval.nss                    = vm.Nss;
+                        eval.fechaNacimiento        = vm.FechaNacimiento;
+                        eval.lugarNacimiento        = vm.LugarNacimiento;
+                        eval.estadoCivil            = vm.EstadoCivil;
+                        eval.manoDominante          = vm.ManoDominante;
+                        eval.telefono               = vm.Telefono;
+                        eval.domicilio              = vm.Domicilio;
+                        eval.escolaridad            = vm.Escolaridad;
+                        eval.profesion              = vm.Profesion;
+                        eval.alergias               = vm.Alergias;
+                        eval.fkTipoSangre           = vm.FkTipoSangre;
+                        eval.lugarEvaluacion        = vm.LugarEvaluacion;
+
+                        db.SaveChanges(); // Guardamos evaluación primero para tener pkEvaluacion (si es nueva) o actualizarla
+
+                        // Limpiar relaciones existentes si es edición
+                        if (!isNew)
+                        {
+                            var hists = db.HistoriasMedicas.Where(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            db.HistoriasMedicas.RemoveRange(hists);
+
+                            var labs = db.AntecedentesLaborales.Where(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            db.AntecedentesLaborales.RemoveRange(labs);
+
+                            var exfs = db.OrdenesExamenesFisicos.Where(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            db.OrdenesExamenesFisicos.RemoveRange(exfs);
+
+                            var hab = db.HabitosPersonales.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            if (hab != null) db.HabitosPersonales.Remove(hab);
+
+                            var vac = db.Vacunaciones.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            if (vac != null) db.Vacunaciones.Remove(vac);
+
+                            var col = db.EvaluacionesColumna.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            if (col != null) db.EvaluacionesColumna.Remove(col);
+
+                            var gin = db.DetallesGineco.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            if (gin != null) db.DetallesGineco.Remove(gin);
+
+                            var mas = db.DetallesMasculino.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
+                            if (mas != null) db.DetallesMasculino.Remove(mas);
+                        }
+
+                        // 9. Agudeza Visual
                         if (vm.AgudezaVisual != null)
                         {
                             string snellenData = string.Format("OD:{0}|OI:{1}|AO:{2}|ODC:{3}|OIC:{4}|AOC:{5}|Usa:{6}|Ref:{7}|Ishi:{8}",
@@ -76,7 +109,7 @@ namespace Telerik.Models.DAL
                             });
                         }
 
-                        // 2. Hábitos Personales (incluye vacunas — están en la misma tabla)
+                        // 2. Hábitos Personales
                         if (vm.Habitos != null)
                         {
                             db.HabitosPersonales.Add(new HabitoPersonal
@@ -96,7 +129,7 @@ namespace Telerik.Models.DAL
                             });
                         }
 
-                        // 3. Vacunación (Nueva tabla)
+                        // 3. Vacunación
                         if (vm.Vacunacion != null)
                         {
                             db.Vacunaciones.Add(new Vacunacion
@@ -150,14 +183,13 @@ namespace Telerik.Models.DAL
                         {
                             foreach (var item in vm.OrdenExamenFisico)
                             {
-                                var ef = new OrdenExamenFisico
+                                db.OrdenesExamenesFisicos.Add(new OrdenExamenFisico
                                 {
                                     fkEvaluacion  = eval.pkEvaluacion,
                                     sistemaCuerpo = item.SistemaCuerpo,
                                     esNormal      = item.EsNormal,
                                     hallazgos     = item.Hallazgos
-                                };
-                                db.OrdenesExamenesFisicos.Add(ef);
+                                });
                             }
                         }
 
@@ -196,10 +228,8 @@ namespace Telerik.Models.DAL
                                 partos                  = vm.DetalleFemenino.Partos,
                                 abortos                 = vm.DetalleFemenino.Abortos,
                                 cesareas                = vm.DetalleFemenino.Cesareas,
-                                ivsa                    = vm.DetalleFemenino.Ivsa,
                                 metodoPlanificacion     = vm.DetalleFemenino.MetodoPlanificacion,
                                 fechaUltimoPapanicolau  = vm.DetalleFemenino.FechaUltimoPapanicolau,
-                                ets                     = vm.DetalleFemenino.Ets,
                                 edadesHijos             = vm.DetalleFemenino.NumeroHijosEdades
                             });
                         }
@@ -215,60 +245,43 @@ namespace Telerik.Models.DAL
                                 varicocele            = vm.DetalleMasculino.Varicocele,
                                 hidrocele             = vm.DetalleMasculino.Hidrocele,
                                 hernia                = vm.DetalleMasculino.Hernia,
-                                ivsa                  = vm.DetalleMasculino.Ivsa,
                                 psa                   = vm.DetalleMasculino.Psa,
                                 mpf                   = vm.DetalleMasculino.MetodoPlanificacion
                             });
                         }
 
-                        // 8. Sincronizar datos del Candidato (Si aplica)
-                        try
+                        // 8. Sincronizar datos del Candidato
+                        var o = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
+                        if (o != null && o.fkCandidato.HasValue)
                         {
-                            var o = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
-                            if (o != null && o.fkCandidato.HasValue)
+                            var cand = db.Candidatos.Find(o.fkCandidato.Value);
+                            if (cand != null)
                             {
-                                var cand = db.Candidatos.Find(o.fkCandidato.Value);
-                                if (cand != null)
-                                {
-                                    // Identidad y Datos Generales
-                                    cand.nss             = vm.Nss;
-                                    cand.telefono        = vm.Telefono;
-                                    cand.fechaNacimiento = vm.FechaNacimiento;
-                                    cand.manoDominante   = vm.ManoDominante;
-                                    cand.fkTipoSangre    = (vm.FkTipoSangre != null && vm.FkTipoSangre > 0) ? vm.FkTipoSangre : null;
+                                cand.nss             = vm.Nss;
+                                cand.telefono        = vm.Telefono;
+                                cand.fechaNacimiento = vm.FechaNacimiento;
+                                cand.manoDominante   = vm.ManoDominante;
+                                cand.fkTipoSangre    = (vm.FkTipoSangre != null && vm.FkTipoSangre > 0) ? vm.FkTipoSangre : null;
 
-                                    if (!string.IsNullOrEmpty(vm.EstadoCivil)) {
-                                        int ecVal;
-                                        if (int.TryParse(vm.EstadoCivil, out ecVal)) cand.fkEstadoCivil = ecVal;
-                                    }
-
-                                    // Localización Geográfica
-                                    if (vm.FkPais.HasValue)      cand.fkPais      = vm.FkPais;
-                                    if (vm.FkEstado.HasValue)    cand.fkEstado    = vm.FkEstado;
-                                    if (vm.FkMunicipio.HasValue) cand.fkMunicipio = vm.FkMunicipio;
-                                    if (vm.FkColonia.HasValue)   cand.fkColonia   = vm.FkColonia;
-                                    if (vm.FkCP.HasValue)        cand.fkCP        = vm.FkCP;
-                                    
-                                    if (!string.IsNullOrEmpty(vm.Calle))       cand.calle       = vm.Calle;
-                                    if (!string.IsNullOrEmpty(vm.NumExterior)) cand.numExterior = vm.NumExterior;
-                                    if (!string.IsNullOrEmpty(vm.NumInterior)) cand.numInterior = vm.NumInterior;
-
-                                    // Sincronizar Sexo (Ahora con IDs correctos M/F)
-                                    if (!string.IsNullOrEmpty(vm.SexoCandidato)) cand.fkSexo = vm.SexoCandidato;
+                                if (!string.IsNullOrEmpty(vm.EstadoCivil)) {
+                                    int ecVal;
+                                    if (int.TryParse(vm.EstadoCivil, out ecVal)) cand.fkEstadoCivil = ecVal;
                                 }
-                            }
 
-                            // 9. Actualizar estatus de la orden a "En Proceso" (2)
-                            if (o != null && o.fkEstatus == 1)
-                            {
-                                o.fkEstatus = 2;
+                                if (vm.FkPais.HasValue)      cand.fkPais      = vm.FkPais;
+                                if (vm.FkEstado.HasValue)    cand.fkEstado    = vm.FkEstado;
+                                if (vm.FkMunicipio.HasValue) cand.fkMunicipio = vm.FkMunicipio;
+                                if (vm.FkColonia.HasValue)   cand.fkColonia   = vm.FkColonia;
+                                if (vm.FkCP.HasValue)        cand.fkCP        = vm.FkCP;
+                                
+                                if (!string.IsNullOrEmpty(vm.Calle))       cand.calle       = vm.Calle;
+                                if (!string.IsNullOrEmpty(vm.NumExterior)) cand.numExterior = vm.NumExterior;
+                                if (!string.IsNullOrEmpty(vm.NumInterior)) cand.numInterior = vm.NumInterior;
+                                if (!string.IsNullOrEmpty(vm.SexoCandidato)) cand.fkSexo = vm.SexoCandidato;
                             }
                         }
-                        catch (Exception syncEx)
-                        {
-                            // Registramos el error de sincronización pero NO bloqueamos el guardado clínico
-                            System.Diagnostics.Debug.WriteLine("Sincronización de candidato falló: " + syncEx.Message);
-                        }
+
+                        if (o != null && o.fkEstatus == 1) o.fkEstatus = 2; // En Proceso
 
                         db.SaveChanges();
                         transaccion.Commit();
@@ -276,16 +289,12 @@ namespace Telerik.Models.DAL
                     catch (Exception ex)
                     {
                         transaccion.Rollback();
-                        
-                        string inner = (ex.InnerException != null) ? ex.InnerException.Message : "No inner exception";
-                        string root = (ex.InnerException != null && ex.InnerException.InnerException != null) 
-                                      ? ex.InnerException.InnerException.Message : "No root exception";
-                        
-                        throw new Exception($"An error occurred while updating the entries. See the inner exception for details. | Inner: {inner} | Root: {root}", ex);
+                        throw new Exception($"Error al guardar evaluación (Upsert): {ex.Message}", ex);
                     }
                 }
             }
         }
+
 
         /// <summary>
         /// Obtiene todos los datos de una evaluación existente con Include (eager loading).

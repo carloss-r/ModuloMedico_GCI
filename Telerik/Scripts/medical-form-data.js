@@ -258,27 +258,16 @@ function loadPatientData(idOrden) {
             } else if(resp.evaluacionPrevia) {
                 mapearEvaluacionAlFormulario(resp.evaluacionPrevia, true); // true = es historial
                 // Notificación sutil (Toast) en lugar de alerta invasiva
-                showToast("Se han pre-cargado los antecedentes y h\u00e1bitos de la \u00faltima evaluaci\u00f3n para su verificaci\u00f3n.", "info");
+                showToast("Se han pre-cargado los antecedentes y hábitos de la última evaluación para su verificación.", "info");
             }
 
-            // Populate labels for consent and antidoping explicitly
-            $('#lblPacienteConsentimiento').text(p.NombreCompleto);
-            $('#lblAdNombre').text(p.NombreCompleto);
-            $('#lblAdNumEmpleado').text(p.NumeroEmpleado || 'N/A');
-            $('#lblAdEmpresa').text(p.Empresa);
-            $('#hdrEmpresaAd').text(p.Empresa || 'No especificada');
-            $('#lblAdEmpresaConsent').text(p.Empresa || 'el Proyecto');
-            $('#lblAdPuesto').text(p.Puesto);
-            $('#lblAdIdOrden').text(idOrden);
-
-            if (p.TipoServicioDesc && p.TipoServicioDesc.toLowerCase().indexOf('antidoping') >= 0) {
-                 $('#modalConsentimiento').css('display', 'flex');
-            }
         } else {
             showError(resp.message);
         }
     });
 }
+
+
 
 // ------ CATALOGOS GEOGRAFICOS ------
 function cargarPaises() {

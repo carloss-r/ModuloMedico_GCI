@@ -57,12 +57,22 @@ namespace Telerik.Controllers
 
             int id = (int)Session["IdOrdenEvaluacion"];
             var orden = OrdenServicioMedicoDal.ObtenerPorId(id);
-            ViewBag.Title = orden.FkTipoServicio == 3 ? "Evaluación Antidoping" : "Evaluación Médica";
-            ViewBag.IdOrden = id;
+
+            ViewBag.IdOrden  = id;
             ViewBag.TipoServicio = orden.FkTipoServicio;
-            ViewBag.Sexo = _medicalService.NormalizarSexo(orden.SexoCandidato);
-            return PartialView("~/Views/ServicioMedico/FormularioEvaluacionMedica.cshtml");
+            ViewBag.Sexo     = _medicalService.NormalizarSexo(orden.SexoCandidato);
+
+            // Routing por tipo de servicio
+            if (orden.FkTipoServicio == 3)
+            {
+                ViewBag.Title = "Examen Antidoping";
+                return View("~/Views/ServicioMedico/FormularioAntidoping.cshtml");
+            }
+
+            ViewBag.Title = "Evaluación Médica";
+            return View("~/Views/ServicioMedico/FormularioEvaluacionMedica.cshtml");
         }
+
 
         // GET: /ServicioMedico/ObtenerSolicitudes?pagina=1&tamanoPagina=25
         [HttpGet]
@@ -90,12 +100,30 @@ namespace Telerik.Controllers
             try
             {
                 _medicalService.GuardarEvaluacion(model);
-                return Json(new { success = true, message = "Evaluación médica guardada correctamente. ¿Desea continuar con el Antidoping?" });
+                // Completar la orden en cualquier caso
+                _medicalService.CompletarOrden(model.PkOrdenMedico);
+                return Json(new { success = true, pkOrden = model.PkOrdenMedico, message = "Evaluación médica guardada y completada correctamente." });
             }
             catch(Exception ex)
             {
                 return Json(new { success = false, message = "Error al guardar: " + ex.Message });
             }
+        }
+
+        // GET: /ServicioMedico/IrAntidoping/5
+        // Permite ir al formulario de antidoping desde un examen médico (ingreso/periódico)
+        public ActionResult IrAntidoping(int id)
+        {
+            var orden = OrdenServicioMedicoDal.ObtenerPorId(id);
+            if (orden == null)
+                return RedirectToAction("Index");
+
+            Session["IdOrdenEvaluacion"] = id;
+            ViewBag.IdOrden      = id;
+            ViewBag.TipoServicio = orden.FkTipoServicio;
+            ViewBag.Sexo         = _medicalService.NormalizarSexo(orden.SexoCandidato);
+            ViewBag.Title        = "Examen Antidoping";
+            return View("~/Views/ServicioMedico/FormularioAntidoping.cshtml");
         }
 
         [HttpPost]
@@ -316,7 +344,8 @@ namespace Telerik.Controllers
                         orden.FechaOrdenFormateada,
                         orden.NombrePersona,
                         orden.ProyectoDesc,
-                        EmpresaNombre = orden.EmpresaNombre ?? orden.EmpresaCandidato
+                        EmpresaNombre = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : 
+                                        (!string.IsNullOrEmpty(orden.EmpresaNombre) ? orden.EmpresaNombre : orden.ProyectoDesc)
                     },
                     empleado = datosEmpleado
                 }, JsonRequestBehavior.AllowGet);

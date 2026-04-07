@@ -5,8 +5,30 @@ var datosSolicitudes = [];
 
     $(document).ready(function () {
         cargarCatalogosYTabla();
-        $('#txtNumEmpleado').on('keypress', function (e) {
+        
+        // Atajos de teclado (Enter para buscar empleado)
+        $(document).on('keypress', '#txtNumEmpleado', function (e) {
             if(e.which === 13) buscarEmpleadoParaSolicitud();
+        });
+
+        // RESTRICCIÓN AGRESIVA EN TIEMPO REAL: Solo letras en Nombre y Apellidos
+        // 1. Bloquear teclas no válidas al presionarlas
+        $(document).on('keypress', '#txtNombreCandidato, #txtAPaternoCandidato, #txtAMaternoCandidato', function (e) {
+            var regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
+            var key = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+            if (!regex.test(key)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // 2. Limpiar pegado (paste) o entradas atípicas
+        $(document).on('input', '#txtNombreCandidato, #txtAPaternoCandidato, #txtAMaternoCandidato', function() {
+            var val = $(this).val();
+            var clean = val.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            if (val !== clean) {
+                $(this).val(clean);
+            }
         });
 
         // Escuchar cambios en los filtros del Sidebar
@@ -333,9 +355,9 @@ var datosSolicitudes = [];
             if(!data.NumeroEmpleado || data.NumeroEmpleado <= 0) { mostrarAlertaModal('Ingrese y busque un número de empleado valido', false); return; }
         } else {
             data.Modalidad = 'INGRESO';
-            data.NombreCandidato = $('#txtNombreCandidato').val();
-            data.ApellidoPaterno = $('#txtAPaternoCandidato').val();
-            data.ApellidoMaterno = $('#txtAMaternoCandidato').val();
+            data.NombreCandidato = $('#txtNombreCandidato').val().trim();
+            data.ApellidoPaterno = $('#txtAPaternoCandidato').val().trim();
+            data.ApellidoMaterno = $('#txtAMaternoCandidato').val().trim();
             data.Sexo = $('#ddlSexoCandidato').val();
             data.FkEmpresa = $('#ddlEmpresaIng').val();
             var empSel = $('#ddlEmpresaIng option:selected');
@@ -348,14 +370,24 @@ var datosSolicitudes = [];
             var puestoSel = $('#ddlPuestoIng option:selected');
             if(puestoSel.val()) data.PuestoDeseado = puestoSel.text();
 
-            data.FkTipoServicio = $('#ddlTipoServicioIng').val() || 1;
+            data.FkTipoServicio = $('#ddlTipoServicioIng').val();
             
-             if(!data.NombreCandidato) { mostrarAlertaModal('Ingrese el nombre del candidato', false); return; }
-             if(!data.ApellidoPaterno) { mostrarAlertaModal('Ingrese el apellido paterno del candidato', false); return; }
-             if(!data.FkEmpresa) { mostrarAlertaModal('Seleccione la empresa para el ingreso', false); return; }
-        }
+            // Validaciones de Campos Completos
+            if(!data.NombreCandidato) { mostrarAlertaModal('Ingrese el nombre del candidato', false); return; }
+            if(!data.ApellidoPaterno) { mostrarAlertaModal('Ingrese el apellido paterno', false); return; }
+            if(!data.ApellidoMaterno) { mostrarAlertaModal('Ingrese el apellido materno', false); return; }
+            if(!data.Sexo) { mostrarAlertaModal('Seleccione el sexo del candidato', false); return; }
+            if(!data.FkEmpresa) { mostrarAlertaModal('Seleccione la empresa', false); return; }
+            if(!data.FkProyecto) { mostrarAlertaModal('Seleccione el proyecto/obra', false); return; }
+            if(!puestoSel.val()) { mostrarAlertaModal('Seleccione el puesto', false); return; }
+            if(!data.FkTipoServicio) { mostrarAlertaModal('Seleccione el tipo de servicio', false); return; }
 
-        if(!data.FkTipoServicio) { mostrarAlertaModal('Seleccione un tipo de servicio', false); return; }
+            // Validación: Solo letras en nombres y apellidos
+            var regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+            if(!regexLetras.test(data.NombreCandidato)) { mostrarAlertaModal('El nombre solo debe contener letras', false); return; }
+            if(!regexLetras.test(data.ApellidoPaterno)) { mostrarAlertaModal('El apellido paterno solo debe contener letras', false); return; }
+            if(!regexLetras.test(data.ApellidoMaterno)) { mostrarAlertaModal('El apellido materno solo debe contener letras', false); return; }
+        }
 
         $.post('/ServicioMedico/CrearSolicitud', data, function(resp) {
             if(resp.success) {

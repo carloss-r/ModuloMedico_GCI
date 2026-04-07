@@ -1,0 +1,589 @@
+@{
+    Layout = "~/Views/Shared/_LayoutMedico.cshtml";
+    ViewBag.Title = "Examen Antidoping";
+    int idOrden = ViewBag.IdOrden;
+}
+
+<style>
+    /* ── Reset limpio para este módulo ───────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body { background: #f0f4f8; font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; }
+
+    /* ── Header ──────────────────────────────────────────── */
+    .ad-page-header {
+        background: #fff;
+        padding: 14px 30px;
+        border-bottom: 3px solid #c0392b;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .ad-page-header h1 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #c0392b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .ad-page-header .flask-icon { font-size: 1.5rem; color: #c0392b; }
+    .ad-patient-badge {
+        margin-left: auto;
+        background: #fdf2f8;
+        border: 1px solid #e8a0c0;
+        border-radius: 20px;
+        padding: 5px 16px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #8e44ad;
+    }
+
+    /* ── Contenedor principal ────────────────────────────── */
+    .ad-page-body { max-width: 860px; margin: 30px auto; padding: 0 20px 60px; }
+
+    /* ── Card de paciente ────────────────────────────────── */
+    .patient-card {
+        background: #fff;
+        border: 1px solid #d0d0d0;
+        border-left: 5px solid #1a5276;
+        border-radius: 8px;
+        padding: 18px 24px;
+        margin-bottom: 22px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 20px;
+        font-size: 0.88rem;
+    }
+    .patient-card strong { color: #555; }
+    .patient-card span   { color: #111; font-weight: 600; }
+
+    /* ── Secciones ───────────────────────────────────────── */
+    .ad-card {
+        background: #fff;
+        border: 1px solid #d8d8d8;
+        border-radius: 10px;
+        padding: 24px 28px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .ad-card-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #1a5276;
+        border-bottom: 2px solid #eaf2f8;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── Grilla de drogas ────────────────────────────────── */
+    .drug-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    @@media (max-width: 600px) { .drug-grid { grid-template-columns: 1fr; } }
+
+    .drug-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f9fafb;
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+        padding: 10px 14px;
+        transition: border-color 0.2s;
+    }
+    .drug-row:hover { border-color: #aac; }
+
+    .drug-name {
+        flex: 1;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Switch NEG / POS */
+    .result-switch { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; }
+    .result-switch .sw-btn {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        background: #f0f0f0;
+        color: #888;
+        transition: all 0.15s;
+    }
+    .result-switch .sw-btn.neg.active { background: #27ae60; color: #fff; }
+    .result-switch .sw-btn.pos.active { background: #e74c3c; color: #fff; }
+    .result-switch .sw-btn.disabled-btn { opacity: 0.4; cursor: not-allowed; }
+
+    /* Checkbox Aplica */
+    .chk-aplica-wrap { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #666; }
+    .chk-aplica-wrap input[type=checkbox] { accent-color: #1a5276; width: 14px; height: 14px; }
+
+    /* ── Comentarios ─────────────────────────────────────── */
+    .ad-textarea {
+        width: 100%;
+        border: 1px solid #d0d0d0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 80px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .ad-textarea:focus { border-color: #1a5276; }
+
+    /* ── Evidencia ───────────────────────────────────────── */
+    .evidence-drop {
+        border: 2px dashed #c0d0e0;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        color: #888;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .evidence-drop:hover { border-color: #1a5276; background: #f0f8ff; }
+    .evidence-drop input[type=file] { display: none; }
+
+    /* ── Veredicto ───────────────────────────────────────── */
+    .verdict-bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        border: 2px solid #27ae60;
+        background: #eafaf1;
+        transition: all 0.3s;
+    }
+    .verdict-bar.positivo { border-color: #e74c3c; background: #fdf0ef; }
+    .verdict-icon { font-size: 1.8rem; }
+    .verdict-text { font-size: 1rem; font-weight: 800; }
+
+    /* ── Acciones ────────────────────────────────────────── */
+    .ad-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+    .btn-ad {
+        padding: 10px 28px;
+        border-radius: 6px;
+        border: none;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-ad:hover   { opacity: 0.88; transform: translateY(-1px); }
+    .btn-ad:active  { transform: translateY(0); }
+    .btn-ad-cancel  { background: #f0f0f0; color: #555; }
+    .btn-ad-save    { background: #1a5276; color: #fff; }
+    .btn-ad-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Modal de consentimiento ─────────────────────────── */
+    .consent-overlay {
+        position: fixed; inset: 0;
+        background: rgba(10, 20, 40, 0.70);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 5000;
+        backdrop-filter: blur(4px);
+    }
+    .consent-box {
+        background: #fff;
+        border-radius: 14px;
+        width: 560px;
+        max-width: 95vw;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    .consent-head {
+        background: linear-gradient(135deg, #1a5276, #2980b9);
+        color: #fff;
+        padding: 16px 24px;
+        font-weight: 800;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .consent-body { padding: 24px; }
+    .consent-text-box {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 14px;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: #444;
+        max-height: 180px;
+        overflow-y: auto;
+        margin-bottom: 18px;
+    }
+    .consent-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #333;
+        cursor: pointer;
+        margin-bottom: 18px;
+    }
+    .consent-check input { accent-color: #1a5276; width: 18px; height: 18px; cursor: pointer; }
+    .consent-foot {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding: 16px 24px;
+        border-top: 1px solid #eee;
+    }
+    .btn-consent-cancel { background: #f0f0f0; color: #555; border: none; padding: 9px 22px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .btn-consent-ok     { background: #1a5276; color: #fff;  border: none; padding: 9px 22px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .btn-consent-ok:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Modal de mensaje ────────────────────────────────── */
+    .msg-overlay {
+        position: fixed; inset: 0;
+        background: rgba(10,20,40,0.65);
+        display: none; align-items: center; justify-content: center;
+        z-index: 6000;
+    }
+    .msg-box {
+        background: #fff;
+        border-radius: 12px;
+        width: 380px;
+        max-width: 94vw;
+        padding: 32px 28px;
+        text-align: center;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+    }
+    .msg-icon { font-size: 3rem; margin-bottom: 14px; }
+    .msg-title { font-size: 1.1rem; font-weight: 800; color: #222; margin-bottom: 8px; }
+    .msg-body  { font-size: 0.9rem; color: #666; margin-bottom: 22px; line-height: 1.5; }
+    .btn-msg-ok { background: #1a5276; color: #fff; border: none; padding: 10px 32px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+</style>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL DE CONSENTIMIENTO (visible al cargar)
+     ════════════════════════════════════════════════════ -->
+<div class="consent-overlay" id="consentOverlay">
+    <div class="consent-box">
+        <div class="consent-head">
+            <i class="fas fa-file-signature"></i>
+            Consentimiento Informado — Examen Toxicológico
+        </div>
+        <div class="consent-body">
+            <div class="consent-text-box">
+                <p>La empresa <strong id="lblConsentEmpresa">[Empresa]</strong> informa que se
+                realizará una prueba de detección de consumo de drogas y alcohol al portador de
+                este documento, conforme al reglamento interno vigente.</p>
+                <p>Los resultados son <strong>confidenciales</strong> y serán utilizados
+                únicamente con fines laborales y de seguridad. Serán comunicados exclusivamente
+                a los responsables de Recursos Humanos y Seguridad.</p>
+                <p>El procedimiento se realiza conforme a las normas establecidas por la empresa
+                y la legislación aplicable.</p>
+            </div>
+            <label class="consent-check">
+                <input type="checkbox" id="chkConsiento" onchange="toggleConsentOk()" />
+                Acepto la realización del examen conforme a los términos descritos.
+            </label>
+        </div>
+
+        <div class="consent-foot">
+            <button class="btn-consent-cancel" onclick="rechazarConsiento()">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button class="btn-consent-ok" id="btnConsientoOk" disabled onclick="aceptarConsiento()">
+                <i class="fas fa-check"></i> Aceptar y Continuar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL DE MENSAJE
+     ════════════════════════════════════════════════════ -->
+<div class="msg-overlay" id="adMsgOverlay" style="display:none;">
+    <div class="msg-box">
+        <div class="msg-icon" id="adMsgIcon"></div>
+        <div class="msg-title" id="adMsgTitle"></div>
+        <div class="msg-body"  id="adMsgBody"></div>
+        <button class="btn-msg-ok" id="adMsgOkBtn" onclick="cerrarMsg()">Entendido</button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     ENCABEZADO
+     ════════════════════════════════════════════════════ -->
+<div class="ad-page-header">
+    <i class="fas fa-flask flask-icon"></i>
+    <h1>Examen Antidoping</h1>
+    <div class="ad-patient-badge" id="badgeOrden">Orden #@idOrden</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     CUERPO PRINCIPAL
+     ════════════════════════════════════════════════════ -->
+<div class="ad-page-body">
+
+    <!-- Datos del paciente -->
+    <div class="patient-card" id="patientCard">
+        <div><strong>Paciente:</strong> <span id="lblAdNombre">Cargando...</span></div>
+        <div><strong>No. Empleado:</strong> <span id="lblAdNumEmpleado">—</span></div>
+        <div><strong>Empresa / Proyecto:</strong> <span id="lblAdEmpresa">—</span></div>
+        <div><strong>Puesto:</strong> <span id="lblAdPuesto">—</span></div>
+    </div>
+
+    <!-- Evidencia fotográfica -->
+    <div class="ad-card">
+        <div class="ad-card-title">
+            <i class="fas fa-camera"></i> Evidencia Fotográfica
+        </div>
+        <div class="evidence-drop" onclick="document.getElementById('fileEvidencia').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size:1.6rem; color:#aac; margin-bottom:6px;"></i>
+            <div>Haz clic para seleccionar foto de evidencia <span style="color:#aaa;">(opcional)</span></div>
+            <input type="file" id="fileEvidencia" accept="image/*" onchange="onEvidenceSelected(this)" />
+        </div>
+        <div id="evidencePreview" style="margin-top:10px; display:none;">
+            <img id="evidenceImg" src="" style="max-height:120px; border-radius:6px; border:1px solid #ddd;" />
+            <span id="evidenceName" style="font-size:0.8rem; color:#555; margin-left:8px;"></span>
+        </div>
+    </div>
+
+    <!-- Resultados de drogas -->
+    <div class="ad-card">
+        <div class="ad-card-title">
+            <i class="fas fa-vials"></i> Resultados Preliminares
+        </div>
+        <div class="drug-grid" id="drugGrid">
+            <!-- generado por JS -->
+        </div>
+    </div>
+
+    <!-- Comentarios -->
+    <div class="ad-card">
+        <div class="ad-card-title"><i class="fas fa-comment-medical"></i> Comentarios / Observaciones</div>
+        <textarea class="ad-textarea" id="txtComentariosAd" placeholder="Escriba aquí cualquier observación relevante..."></textarea>
+    </div>
+
+    <!-- Acciones -->
+    <div class="ad-actions">
+        <button class="btn-ad btn-ad-cancel" onclick="cancelarAd()">
+            <i class="fas fa-arrow-left"></i> Cancelar
+        </button>
+        <button class="btn-ad btn-ad-save" id="btnGuardarAd" onclick="guardarAd()">
+            <i class="fas fa-save"></i> Guardar Antidoping
+        </button>
+    </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCRIPTS — todo autocontenido, sin dependencias externas
+     ════════════════════════════════════════════════════ -->
+<script>
+    // ── Variables inyectadas desde servidor ────────────────
+    var idOrden = @idOrden;
+
+    // ── Catálogo de drogas ─────────────────────────────────
+    var drugs = [
+        { code: 'coc', name: 'Cocaína (COC)' },
+        { code: 'opi', name: 'Opiáceos (OPI)' },
+        { code: 'thc', name: 'Marihuana (THC)' },
+        { code: 'alc', name: 'Alcohol' },
+        { code: 'anf', name: 'Anfetaminas (AMP)' },
+        { code: 'met', name: 'Metanfetaminas (MET)' },
+        { code: 'mfn', name: 'Metilfenidato (MTD)' },
+        { code: 'fen', name: 'Fentanilo (FEN)' },
+        { code: 'bzd', name: 'Benzodiacepinas (BZO)' }
+    ];
+
+    // ── Inicialización ─────────────────────────────────────
+    $(document).ready(function() {
+        renderDrugGrid();
+        loadPatient();
+    });
+
+    // ── Renderizar grilla de drogas ────────────────────────
+    function renderDrugGrid() {
+        var html = '';
+        drugs.forEach(function(d) {
+            html += '<div class="drug-row" data-drug="' + d.code + '">' +
+                '<span class="drug-name">' + d.name + '</span>' +
+                '<label class="chk-aplica-wrap">' +
+                    '<input type="checkbox" class="chk-aplica" checked onchange="toggleDrug(this)" />' +
+                    '<span>Aplica</span>' +
+                '</label>' +
+                '<div class="result-switch">' +
+                    '<button class="sw-btn neg active" onclick="setResult(this,\'neg\')">Neg</button>' +
+                    '<button class="sw-btn pos"         onclick="setResult(this,\'pos\')">Pos</button>' +
+                '</div>' +
+            '</div>';
+        });
+        $('#drugGrid').html(html);
+    }
+
+    // ── Cargar datos del paciente ──────────────────────────
+    function loadPatient() {
+        $.getJSON('/ServicioMedico/ObtenerDatosPaciente', { idOrden: idOrden }, function(resp) {
+            if (resp && resp.success && resp.paciente) {
+                var p = resp.paciente;
+                // Card de paciente
+                $('#lblAdNombre').text(p.NombreCompleto || '—');
+                $('#lblAdNumEmpleado').text(p.NumeroEmpleado || '—');
+                var em = p.Empresa || 'la empresa';
+                $('#lblAdEmpresa').text(em);
+                $('#lblAdPuesto').text(p.Puesto || '—');
+                // Solo empresa en el consentimiento
+                $('#lblConsentEmpresa').text(em);
+            }
+        }).fail(function(xhr) {
+            console.warn('No se pudieron cargar datos del paciente. HTTP ' + xhr.status);
+        });
+    }
+
+    // ── Consentimiento ────────────────────────────────────
+    function toggleConsentOk() {
+        $('#btnConsientoOk').prop('disabled', !$('#chkConsiento').is(':checked'));
+    }
+
+    function aceptarConsiento() {
+        $('#consentOverlay').fadeOut(200);
+    }
+
+    function rechazarConsiento() {
+        if (confirm('Al cancelar no se realizará el examen. ¿Desea salir?')) {
+            completarSinAd();
+        }
+    }
+
+    // ── Resultados de drogas ──────────────────────────────
+    function toggleDrug(chk) {
+        var $row = $(chk).closest('.drug-row');
+        var $btns = $row.find('.sw-btn');
+        if (!chk.checked) {
+            $btns.addClass('disabled-btn').prop('disabled', true);
+        } else {
+            $btns.removeClass('disabled-btn').prop('disabled', false);
+            if (!$row.find('.sw-btn.active').length) {
+                $row.find('.sw-btn.neg').addClass('active');
+            }
+        }
+    }
+
+    function setResult(btn, tipo) {
+        var $btn = $(btn);
+        if ($btn.hasClass('disabled-btn')) return;
+        $btn.closest('.result-switch').find('.sw-btn').removeClass('active neg pos');
+        $btn.addClass('active').addClass(tipo);
+    }
+
+    // ── Evidencia ─────────────────────────────────────────
+    function onEvidenceSelected(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#evidenceImg').attr('src', e.target.result);
+                $('#evidenceName').text(input.files[0].name);
+                $('#evidencePreview').show();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ── Guardar ───────────────────────────────────────────
+    function guardarAd() {
+        $('#btnGuardarAd').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+
+        var fd = new FormData();
+        fd.append('PkOrdenMedico', idOrden);
+        fd.append('ConsentimientoFirmado', true);
+        fd.append('Comentarios', $('#txtComentariosAd').val());
+
+        // Veredicto calculado internamente (sin mostrarlo en pantalla)
+        var hasPos = $('#drugGrid .sw-btn.pos.active').length > 0;
+        fd.append('VeredictoFinal', hasPos ? 'POSITIVO' : 'NEGATIVO');
+
+        // Evidencia
+        var $f = $('#fileEvidencia');
+        if ($f[0].files.length > 0) fd.append('FileEvidencia', $f[0].files[0]);
+
+        // Drogas
+        var map = { 'coc':'Cocaina','opi':'Opiaceos','thc':'THC','alc':'Alcohol',
+                    'anf':'Anfetaminas','met':'Metanfetaminas','mfn':'Metilfenidato',
+                    'fen':'Fentanilo','bzd':'Benzodiacepinas' };
+        drugs.forEach(function(d) {
+            var $row = $('[data-drug="' + d.code + '"]');
+            var aplica  = $row.find('.chk-aplica').is(':checked');
+            var positivo = $row.find('.sw-btn.pos.active').length > 0;
+            fd.append('Aplica'    + map[d.code], aplica);
+            fd.append('Resultado' + map[d.code], positivo);
+        });
+
+        $.ajax({
+            url: '/ServicioMedico/GuardarAntidoping',
+            type: 'POST',
+            data: fd,
+            contentType: false,
+            processData: false,
+            success: function(resp) {
+                if (resp && resp.success) {
+                    showAdMsg('success', '¡Antidoping Guardado!',
+                        'El examen fue registrado correctamente.',
+                        function() { window.location.href = '/ServicioMedico/Index'; });
+                } else {
+                    $('#btnGuardarAd').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Antidoping');
+                    showAdMsg('error', 'Error al Guardar', resp.message || 'Ocurrió un error inesperado.');
+                }
+            },
+            error: function(xhr) {
+                $('#btnGuardarAd').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Antidoping');
+                showAdMsg('error', 'Error de Conexión',
+                    'No se pudo conectar con el servidor. (HTTP ' + xhr.status + ')');
+            }
+        });
+    }
+
+    // ── Cancelar / sin antidoping ─────────────────────────
+    function cancelarAd() {
+        if (!confirm('¿Desea salir sin guardar el antidoping?')) return;
+        completarSinAd();
+    }
+
+    function completarSinAd() {
+        $.post('/ServicioMedico/CompletarSinAntidoping',
+            { pkOrdenMedico: idOrden },
+            function() { window.location.href = '/ServicioMedico/Index'; }
+        ).fail(function() { window.location.href = '/ServicioMedico/Index'; });
+    }
+
+    // ── Modales de mensaje ────────────────────────────────
+    var _msgCallback = null;
+
+    function showAdMsg(tipo, title, body, callback) {
+        var icons = { success: '✅', error: '❌', info: 'ℹ️' };
+        $('#adMsgIcon').text(icons[tipo] || 'ℹ️');
+        $('#adMsgTitle').text(title);
+        $('#adMsgBody').text(body);
+        _msgCallback = callback || null;
+        $('#adMsgOverlay').css('display', 'flex');
+    }
+
+    function cerrarMsg() {
+        $('#adMsgOverlay').hide();
+        if (_msgCallback) { var cb = _msgCallback; _msgCallback = null; cb(); }
+    }
+</script>

@@ -111,6 +111,12 @@
 
     /* Antidoping Section (Full View) */
     .antidoping-section { display: none; animation: fadeIn 0.5s; }
+    /* Cuando se muestra via JS o estilo inline, garantizar que sea visible */
+    .antidoping-section[style*="display:block"],
+    .antidoping-section[style*="display: block"] {
+        display: block !important;
+    }
+
     .ad-container { background: #fff; border: 1px solid #d0d0d0; border-radius: 6px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); max-width: 800px; margin: 0 auto; }
     .ad-header { border-bottom: 2px solid #e74c3c; padding-bottom: 15px; margin-bottom: 25px; }
     .ad-header h3 { color: #c0392b; margin: 0; font-size: 1.3rem; }

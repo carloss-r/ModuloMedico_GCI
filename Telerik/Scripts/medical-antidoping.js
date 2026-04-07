@@ -16,15 +16,21 @@ function validarConsentimiento() {
 }
 
 function aceptarConsentimiento() {
-    $('#modalConsentimiento').hide();
-    showSuccess("Consentimiento aceptado. Iniciando prueba Antidoping...", function() {
-        if($('#mainWizard').is(':visible')) {
-            $('#mainWizard').slideUp();
-        }
-        $('#secAntidoping').show();
-        window.scrollTo(0,0);
+    $('#modalConsentimiento').fadeOut(150, function() {
+        showSuccess("Consentimiento aceptado. Iniciando prueba Antidoping...", function() {
+            // Aseguramos que el wizard médico esté oculto y la sección de antidoping visible
+            if($('#mainWizard').length) $('#mainWizard').hide();
+            
+            $('#secAntidoping').fadeIn(400);
+            
+            // Garantizar visibilidad de elementos internos (Fix para 'pasmado' o blanco)
+            $('.ad-container').show().css('visibility', 'visible');
+            
+            window.scrollTo(0,0);
+        });
     });
 }
+
 
 function rechazarConsentimiento() {
     showConfirm("Al rechazar el consentimiento, no se podr\u00e1 realizar el Antidoping. La solicitud se marcar\u00e1 como completada solo con el examen m\u00e9dico. \u00bfDesea salir?", function(res) {

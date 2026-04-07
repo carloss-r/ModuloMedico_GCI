@@ -1,17 +1,8 @@
 @{
-    Layout = null;
+    Layout = "~/Views/Shared/_LayoutMedico.cshtml";
     ViewBag.Title = "Evaluación Médica";
     int idOrden = ViewBag.IdOrden;
 }
-
-<!-- Independencia de Estilos y Scripts -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-<link rel="stylesheet" href="~/Content/FormularioEvaluacionMedica.css" />
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div id="gci-modulo-medico-container">
     <script>
@@ -31,7 +22,7 @@
         }
     </div>
 
-    <div class="wizard-container" id="mainWizard" style="@(ViewBag.TipoServicio == 3 ? "display:none;" : "")">
+    <div class="wizard-container" id="mainWizard">
         <div class="wizard-steps">
             <div class="wizard-step active" onclick="goToStep(1)" id="step1">
                 <i class="fas fa-user-circle"></i> Datos Generales
@@ -82,183 +73,44 @@
         </div>
     </div>
 
-    <div class="antidoping-section" id="secAntidoping" style="@(ViewBag.TipoServicio == 3 ? "display:block;" : "")">
-        <div class="ad-container">
-            <div class="ad-header">
-                <h3><i class="fas fa-flask"></i> Examen Antidoping</h3>
-            </div>
-
-            <div class="ad-patient-info" style="background:#f8f9fa; padding:15px; border:1px solid #e0e0e0; border-left:4px solid #1a5276; margin-bottom:25px; border-radius:4px;">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.9rem;">
-                    <div><strong>Paciente:</strong> <span id="lblAdNombre" style="color:#333;"></span></div>
-                    <div><strong>No. Empleado:</strong> <span id="lblAdNumEmpleado" style="color:#333;"></span></div>
-                    <div><strong>Proyecto:</strong> <span id="lblAdEmpresa" style="color:#333;"></span></div>
-                    <div><strong>Puesto:</strong> <span id="lblAdPuesto" style="color:#333;"></span></div>
-                </div>
-            </div>
-
-            <div class="check-grid" style="margin-bottom:15px;">
-                <!-- Consentimiento ya fue firmado en el modal, se marca automáticamente -->
-                <label class="check-item"><input type="checkbox" id="chkConsentimiento" checked disabled /> Consentimiento Informado Firmado</label>
-            </div>
-
-            <div class="form-group" style="margin-bottom:15px;">
-                <label>Foto Evidencia</label>
-                <input type="file" id="fileEvidencia" class="form-control" accept="image/*" />
-            </div>
-
-            <h4 class="section-title">Resultados Preliminares</h4>
-            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="switch-field" data-drug="coc">
-                    <span class="switch-label">Coca&iacute;na (COC):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'coc')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'coc')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="opi">
-                    <span class="switch-label">Opi&aacute;ceos (OPI):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'opi')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'opi')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="thc">
-                    <span class="switch-label">Marihuana (THC):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'thc')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'thc')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="alc">
-                    <span class="switch-label">Alcohol:</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'alc')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'alc')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="anf">
-                    <span class="switch-label">Anfetaminas (AMP):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'anf')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'anf')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="met">
-                    <span class="switch-label">Metanfetaminas (MET):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'met')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'met')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="mfn">
-                    <span class="switch-label">Metilfenidato (MTD):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'mfn')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'mfn')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="fen">
-                    <span class="switch-label">Fentanilo (FEN):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'fen')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'fen')">Positivo</span>
-                    </div>
-                </div>
-
-                <div class="switch-field" data-drug="bzd">
-                    <span class="switch-label">Benzodiacepinas (BZO):</span>
-                    <label class="check-item" style="width:auto; margin-right:15px;">
-                        <input type="checkbox" class="chk-aplica" checked onchange="toggleAplicaRow(this)" /> Aplica
-                    </label>
-                    <div class="switch-group res-btns">
-                        <span class="switch-btn active neg" onclick="toggleResult(this, 'bzd')">Negativo</span>
-                        <span class="switch-btn" onclick="toggleResult(this, 'bzd')">Positivo</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-top:15px;">
-                <label>Comentarios / Observaciones</label>
-                <textarea id="txtComentariosAd" class="form-control" rows="2"></textarea>
-            </div>
-
-            <div class="actions" style="margin-top:15px;">
-                <button class="btn-nav btn-prev" onclick="cancelarAntidoping()">Cancelar</button>
-                <button class="btn-nav btn-finish" onclick="saveAntidoping()">Guardar Antidoping</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modales -->
+    <!-- Modal: Bifurcación Antidoping después del Examen Médico -->
     <div class="custom-modal-overlay" id="modalConfirmacionAD">
-        <div class="custom-modal" style="width: 480px;">
+        <div class="custom-modal" style="width: 500px;">
             <div class="cm-header">
-                <h4><i class="fas fa-check-circle" style="color:#27ae60;"></i> ¡Éxito!</h4>
+                <h4><i class="fas fa-check-circle" style="color:#27ae60;"></i> ¡Evaluación Guardada!</h4>
             </div>
-            <div class="cm-body">
-                <p style="font-size: 1.1rem; font-weight: 500; color: #333;">La evaluación médica se ha guardado correctamente.</p>
-                <p style="margin-top:15px; color:#666;">¿Desea proceder con la toma de muestra para la prueba <strong>ANTIDOPING</strong> ahora?</p>
+            <div class="cm-body" style="text-align:center; padding: 24px 20px;">
+                <p style="font-size: 1.05rem; font-weight: 500; color: #333; margin-bottom: 10px;">
+                    La evaluación médica se ha guardado y la solicitud fue marcada como <strong>Completada</strong>.
+                </p>
+                <p style="font-size: 0.95rem; color: #555; margin-top: 14px;">
+                    <i class="fas fa-flask" style="color:#c0392b;"></i>
+                    ¿Desea realizar <strong>Examen Antidoping</strong> ahora para este mismo candidato?
+                </p>
             </div>
-            <div class="cm-footer">
-                <button class="btn-nav btn-prev" onclick="rechazarConsentimiento()" style="background:#f0f0f0; border:1px solid #ddd;">No, finalizar</button>
-                <button class="btn-nav btn-next" onclick="continuarAntidoping()" style="background:#1a5276;">Sí, continuar</button>
+            <div class="cm-footer" style="justify-content: center; gap: 16px;">
+                <button class="btn-nav btn-prev"
+                        style="background:#f0f0f0; color:#444; border:1px solid #ddd; min-width:130px;"
+                        onclick="finalizarSinAntidoping()">
+                    <i class="fas fa-times"></i> No, finalizar
+                </button>
+                <button class="btn-nav btn-next"
+                        style="background:#c0392b; min-width:130px;"
+                        onclick="irAntidopingAhora()">
+                    <i class="fas fa-flask"></i> Sí, Antidoping
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="custom-modal-overlay" id="modalConsentimiento">
-        <div class="custom-modal" style="width: 600px;">
-            <div class="cm-header">
-                <h4><i class="fas fa-file-signature"></i> Consentimiento Informado</h4>
-            </div>
-            <div class="cm-body">
-                <div class="consent-text">
-                    <h5 style="text-align:center;">AUTORIZACI&Oacute;N PARA EXAMEN TOXICOL&Oacute;GICO</h5>
-                    <p>Autorizo a <span id="lblAdEmpresaConsent" style="font-weight:700;">[EMPRESA]</span> para que se me realicen las pruebas de detecci&oacute;n de consumo de drogas y alcohol...</p>
-                </div>
-                <div class="check-item">
-                    <input type="checkbox" id="chkAceptoConsentimiento" onchange="validarConsentimiento()" />
-                    <label for="chkAceptoConsentimiento">He leído y acepto los términos.</label>
-                </div>
-            </div>
-            <div class="cm-footer">
-                <button class="btn-nav btn-prev" onclick="rechazarConsentimiento()">Cancelar</button>
-                <button class="btn-nav btn-next" id="btnAceptoCon" onclick="aceptarConsentimiento()" disabled>Aceptar y Continuar</button>
-            </div>
-        </div>
-    </div>
+    <script>
+        function finalizarSinAntidoping() {
+            window.location.href = '/ServicioMedico/Index';
+        }
+        function irAntidopingAhora() {
+            window.location.href = '/ServicioMedico/IrAntidoping/' + idOrden;
+        }
+    </script>
 
     <!-- Custom Confirm/Message Modals -->
     <div class="custom-modal-overlay" id="confirmOverlay">
@@ -282,7 +134,7 @@
         </div>
     </div>
 
-    <!-- Scripts del Módulo -->
+    <!-- Scripts del Módulo Médico -->
     <script src="~/Scripts/medical-common.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/Scripts/medical-form-data.js?v=@DateTime.Now.Ticks"></script>
     <script src="~/Scripts/medical-wizard.js?v=@DateTime.Now.Ticks"></script>
