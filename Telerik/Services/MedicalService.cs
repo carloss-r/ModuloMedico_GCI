@@ -54,7 +54,8 @@ namespace Telerik.Services
                         Edad = edad,
                         Puesto = emp.PuestoDesc,
                         Area = emp.AreaDesc,
-                        Empresa = emp.ProyectoDesc, // Project for employees
+                        Empresa = emp.EmpresaDesc,
+                        Proyecto = emp.ProyectoDesc, 
                         Sexo = NormalizarSexo(emp.Sexo),
                         Tipo = "EMPLEADO",  
                         TipoServicioId = orden.FkTipoServicio,
@@ -75,11 +76,10 @@ namespace Telerik.Services
                         EstadoCivil = emp.EstadoCivil,
                         TipoSangre = emp.TipoSangre,
                         Rfc = emp.Rfc,
-                        Curp = "", // Retired as not needed in UI
+                        Curp = "", 
                         TieneHijos = emp.TieneHijos,
                         NumeroHijos = emp.NumeroHijosDesc,
                         Escolaridad = emp.EscolaridadDesc,
-                        // Geographic FKs
                         FkPais = emp.FkPais,
                         FkEstado = emp.FkEstado,
                         FkMunicipio = emp.FkMunicipio,
@@ -89,7 +89,7 @@ namespace Telerik.Services
                         Calle = emp.Calle,
                         NumExterior = emp.NumExterior,
                         NumInterior = emp.NumInterior,
-                        FkEmpresa = emp.FkPais.HasValue ? null : (int?)null // placeholder
+                        FkEmpresa = emp.FkPais.HasValue ? null : (int?)null
                     };
                 }
             }
@@ -106,22 +106,21 @@ namespace Telerik.Services
                 Puesto = (cand != null ? cand.puestoDeseado : orden.PuestoCandidato) ?? "",
                 Area = (cand != null ? cand.area : orden.AreaCandidato) ?? "",
                 Empresa = cand != null ? cand.empresa : (!string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : (orden.ProyectoDesc ?? "")),
+                Proyecto = orden.ProyectoDesc ?? (cand != null ? cand.empresa : ""),
                 Sexo = NormalizarSexo(cand != null ? cand.fkSexo : orden.SexoCandidato),
                 Tipo = "CANDIDATO",
                 TipoServicioId = orden.FkTipoServicio,
                 TipoServicioDesc = orden.TipoServicioDesc,
                 NumeroEmpleado = "N/A",
 
-                // New fields for synchronization
                 FechaNacimiento = cand != null && cand.fechaNacimiento.HasValue ? cand.fechaNacimiento.Value.ToString("yyyy-MM-dd") : "",
                 Nss = cand != null ? cand.nss : "",
-                Curp = "", // Retired as not needed in UI
+                Curp = "", 
                 Telefono = cand != null ? cand.telefono : "",
                 EstadoCivil = (cand != null && cand.fkEstadoCivil.HasValue) ? cand.fkEstadoCivil.Value.ToString() : "", 
                 FkTipoSangre = cand != null ? cand.fkTipoSangre : null,
                 Escolaridad = cand != null ? cand.escolaridad : "",
                 
-                // Address data
                 FkPais = cand != null ? cand.fkPais : null,
                 FkEstado = cand != null ? cand.fkEstado : null,
                 FkMunicipio = cand != null ? cand.fkMunicipio : null,

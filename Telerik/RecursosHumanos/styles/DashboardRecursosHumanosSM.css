@@ -1,0 +1,270 @@
+:root {
+    --gci-primary: #1a5276;
+    --gci-primary-dark: #154360;
+    --gci-bg: #f4f7f6;
+    --gci-white: #ffffff;
+    --gci-text: #333333;
+    --gci-text-light: #555555;
+    --gci-border: #dddddd;
+    
+    /* Badge Colors */
+    --badge-ingreso: #16a085;
+    --badge-periodico: #8e44ad;
+    --badge-pendiente: #e67e22;
+    --badge-completada: #27ae60;
+}
+
+body { 
+    background-color: var(--gci-bg); 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    color: var(--gci-text);
+    margin: 0;
+}
+
+.gci-container { padding: 30px; }
+
+/* Header Styling */
+.gci-header { 
+    background: var(--gci-primary); 
+    padding: 15px 25px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: -30px -30px 25px -30px; /* Full width top */
+}
+
+.gci-header div h2 { 
+    margin: 0; 
+    font-size: 1.4rem; 
+    font-weight: 600; 
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gci-header-subtitle { 
+    font-size: 0.8rem; 
+    opacity: 0.85; 
+    margin-top: 2px;
+    display: block;
+}
+
+.btn-nueva-solicitud {
+    background: #fff !important;
+    color: var(--gci-primary) !important;
+    border: none !important;
+    padding: 10px 22px !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Main Content Panel */
+.gci-panel { 
+    background: #fff; 
+    border-radius: 4px; 
+    padding: 20px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.sp-title-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.sp-title-text { 
+    font-size: 1.1rem; 
+    font-weight: 600; 
+    color: var(--gci-primary); 
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sp-filters-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--gci-text-light);
+    flex-wrap: wrap;
+}
+
+.filter-input-mini {
+    border: 1px solid var(--gci-border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    width: 140px;
+}
+
+.filter-select-mini {
+    border: 1px solid var(--gci-border);
+    border-radius: 4px;
+    padding: 3px 6px;
+}
+
+/* Table Design */
+.gci-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 0.82rem; 
+}
+
+.gci-table thead th { 
+    background: var(--gci-primary); 
+    color: #fff; 
+    padding: 12px; 
+    text-align: left; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+}
+
+.gci-table tbody tr { 
+    border-bottom: 1px solid #f0f0f0; 
+    transition: background 0.1s;
+}
+
+.gci-table tbody tr:hover { 
+    background: #f1f7fa; 
+}
+
+.gci-table td { padding: 12px; }
+
+/* Badges text-only (No background shading) */
+.status-badge {
+    padding: 2px 4px;
+    background: transparent !important;
+    border: none !important;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--gci-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-align: left;
+    min-width: unset;
+    text-transform: uppercase;
+}
+
+.badge-ingreso { color: var(--badge-ingreso) !important; }
+.badge-periodico { color: #3f51b5 !important; } /* Indigo blue for Periodic */
+.badge-pendiente { color: var(--badge-pendiente) !important; }
+.badge-completado { color: var(--badge-completada) !important; }
+.badge-apto { color: var(--badge-completada) !important; font-size: 0.7rem; }
+.badge-tox { color: #d81b60 !important; font-size: 0.65rem; } /* Magenta for Tox */
+.badge-med { color: #2e7d32 !important; font-size: 0.65rem; } /* Dark Green for Med */
+
+/* Icon indicators next to text if needed */
+.status-badge i { font-size: 0.7rem; }
+
+/* Buttons in actions */
+.btn-action {
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #555;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background: #f0f0f0;
+    border-color: #999;
+}
+
+/* General Buttons */
+.btn-gci {
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-gci-primary { background: var(--gci-primary); color: #fff; }
+.btn-gci-secondary { background: #fff; border-color: #ccc; color: #333; }
+.btn-gci-secondary:hover { background: #f8f8f8; }
+
+/* Modals */
+.modal-overlay { 
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(0,0,0,0.5); z-index: 3000; 
+    display: none; align-items: center; justify-content: center; 
+}
+.modal-overlay.active { display: flex; }
+.modal-box { 
+    background: #fff; border-radius: 8px; width: 680px; 
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+}
+.modal-header { 
+    background: var(--gci-primary); color: #fff; padding: 15px 20px; 
+    display: flex; align-items: center; justify-content: space-between;
+}
+.modal-close { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-actions { 
+    padding: 15px 20px; 
+    border-top: 1px solid #e0e0e0; 
+    background: #f8f9fa;
+    display: flex; 
+    align-items: center;
+}
+
+/* Modal Pase específico */
+#modalPase .modal-body {
+    padding: 0;
+    background: #f5f5f5;
+}
+#paseContent {
+    min-height: 400px;
+}
+#paseContent .print-content {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Spinner y mensajes de carga/error */
+.gci-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #1a5276;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.loading-spinner-row {
+    text-align: center;
+    padding: 40px;
+}
+.gci-loading-text {
+    color: #666;
+    font-size: 14px;
+}
+.no-data {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+    font-style: italic;
+}
+.no-data i {
+    color: #d32f2f;
+    margin-right: 8px;
+}
+
+/* Responsive utility */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }

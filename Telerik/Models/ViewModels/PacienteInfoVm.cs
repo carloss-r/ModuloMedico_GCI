@@ -10,6 +10,7 @@ namespace Telerik.Models.ViewModels
         public string Puesto { get; set; }
         public string Area { get; set; }
         public string Empresa { get; set; }
+        public string Proyecto { get; set; }
         public string Sexo { get; set; }
         public string Tipo { get; set; }
         public int? TipoServicioId { get; set; }

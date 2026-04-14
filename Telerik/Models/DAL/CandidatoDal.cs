@@ -6,7 +6,7 @@ namespace Telerik.Models.DAL
 {
     public class CandidatoDal
     {
-        public static int Insertar(string nombre, string aPaterno, string aMaterno = null, string puestoDeseado = null, string area = null, string empresa = null, string sexo = "")
+        public static int Insertar(string nombre, string aPaterno, string aMaterno = null, string puestoDeseado = null, string area = null, string empresa = null, string sexo = "", int? fkEmpresa = null, int? fkProyecto = null)
         {
             using (var db = new ApplicationDbContext())
             {

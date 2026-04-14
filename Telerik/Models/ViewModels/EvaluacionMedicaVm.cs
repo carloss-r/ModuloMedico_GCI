@@ -23,6 +23,7 @@ namespace Telerik.Models.ViewModels
         public string AparatosSistemas { get; set; }
         
         public int? FkAptitudMedica { get; set; }
+        public string AptitudMedicaDesc { get; set; }
         public string Observaciones { get; set; } // Map as Diagnosis
         public string Recomendaciones { get; set; } // Added for Recommendation step
         public string SintomasPaciente { get; set; }
@@ -184,5 +185,27 @@ namespace Telerik.Models.ViewModels
         public string Ivsa { get; set; } // string in DB
         public string Psa { get; set; } // Antigeno Prostatico
         public string MetodoPlanificacion { get; set; }
+    }
+
+    /// <summary>
+    /// Resumen compacto de una evaluación clínica para mostrar en el Expediente del empleado.
+    /// </summary>
+    public class ResumenEvaluacionVm
+    {
+        public int    PkEvaluacion       { get; set; }
+        public string FechaEvaluacion    { get; set; }
+        public string AptitudDesc        { get; set; }
+        public int?   FkAptitudMedica    { get; set; }
+        public decimal? PesoKg           { get; set; }
+        public decimal? AlturaMetros     { get; set; }
+        public decimal? Imc              { get; set; }
+        public string  ImcDescripcion    { get; set; }
+        public int?   PresionSistolica   { get; set; }
+        public int?   PresionDiastolica  { get; set; }
+        public string  Glucosa           { get; set; }
+        public string  Oximetria         { get; set; }
+        public string  Observaciones     { get; set; }
+        public string  LugarEvaluacion   { get; set; }
+        public List<string> AntecedentesPositivos { get; set; }
     }
 }

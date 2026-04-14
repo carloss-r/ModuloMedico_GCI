@@ -20,6 +20,19 @@ namespace Telerik.Models.Entities
         public DateTime? fechaRegistro { get; set; }
         public string area { get; set; }
         public string empresa { get; set; }
+
+        [NotMapped]
+        public int? fkEmpresa { get; set; }
+
+        [NotMapped]
+        public int? fkProyecto { get; set; }
+
+        // [ForeignKey("fkEmpresa")]
+        // public virtual Empresa EmpresaNav { get; set; }
+
+        // [ForeignKey("fkProyecto")]
+        // public virtual Proyecto ProyectoNav { get; set; }
+
         public string telefono { get; set; }
         public string email { get; set; }
         public string nss { get; set; }

@@ -347,7 +347,10 @@ namespace Telerik.Models.DAL
                     Profesion              = eval.profesion,
                     Alergias               = eval.alergias,
                     FkTipoSangre           = eval.fkTipoSangre,
-                    LugarEvaluacion        = eval.lugarEvaluacion
+                    LugarEvaluacion        = eval.lugarEvaluacion,
+                    AptitudMedicaDesc      = eval.fkAptitudMedica == 1 ? "APTO" : 
+                                             eval.fkAptitudMedica == 2 ? "APTO CONDICIONADO" : 
+                                             eval.fkAptitudMedica == 3 ? "NO APTO" : "PENDIENTE"
                 };
 
                 // Unstow clinical data if present (fail-safe logic)
@@ -588,6 +591,87 @@ namespace Telerik.Models.DAL
                 // Reutilizamos el método existente detallado
                 return ObtenerPorOrden(ultimaOrdenConEval);
             }
+        }
+
+        /// <summary>
+        /// Obtiene un listado compacto de TODAS las evaluaciones de un empleado,
+        /// ordenadas de más reciente a más antigua. Usado para el Expediente Clínico.
+        /// </summary>
+        public static List<ResumenEvaluacionVm> ObtenerHistorialCompleto(int fkEmpleado)
+        {
+            var resultado = new List<ResumenEvaluacionVm>();
+            if (fkEmpleado <= 0) return resultado;
+
+            using (var db = new ApplicationDbContext())
+            {
+                // Catálogo de aptitudes para resolver descripción
+                var aptitudMap = new Dictionary<int, string>
+                {
+                    { 1, "APTO" }, { 2, "APTO CON RESTRICCIONES" }, { 3, "NO APTO" }, { 4, "PENDIENTE" }
+                };
+
+                // Unir evaluaciones con órdenes para filtrar por empleado
+                var evaluaciones = db.EvaluacionesClinicas
+                    .Join(db.OrdenesMedicas,
+                          e => e.fkOrdenMedico,
+                          o => o.pkOrdenMedico,
+                          (e, o) => new { e, o })
+                    .Where(x => x.o.fkEmpleado == fkEmpleado)
+                    .OrderByDescending(x => x.e.fechaEvaluacion)
+                    .ToList();
+
+                foreach (var item in evaluaciones)
+                {
+                    var e = item.e;
+
+                    // Extraer glucosa/oximetria/imcDesc del campo aparatosSistemas (STOWED-DATA)
+                    string glucosa = null, oximetria = null, imcDesc = null;
+                    if (!string.IsNullOrEmpty(e.aparatosSistemas) && e.aparatosSistemas.Contains("[[STOWED-DATA:"))
+                    {
+                        var m = System.Text.RegularExpressions.Regex.Match(
+                            e.aparatosSistemas, @"\[\[STOWED-DATA: Glucosa:(.*?)\|Oxi:(.*?)\|IMCDesc:(.*?)\]\]");
+                        if (m.Success)
+                        {
+                            glucosa   = m.Groups[1].Value.Trim();
+                            oximetria = m.Groups[2].Value.Trim();
+                            imcDesc   = m.Groups[3].Value.Trim();
+                        }
+                    }
+
+                    // Antecedentes positivos (solo el nombre, para mostrar como tags)
+                    var positivos = db.HistoriasMedicas
+                        .Where(h => h.fkEvaluacion == e.pkEvaluacion && h.esPositivo == true)
+                        .Select(h => h.nombreCondicion)
+                        .ToList();
+
+                    string aptitudDesc = "—";
+                    if (e.fkAptitudMedica.HasValue && aptitudMap.ContainsKey(e.fkAptitudMedica.Value))
+                        aptitudDesc = aptitudMap[e.fkAptitudMedica.Value];
+
+                    resultado.Add(new ResumenEvaluacionVm
+                    {
+                        PkEvaluacion      = e.pkEvaluacion,
+                        FechaEvaluacion   = e.fechaEvaluacion.HasValue
+                                              ? e.fechaEvaluacion.Value.ToString("dd/MM/yyyy")
+                                              : "Sin fecha",
+                        AptitudDesc       = aptitudDesc,
+                        FkAptitudMedica   = e.fkAptitudMedica,
+                        PesoKg            = e.pesoKg,
+                        AlturaMetros      = e.alturaMetros,
+                        Imc               = e.imc,
+                        ImcDescripcion    = imcDesc ?? "",
+                        PresionSistolica  = e.presionSistolica,
+                        PresionDiastolica = e.presionDiastolica,
+                        Glucosa           = glucosa ?? "",
+                        Oximetria         = oximetria ?? "",
+                        Observaciones     = e.observaciones,
+                        LugarEvaluacion   = e.lugarEvaluacion,
+                        AntecedentesPositivos = positivos
+                    });
+                }
+            }
+
+            return resultado;
         }
     }
 }

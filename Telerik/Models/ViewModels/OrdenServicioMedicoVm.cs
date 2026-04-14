@@ -46,6 +46,7 @@ namespace Telerik.Models.ViewModels
         public string EmpresaCandidato { get; set; }
         public string SexoCandidato { get; set; }
         public string EdadCandidato { get; set; }
+        public string NssCandidato { get; set; }
 
         public string FechaOrdenFormateada
         {

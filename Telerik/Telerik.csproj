@@ -126,8 +126,6 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Controllers\ServicioMedicoController.cs" />
-    <Compile Include="Controllers\SolicitudController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Models\ApplicationDbContext.cs" />
     <Compile Include="Models\Entities\Empleado.cs" />
@@ -174,9 +172,24 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RecursosHumanos\DashboardRecursosHumanosSM.aspx.cs">
+      <DependentUpon>DashboardRecursosHumanosSM.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ServicioMedico\EvaluacionMedica.aspx.cs">
+      <DependentUpon>EvaluacionMedica.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ServicioMedico\DashboardServicioMedico.aspx.cs">
+      <DependentUpon>DashboardServicioMedico.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ServicioMedico\ImpresionFormatos.aspx.cs">
+      <DependentUpon>ImpresionFormatos.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\FormularioEvaluacionMedica.css" /><Content Include="Scripts\FormularioEvaluacionMedica.js" /><Content Include="Content\ListaServiciosMedicos.css" /><Content Include="Scripts\ListaServiciosMedicos.js" /><Content Include="Content\DashboardRecursosHumanos.css" /><Content Include="Scripts\DashboardRecursosHumanos.js" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -198,20 +211,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
-    <Content Include="Scripts\bootstrap.esm.js" />
-    <Content Include="Scripts\bootstrap.esm.min.js" />
-    <Content Include="Scripts\bootstrap.js" />
-    <Content Include="Scripts\bootstrap.min.js" />
-    <None Include="Scripts\jquery-3.7.0.intellisense.js" />
-    <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
-    <Content Include="Scripts\jquery-3.7.0.slim.js" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.js" />
-    <None Include="Scripts\jquery.validate-vsdoc.js" />
-    <Content Include="Scripts\jquery.validate.js" />
-    <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -221,24 +221,19 @@
       <DependentUpon>Web.config</DependentUpon>
     </Content>
     <Content Include="Views\Web.config" />
-    <Content Include="Views\_ViewStart.cshtml" />
-    <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Solicitud\DashboardRecursosHumanos.cshtml" />
-    <Content Include="Views\Solicitud\_ModalNuevaSolicitud.cshtml" />
     <Content Include="Content\solicitud.css" />
     <Content Include="Scripts\solicitud.js" />
     <Content Include="Views\Home\Index.cshtml" />
-    <Content Include="Views\ServicioMedico\ListaServiciosMedicos.cshtml" />
-    <Content Include="Views\ServicioMedico\FormularioEvaluacionMedica.cshtml" />
-    <Content Include="Views\ServicioMedico\ImprimirFormularioEvaluacionMedica.cshtml" />
-    <Content Include="Views\ServicioMedico\FormatoImpresionAntidoping.cshtml" />
-    <Content Include="Views\ServicioMedico\Partials\_Step1_DatosGenerales.cshtml" />
-    <Content Include="Views\ServicioMedico\Partials\_Step2_Antecedentes.cshtml" />
-    <Content Include="Views\ServicioMedico\Partials\_Step3_Habitos.cshtml" />
-    <Content Include="Views\ServicioMedico\Partials\_Step4_ExploracionFisica.cshtml" />
-    <Content Include="Views\ServicioMedico\Partials\_Step5_Genitales.cshtml" />
-    <Content Include="Views\ServicioMedico\Partials\_Step6_Diagnostico.cshtml" />
     <Content Include="Content\sidebar.css" />
+    <Content Include="RecursosHumanos\DashboardRecursosHumanosSM.aspx" />
+    <Content Include="ServicioMedico\EvaluacionMedica.aspx" />
+    <Content Include="ServicioMedico\DashboardServicioMedico.aspx" />
+    <Content Include="ServicioMedico\ImpresionFormatos.aspx" />
+    <Content Include="RecursosHumanos\js\DashboardRecursosHumanosSM.js" />
+    <Content Include="RecursosHumanos\styles\DashboardRecursosHumanosSM.css" />
+    <Content Include="ServicioMedico\js\DashboardServicioMedicoInbox.js" />
+    <Content Include="ServicioMedico\js\EvaluacionMedica.js" />
+    <Content Include="ServicioMedico\styles\DashboardServicioMedico.css" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -261,13 +256,8 @@
     <Content Include="Content\bootstrap-grid.min.css.map" />
     <Content Include="Content\bootstrap-grid.css.map" />
     <None Include="packages.config" />
-    <Content Include="Scripts\bootstrap.min.js.map" />
-    <Content Include="Scripts\bootstrap.js.map" />
-    <Content Include="Scripts\bootstrap.esm.min.js.map" />
-    <Content Include="Scripts\bootstrap.esm.js.map" />
     <Content Include="Scripts\bootstrap.bundle.min.js.map" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
-    <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <PropertyGroup>
@@ -300,7 +290,7 @@
   </ProjectExtensions>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauraci�n de paquetes NuGet para descargarlos. Para obtener m�s informaci�n, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
+      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauraciï¿½n de paquetes NuGet para descargarlos. Para obtener mï¿½s informaciï¿½n, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
   </Target>

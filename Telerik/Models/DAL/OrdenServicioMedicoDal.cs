@@ -22,7 +22,8 @@ namespace Telerik.Models.DAL
             int? filtroEmpresa = null,
             int? filtroArea = null,
             int? filtroAnio = null,
-            int? filtroSemana = null)
+            int? filtroSemana = null,
+            string filtroNombre = null)
         {
             using (var db = new ApplicationDbContext())
             {
@@ -89,6 +90,13 @@ namespace Telerik.Models.DAL
                 // Aplicar Filtros SERVER-SIDE
                 if (filtroNumEmpleado.HasValue)
                     q = q.Where(x => x.o.fkEmpleado == filtroNumEmpleado.Value);
+
+                if (!string.IsNullOrEmpty(filtroNombre))
+                {
+                    string f = filtroNombre.ToLower();
+                    q = q.Where(x => (x.emp != null && (x.emp.nombre + " " + x.emp.aPaterno + " " + x.emp.aMaterno).ToLower().Contains(f)) ||
+                                     (x.cand != null && (x.cand.nombre + " " + x.cand.aPaterno + " " + x.cand.aMaterno).ToLower().Contains(f)));
+                }
 
                 if (!string.IsNullOrEmpty(filtroModalidad))
                 {
@@ -177,14 +185,14 @@ namespace Telerik.Models.DAL
                         FkEmpleado       = x.o.fkEmpleado,
                         FkCandidato      = x.o.fkCandidato,
                         NombrePersona    = x.emp != null
-                            ? (x.emp.nombre + " " + x.emp.aPaterno + " " + x.emp.aMaterno).Trim()
-                            : x.cand != null ? (x.cand.nombre + " " + x.cand.aPaterno + " " + (x.cand.aMaterno ?? "")).Trim() : "Sin Nombre",
-                        ProyectoDesc     = x.pr != null ? x.pr.descripcion : (x.p_emp != null ? x.p_emp.descripcion : (x.cand != null ? x.cand.area : null)),
+                            ? (x.emp.nombre + " " + x.emp.aPaterno + " " + (x.emp.aMaterno ?? "")).Trim()
+                            : x.cand != null ? (x.cand.nombre + " " + x.cand.aPaterno + " " + (x.cand.aMaterno ?? "")).Trim() : "N/A",
+                        ProyectoDesc     = x.pr != null ? x.pr.descripcion : (x.p_emp != null ? x.p_emp.descripcion : (x.cand != null ? x.cand.area : "-")),
                         FkProyecto       = x.o.fkProyecto,
-                        EmpresaNombre    = x.pr != null ? x.emp_pr.nombre : (x.emp != null ? x.emp_e.nombre : null),
+                        EmpresaNombre    = x.pr != null ? x.emp_pr.nombre : (x.emp != null ? x.emp_e.nombre : (x.cand != null ? x.cand.empresa : "-")),
                         _FkEmpresa       = x.pr != null ? (int?)x.pr.fkEmpresa : (x.emp != null ? x.emp.fkEmpresa : null),
-                        PuestoCandidato  = x.cand != null ? x.cand.puestoDeseado : (x.p != null ? x.p.descripcion : null),
-                        AreaCandidato    = x.cand != null ? x.cand.area : (x.a != null ? x.a.descripcion : null),
+                        PuestoCandidato  = x.cand != null ? x.cand.puestoDeseado : (x.p != null ? x.p.descripcion : "-"),
+                        AreaCandidato    = x.cand != null ? x.cand.area : (x.a != null ? x.a.descripcion : "-"),
                         EmpresaCandidato = x.cand != null ? x.cand.empresa : null,
                         SexoCandidato    = x.emp != null ? x.emp.fkSexo : (x.cand != null ? x.cand.fkSexo : null),
                         // Determinar Aptitud Médica
@@ -273,6 +281,7 @@ namespace Telerik.Models.DAL
                               PuestoCandidato  = cand != null ? cand.puestoDeseado : (p != null ? p.descripcion : null),
                               AreaCandidato    = cand != null ? cand.area : (a != null ? a.descripcion : null),
                               EmpresaCandidato = cand != null ? cand.empresa : null,
+                              NssCandidato     = cand != null ? cand.nss : null,
                               SexoCandidato    = emp != null ? emp.fkSexo : (cand != null ? cand.fkSexo : null),
                               FkAptitudMedica  = o.fkTipoServicio == 3 
                                   ? (anti != null 

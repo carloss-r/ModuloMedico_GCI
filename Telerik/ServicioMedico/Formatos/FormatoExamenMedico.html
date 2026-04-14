@@ -1,8 +1,3 @@
-@model Telerik.Models.ViewModels.OrdenServicioMedicoVm
-@{
-    Layout = null;
-}
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -145,10 +140,10 @@
             vertical-align: top;
         }
         .signature-label:last-child {
-            border-right: none;
+            border-right: none;     
         }
 
-        @@media print {
+        @media print {
             body { padding: 0; }
             .no-print { display: none !important; }
             * {
@@ -161,7 +156,6 @@
 <body>
 
     <div class="print-content">
-        <!-- Encabezado principal -->
         <table class="main-table">
             <tr>
                 <td colspan="4" class="header-cell">
@@ -192,7 +186,6 @@
             </tr>
         </table>
 
-        <!-- Instrucción -->
         <table class="instruction-table">
             <tr>
                 <td colspan="3" class="instruction-header">
@@ -220,7 +213,6 @@
             </tr>
         </table>
 
-        <!-- Indicación especial -->
         <table class="special-table">
             <tr>
                 <td class="fill-instruction">
@@ -239,7 +231,6 @@
             </tr>
         </table>
 
-        <!-- Firmas -->
         <table class="signature-table">
             <tr>
                 <td class="signature-space">&nbsp;</td>
