@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antidoping - GCI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      background: #ccc;
+    }
+
+    .page {
+      width: 216mm;
+      min-height: 279mm;
+      background: white;
+      margin: 10mm auto;
+      padding: 6mm 8mm;
+      border: 1px solid #000;
+    }
+
+    /* ── HEADER ── */
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #000;
+      margin-bottom: 4px;
+    }
+    .header-table td {
+      border: 1px solid #000;
+      padding: 3px 5px;
+      vertical-align: middle;
+    }
+    .header-logo {
+      width: 95px;
+      text-align: center;
+    }
+    .header-center {
+      text-align: center;
+    }
+    .header-center .title-main {
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .header-center .title-sub {
+      font-size: 9px;
+      font-weight: bold;
+      color: #444;
+    }
+    .header-hse {
+      width: 75px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 13px;
+      color: #2255aa;
+    }
+
+    /* ── TITULO DOCUMENTO ── */
+    .doc-title {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #000;
+      border-top: none;
+      margin-bottom: 5px;
+    }
+    .doc-title td {
+      text-align: center;
+      font-weight: bold;
+      font-size: 10px;
+      background: #e0e0e0;
+      padding: 4px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── INFO BASICA ── */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 5px;
+    }
+    .info-table td {
+      padding: 2px 3px;
+      font-size: 10px;
+      vertical-align: bottom;
+    }
+    .info-table .label {
+      font-weight: bold;
+      white-space: nowrap;
+      width: 60px;
+    }
+    .info-table .val-line {
+      border-bottom: 1px solid #000;
+      min-width: 150px;
+      display: inline-block;
+      height: 13px;
+      vertical-align: bottom;
+    }
+
+    /* ── TEXTO DE AUTORIZACIÓN ── */
+    .auth-block {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      font-size: 9.5px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+      text-align: justify;
+    }
+
+    /* ── DATOS DEL TRABAJADOR + FOTO ── */
+    .worker-layout {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .worker-fields {
+      flex: 1;
+    }
+    .worker-row {
+      display: flex;
+      align-items: baseline;
+      margin-bottom: 6px;
+      gap: 6px;
+      font-size: 10px;
+    }
+    .worker-row .label { font-weight: bold; white-space: nowrap; }
+    .worker-row .wline {
+      border-bottom: 1px solid #000;
+      flex: 1;
+      height: 13px;
+      display: inline-block;
+    }
+
+    /* ── FOTO ── */
+    .foto-box {
+      width: 110px;
+      min-height: 110px;
+      border: 1px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .foto-label {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 9px;
+      font-weight: bold;
+      color: #555;
+      position: absolute;
+      right: 3px;
+      top: 50%;
+      transform: rotate(180deg) translateY(50%);
+    }
+    .foto-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+    /* ── TABLA DE RESULTADOS ── */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 6px;
+      font-size: 9.5px;
+    }
+    .results-table th {
+      border: 1px solid #000;
+      background: #ddd;
+      text-align: center;
+      padding: 3px 4px;
+      font-size: 9px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .results-table td {
+      border: 1px solid #000;
+      padding: 2px 4px;
+      text-align: center;
+      height: 16px;
+    }
+    .results-table td.sust {
+      text-align: left;
+      font-weight: bold;
+    }
+    .cb {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 1px solid #000;
+      vertical-align: middle;
+      text-align: center;
+      font-size: 8px;
+      line-height: 10px;
+      font-weight: bold;
+    }
+
+    /* ── VEREDICTO ── */
+    .veredicto-block {
+      margin-bottom: 8px;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    .veredicto-no-apto {
+      display: inline-block;
+      border: 1px solid #000;
+      padding: 3px 8px;
+      margin-top: 4px;
+      font-size: 10px;
+    }
+
+    /* ── FIRMA ── */
+    .firma-block {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 9.5px;
+    }
+    .firma-line {
+      border-top: 1px solid #000;
+      width: 200px;
+      margin: 0 auto 3px;
+    }
+
+    /* ── FOOTER ── */
+    .form-footer {
+      border-top: 1px solid #000;
+      padding: 3px 0;
+      font-size: 9px;
+      text-align: right;
+      color: #555;
+      margin-top: 10px;
+    }
+
+    @media print {
+      body { background: white; }
+      .page { margin: 0; border: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <table class="header-table">
+      <tr>
+        <td class="header-logo" style="height:50px;">
+          <div style="border:2px solid #4a7c3f; padding:3px 6px; display:inline-block;">
+            <span style="color:#4a7c3f; font-size:20px; font-weight:900; letter-spacing:-1px;">GCI</span>
+          </div>
+          <div style="font-size:6px; color:#4a7c3f; margin-top:2px;">GRUPO CONSTRUCTOR INDUSTRIAL</div>
+        </td>
+        <td class="header-center">
+          <div class="title-main">REGLAMENTO DE SEGURIDAD, SALUD Y MEDIO AMBIENTE</div>
+          <div class="title-sub">GRUPO CONSTRUCTOR INDUSTRIAL OIL &amp; GAS</div>
+        </td>
+        <td class="header-hse" style="height:50px;">
+          <div style="border:2px solid #2255aa; padding:3px 6px; display:inline-block;">
+            <span style="color:#2255aa; font-size:15px; font-weight:900;">HSE</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- TITULO -->
+    <table class="doc-title">
+      <tr>
+        <td>AUTORIZACIÓN DE PRUEBA DE DETECCIÓN DEL CONSUMO DE DROGAS Y ALCOHOL</td>
+      </tr>
+    </table>
+
+    <!-- FECHA / PROYECTO -->
+    <table class="info-table">
+      <tr>
+        <td class="label">Fecha:</td>
+        <td><span class="val-line">{{FECHA}}</span></td>
+        <td style="width:20px;"></td>
+        <td class="label">Proyecto:</td>
+        <td><span class="val-line" style="min-width:200px;">{{PROYECTO}}</span></td>
+      </tr>
+    </table>
+
+    <!-- TEXTO DE AUTORIZACIÓN -->
+    <div class="auth-block">
+      <p>
+        Considerando el hecho, que el consumo de drogas o alcohol es un factor de riesgo para quienes trabajamos en este proyecto
+        y del interés que tengo por mi seguridad y la de mis compañeros, autorizo a
+        <span style="display:inline-block; border-bottom:1px solid #000; min-width:200px; height:13px; vertical-align:bottom;">{{EMPRESA}}</span>
+        para que se me realicen las pruebas de detección de consumo de drogas y alcohol que se estime conveniente, en el momento
+        en que se tenga a bien efectuar.
+      </p>
+      <br/>
+      <p>
+        Certifico que el vaso colector esterilizado y/o la tarjeta de detección y/o boquilla de alcoholímetro, se encuentran
+        debidamente sellados y en sus empaques originales, que fueron abiertas, marcados y sellados en mi presencia para la
+        aplicación de la prueba, ratifico que la muestra no fue alterada ni manipulada.<br/>
+        Certifico que he leído y entendido la hoja de consentimiento para la prueba de sustancias controladas y autorizo al
+        personal de servicio médico para que tomen muestra de orina y aliento.
+      </p>
+    </div>
+
+    <!-- DATOS DEL TRABAJADOR + EVIDENCIA FOTOGRÁFICA -->
+    <div class="worker-layout">
+      <div class="worker-fields">
+        <div class="worker-row">
+          <span class="label">Nombre del trabajador:</span>
+          <span class="wline">{{NOMBRE}}</span>
+        </div>
+        <div class="worker-row">
+          <span class="label">Número de trabajador:</span>
+          <span class="wline">{{NUM_TRABAJADOR}}</span>
+        </div>
+        <div class="worker-row">
+          <span class="label">Nombre y firma del trabajador:</span>
+          <span class="wline"></span>
+        </div>
+      </div>
+      <div class="foto-box">
+        {{FOTO_HTML}}
+        <span class="foto-label">EVIDENCIA FOTOGRÁFICA</span>
+      </div>
+    </div>
+
+    <!-- TABLA DE RESULTADOS -->
+    <table class="results-table">
+      <tr>
+        <th style="width:40%; text-align:left;">Observaciones: Se realiza prueba de <strong>ANTIDOPING</strong> con los siguientes resultados:</th>
+        <th style="width:30%;">NEGATIVO</th>
+        <th style="width:30%;">POSITIVO</th>
+      </tr>
+      <tr>
+        <td class="sust">OPI (Opiáceos)</td>
+        <td><span class="cb">{{OPI_NEG}}</span></td>
+        <td><span class="cb">{{OPI_POS}}</span></td>
+      </tr>
+      <tr>
+        <td class="sust">COC (Cocaína)</td>
+        <td><span class="cb">{{COC_NEG}}</span></td>
+        <td><span class="cb">{{COC_POS}}</span></td>
+      </tr>
+      <tr>
+        <td class="sust">BZO (Benzodiacepinas)</td>
+        <td><span class="cb">{{BZO_NEG}}</span></td>
+        <td><span class="cb">{{BZO_POS}}</span></td>
+      </tr>
+      <tr>
+        <td class="sust">AMP (Anfetaminas)</td>
+        <td><span class="cb">{{AMP_NEG}}</span></td>
+        <td><span class="cb">{{AMP_POS}}</span></td>
+      </tr>
+      <tr>
+        <td class="sust">MET (Metanfetaminas)</td>
+        <td><span class="cb">{{MET_NEG}}</span></td>
+        <td><span class="cb">{{MET_POS}}</span></td>
+      </tr>
+      <tr>
+        <td class="sust">THC (Marihuana)</td>
+        <td><span class="cb">{{THC_NEG}}</span></td>
+        <td><span class="cb">{{THC_POS}}</span></td>
+      </tr>
+      <tr>
+        <td class="sust">ALCOHOL</td>
+        <td><span class="cb">{{ALC_NEG}}</span></td>
+        <td><span class="cb">{{ALC_POS}}</span></td>
+      </tr>
+    </table>
+
+    <!-- VEREDICTO -->
+    <div class="veredicto-block">
+      {{VEREDICTO_HTML}}
+    </div>
+
+    <!-- OBSERVACIONES -->
+    <div style="font-size:9.5px; margin-bottom:10px;">
+      <strong>Observaciones:</strong> {{COMENTARIOS}}
+    </div>
+
+    <!-- FIRMA DEL MÉDICO -->
+    <div class="firma-block">
+      <div class="firma-line"></div>
+      <div><strong>{{MEDICO}}</strong></div>
+      <div>Nombre y Firma de quien toma la muestra</div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="form-footer">GCI-FOR-SYM-ANTIDOPING REV. 0</div>
+
+  </div>
+</body>
+</html>
