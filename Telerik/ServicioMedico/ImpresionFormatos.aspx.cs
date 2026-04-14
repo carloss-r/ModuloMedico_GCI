@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
 using Telerik.Models.DAL;
@@ -108,18 +110,35 @@ namespace Telerik.ServicioMedico
                 return (a != null && a.EsPositivo) ? "X" : "";
             }
 
-            // Tipo de sangre
+            // Tipo de sangre (evaluación; si no hay dato, catálogo del paciente)
+            int? fkTipoSangre = Evaluacion?.FkTipoSangre ?? Paciente?.FkTipoSangre;
             string ts;
-            switch (Evaluacion?.FkTipoSangre)
+            switch (fkTipoSangre)
             { case 1: ts="O+"; break; case 2: ts="O-"; break; case 3: ts="A+"; break; case 4: ts="A-"; break;
               case 5: ts="B+"; break; case 6: ts="B-"; break; case 7: ts="AB+"; break; case 8: ts="AB-"; break;
               default: ts = ""; break; }
 
-            // Estado civil
-            string ec = (Evaluacion?.EstadoCivil ?? "").ToUpper();
+            // Estado civil y escolaridad: prioridad evaluación guardada; si no, expediente del paciente
+            string ecRaw = Evaluacion != null && !string.IsNullOrWhiteSpace(Evaluacion.EstadoCivil)
+                ? Evaluacion.EstadoCivil
+                : (Paciente != null ? Paciente.EstadoCivil : null);
+            string ec = (ecRaw ?? "").Trim().ToUpperInvariant();
 
-            // Escolaridad
-            string ew = (Evaluacion?.Escolaridad ?? "").ToUpper();
+            string ewRaw = Evaluacion != null && !string.IsNullOrWhiteSpace(Evaluacion.Escolaridad)
+                ? Evaluacion.Escolaridad
+                : (Paciente != null ? Paciente.Escolaridad : null);
+            string ew = (ewRaw ?? "").ToUpperInvariant();
+
+            string fechaNacImpresa = "";
+            if (Evaluacion?.FechaNacimiento != null)
+                fechaNacImpresa = Evaluacion.FechaNacimiento.Value.ToString("dd/MM/yyyy");
+            else if (Paciente != null && !string.IsNullOrWhiteSpace(Paciente.FechaNacimiento))
+            {
+                DateTime fn;
+                fechaNacImpresa = DateTime.TryParse(Paciente.FechaNacimiento, out fn)
+                    ? fn.ToString("dd/MM/yyyy")
+                    : Paciente.FechaNacimiento.Trim();
+            }
 
             // Domicilio compuesto
             string dom = Evaluacion?.Domicilio ?? "";
@@ -153,13 +172,14 @@ namespace Telerik.ServicioMedico
                 laborales.Append("<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>\n");
             }
 
-            // ── Examen físico: 20 sistemas (en orden fijo) ────────────
-            var sistNombres = new[] {
-                "Cabeza","Ojos","Nariz","Boca","Dentadura","Faringe",
-                "Amigdalas","Otoscopia","Cuello","Columna-espalda","Extremidades",
-                "Piel","Ap. Respiratorio","Cardiaco","Vascular periferico",
-                "Abdomen","Neurologico","Genitales","Hernias","Otro"
-            };
+            // TA legible: evita mostrar solo "/" cuando faltan datos
+            string taStr = "";
+            if (Evaluacion != null && (Evaluacion.PresionSistolica.HasValue || Evaluacion.PresionDiastolica.HasValue))
+            {
+                taStr = (Evaluacion.PresionSistolica.HasValue ? Evaluacion.PresionSistolica.Value.ToString() : "")
+                    + "/"
+                    + (Evaluacion.PresionDiastolica.HasValue ? Evaluacion.PresionDiastolica.Value.ToString() : "");
+            }
 
             // ── Reemplazos ────────────────────────────────────────────
             var rep = new Dictionary<string, string>
@@ -168,10 +188,10 @@ namespace Telerik.ServicioMedico
                 {"{{LUGAR_FECHA}}",   H(lugar + ", " + DateTime.Now.ToString("dd/MM/yyyy"))},
                 {"{{CARGO}}",         H(Paciente?.Puesto)},
                 {"{{NOMBRE}}",        H(Paciente?.NombreCompleto)},
-                {"{{NSS}}",           H(Evaluacion?.Nss)},
-                {"{{FECHA_NAC}}",     H(Evaluacion?.FechaNacimiento?.ToString("dd/MM/yyyy"))},
+                {"{{NSS}}",           H(!string.IsNullOrWhiteSpace(Evaluacion?.Nss) ? Evaluacion.Nss : Paciente?.Nss)},
+                {"{{FECHA_NAC}}",     H(fechaNacImpresa)},
                 {"{{EDAD}}",          H(Paciente?.Edad)},
-                {"{{LUGAR_NAC}}",     H(Evaluacion?.LugarNacimiento)},
+                {"{{LUGAR_NAC}}",     H(!string.IsNullOrWhiteSpace(Evaluacion?.LugarNacimiento) ? Evaluacion.LugarNacimiento : Paciente?.LugarNacimiento)},
                 // Estado civil
                 {"{{EC_SOLTERO}}",    ec.Contains("SOLTER") || ec == "1" ? "X" : ""},
                 {"{{EC_CASADO}}",     ec.Contains("CASAD")  || ec == "2" ? "X" : ""},
@@ -247,7 +267,7 @@ namespace Telerik.ServicioMedico
                 {"{{VAC_H2}}",   Chk(vac != null && vac.HepatitisDosis2)},
                 {"{{VAC_H1N1}}", Chk(vac != null && vac.InfluenzaH1N1)},
                 // Exploración física – signos vitales
-                {"{{EF_TA}}",       H(Evaluacion?.PresionSistolica + "/" + Evaluacion?.PresionDiastolica)},
+                {"{{EF_TA}}",       H(taStr)},
                 {"{{EF_FC}}",       H(Evaluacion?.FrecuenciaCardiaca?.ToString())},
                 {"{{EF_FR}}",       H(Evaluacion?.FrecuenciaRespiratoria?.ToString())},
                 {"{{EF_PESO}}",     H(Evaluacion?.PesoKg?.ToString())},
@@ -260,9 +280,7 @@ namespace Telerik.ServicioMedico
                 {"{{GF_MENARCA}}",      H(gf?.EdadMenarca?.ToString())},
                 {"{{GF_CICLOS}}",       H(gf?.Ciclos)},
                 {"{{GF_FUM}}",          H(gf?.FechaUltimaMenstruacion?.ToString("dd/MM/yyyy"))},
-                {"{{GF_HIJOS}}",        H(gf?.NumeroHijosEdades)},
                 {"{{GF_PLANIFICACION}}",H(gf?.MetodoPlanificacion)},
-                {"{{GF_IVSA}}",         H(gf?.Ivsa?.ToString())},
                 {"{{GF_CITVAG}}",       H(gf?.FechaUltimoPapanicolau?.ToString("dd/MM/yyyy"))},
                 {"{{GF_ETS}}",          H(gf?.Ets)},
                 {"{{GF_GESTAS}}",       H(gf?.Gestas?.ToString())},
@@ -277,7 +295,6 @@ namespace Telerik.ServicioMedico
                 {"{{GM_VARICOCELE}}",   Chk(gm != null && gm.Varicocele)},
                 {"{{GM_HIDROCELE}}",    Chk(gm != null && gm.Hidrocele)},
                 {"{{GM_HERNIA}}",       Chk(gm != null && gm.Hernia)},
-                {"{{GM_IVSA}}",         H(gm?.Ivsa)},
                 {"{{GM_PSA}}",          H(gm?.Psa)},
                 {"{{GM_MPF}}",          H(gm?.MetodoPlanificacion)},
                 // Columna vertebral
@@ -302,12 +319,133 @@ namespace Telerik.ServicioMedico
                 {"{{RECOMENDACIONES}}",   H(Evaluacion?.Recomendaciones)},
             };
 
+            // 20 filas N/A/D (plantilla {{EF_1_N}} … {{EF_20_D}}) — deben coincidir con EvaluacionMedica.js (examSystems)
+            AgregarTokensExamenFisico20(rep, Evaluacion != null ? Evaluacion.OrdenExamenFisico : null, H);
+
             // Aplicar todos los reemplazos
             foreach (var kv in rep)
                 html = html.Replace(kv.Key, kv.Value);
 
             PaseHtml = html;
         }
+
+        /// <summary>
+        /// Rellena {{EF_n_N}}, {{EF_n_A}}, {{EF_n_D}} para n=1..20 a partir de OrdenExamenFisico.
+        /// Las etiquetas deben alinearse con examSystems en EvaluacionMedica.js.
+        /// </summary>
+        private static void AgregarTokensExamenFisico20(Dictionary<string, string> rep, List<OrdenExamenFisicoVm> lista,
+            Func<string, string> H)
+        {
+            var examSystems = new[]
+            {
+                "1. Cabeza", "2. Ojos", "3. Nariz", "4. Boca",
+                "5. Dentadura", "6. Faringe", "7. Amígdalas", "8. Otoscopia",
+                "9. Cuello", "10. Columna-espalda", "11. Extremidades", "12. Piel",
+                "13. Ap. Respiratorio", "14. Cardiaco", "15. Vascular periférico",
+                "16. Abdomen", "17. Neurológico", "18. Genitales", "19. Hernias", "20. Otro"
+            };
+            for (int i = 0; i < 20; i++)
+            {
+                var row = BuscarExamenFisicoPorEtiqueta(lista, examSystems[i]);
+                string n = "", a = "", d = "";
+                if (row != null)
+                {
+                    if (row.EsNormal)
+                        n = "X";
+                    else
+                    {
+                        a = "X";
+                        d = H(row.Hallazgos);
+                    }
+                }
+                int num = i + 1;
+                rep["{{EF_" + num + "_N}}"] = n;
+                rep["{{EF_" + num + "_A}}"] = a;
+                rep["{{EF_" + num + "_D}}"] = d;
+            }
+        }
+
+        private static OrdenExamenFisicoVm BuscarExamenFisicoPorEtiqueta(List<OrdenExamenFisicoVm> lista, string etiquetaCanonical)
+        {
+            if (lista == null || lista.Count == 0 || string.IsNullOrEmpty(etiquetaCanonical))
+                return null;
+
+            foreach (var x in lista)
+            {
+                if (x == null || string.IsNullOrEmpty(x.SistemaCuerpo)) continue;
+                if (string.Equals(x.SistemaCuerpo.Trim(), etiquetaCanonical, StringComparison.OrdinalIgnoreCase))
+                    return x;
+            }
+
+            var normCanon = NormalizarEtiquetaSistema(etiquetaCanonical);
+            foreach (var x in lista)
+            {
+                if (x?.SistemaCuerpo == null) continue;
+                if (NormalizarEtiquetaSistema(x.SistemaCuerpo) == normCanon)
+                    return x;
+            }
+
+            var tail = etiquetaCanonical;
+            var p = etiquetaCanonical.IndexOf('.');
+            if (p >= 0 && p + 1 < etiquetaCanonical.Length)
+                tail = etiquetaCanonical.Substring(p + 1).Trim();
+
+            foreach (var x in lista)
+            {
+                if (string.IsNullOrEmpty(x?.SistemaCuerpo)) continue;
+                var sc = x.SistemaCuerpo.Trim();
+                if (sc.IndexOf(tail, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return x;
+            }
+
+            var nt = NormalizarEtiquetaSistema(tail);
+            foreach (var x in lista)
+            {
+                if (string.IsNullOrEmpty(x?.SistemaCuerpo)) continue;
+                var nx = NormalizarEtiquetaSistema(x.SistemaCuerpo);
+                if (nx.Contains(nt) || nt.Contains(nx))
+                    return x;
+            }
+
+            return null;
+        }
+
+        private static string NormalizarEtiquetaSistema(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            s = QuitarPrefijoNumericoLista(s).Trim().ToLowerInvariant();
+            return Regex.Replace(QuitarMarcasDiacriticas(s), @"\s+", "");
+        }
+
+        private static string QuitarPrefijoNumericoLista(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            var t = s.TrimStart();
+            int i = 0;
+            while (i < t.Length && char.IsDigit(t[i])) i++;
+            if (i == 0) return s.Trim();
+            if (i < t.Length && t[i] == '.')
+            {
+                i++;
+                while (i < t.Length && char.IsWhiteSpace(t[i])) i++;
+                return i < t.Length ? t.Substring(i) : "";
+            }
+            return s.Trim();
+        }
+
+        private static string QuitarMarcasDiacriticas(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            var normalized = text.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder(normalized.Length);
+            foreach (var c in normalized)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+            return sb.ToString().Normalize(NormalizationForm.FormC);
+        }
+
         // ── ANTIDOPING — lee el HTML y sustituye tokens ──────────────────────
         private void GenerarAntidopingDesdeHtml()
         {

@@ -99,8 +99,6 @@ namespace Telerik.Services
                         Profesion = ultimaEvaluacion != null ? ultimaEvaluacion.profesion : null,
                         Rfc = emp.Rfc,
                         Curp = "", 
-                        TieneHijos = emp.TieneHijos,
-                        NumeroHijos = emp.NumeroHijosDesc,
                         Escolaridad = !string.IsNullOrWhiteSpace(emp.EscolaridadDesc)
                             ? emp.EscolaridadDesc
                             : (ultimaEvaluacion != null ? ultimaEvaluacion.escolaridad : null),

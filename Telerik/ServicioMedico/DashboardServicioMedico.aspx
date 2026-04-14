@@ -223,7 +223,6 @@
     <script src="./js/DashboardServicioMedicoInbox.js"></script>
     <script>
         function cerrarMsg() { $('#msgOverlay').removeClass('active'); }
-        // Extend default behavior to use classes
         function showMsg(title, body, icon) {
             $('#msgTitle').text(title);
             $('#msgBody').text(body);

@@ -195,6 +195,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Images\Logo_GCI.png" />
+    <Content Include="Content\Images\Logo_HSE.png" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
