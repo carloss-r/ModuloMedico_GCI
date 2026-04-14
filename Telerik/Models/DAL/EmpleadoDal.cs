@@ -27,6 +27,10 @@ namespace Telerik.Models.DAL
                         from col in coljoin.DefaultIfEmpty()
                         join cp in db.CodigosPostales on e.fkCP equals cp.pkCP into cpjoin
                         from cp in cpjoin.DefaultIfEmpty()
+                        join ec in db.EstadoCivil on e.fkEstadoCivil equals ec.pkEstadoCivil into ecjoin
+                        from ec in ecjoin.DefaultIfEmpty()
+                        join ts in db.TipoSangre on e.fkTipoSangre equals ts.pkTipoSangre into tsjoin
+                        from ts in tsjoin.DefaultIfEmpty()
                         where e.pkEmpleado == pkEmpleado
                         select new EmpleadoVm
                         {
@@ -59,6 +63,9 @@ namespace Telerik.Models.DAL
                             ColoniaDesc     = col != null ? col.descripcion : null,
                             CPDesc          = cp != null ? cp.descripcion : null,
                             // Otros
+                            EstadoCivil     = ec != null ? ec.descripcion : null,
+                            TipoSangre      = ts != null ? ts.descripcion : null,
+                            FkTipoSangre    = e.fkTipoSangre,
                             TieneHijos      = e.tieneHijos ?? false
                         }).FirstOrDefault();
             }

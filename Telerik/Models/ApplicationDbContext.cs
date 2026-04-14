@@ -7,8 +7,6 @@ namespace Telerik.Models
     {
         static ApplicationDbContext()
         {
-            // CRÍTICO: Evita que EF Code First intente crear/validar el esquema.
-            // La BD ya existe y está administrada externamente (DATA_GCI.sql).
             Database.SetInitializer<ApplicationDbContext>(null);
         }
 
@@ -33,6 +31,11 @@ namespace Telerik.Models
         public DbSet<Empresa>               Empresas                { get; set; }
         public DbSet<Puesto>                Puestos                 { get; set; }
         public DbSet<Area>                  Areas                   { get; set; }
+        public DbSet<EstadoCivil>           EstadoCivil             { get; set; }
+        public DbSet<TipoSangre>            TipoSangre              { get; set; }
+        public DbSet<Profesion>             Profesion               { get; set; }
+        public DbSet<NivelEscolaridad>      NivelEscolaridad        { get; set; }
+        public DbSet<Sexo>                  Sexo                    { get; set; }
         
         // Catálogos Geográficos
         public DbSet<Pais>                  Paises                  { get; set; }
@@ -61,7 +64,7 @@ namespace Telerik.Models
             
             modelBuilder.Entity<EvaluacionColumna>()
                 .HasRequired(c => c.Evaluacion)
-                .WithMany() // Dejamos WithMany sin propiedad de navegación de regreso para forzar 1-a-Muchos en BD en lugar de 1-a-1 estricto que requiere PK compartida en EF
+                .WithMany() 
                 .HasForeignKey(c => c.fkEvaluacion);
 
             modelBuilder.Entity<HabitoPersonal>()

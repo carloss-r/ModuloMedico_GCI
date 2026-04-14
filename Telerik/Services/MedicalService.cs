@@ -35,6 +35,20 @@ namespace Telerik.Services
                 var emp = EmpleadoDal.BuscarPorNumero(orden.FkEmpleado.Value);
                 if (emp != null)
                 {
+                    EvaluacionClinica ultimaEvaluacion = null;
+                    using (var db = new ApplicationDbContext())
+                    {
+                        ultimaEvaluacion = db.EvaluacionesClinicas
+                            .Join(db.OrdenesMedicas,
+                                  e => e.fkOrdenMedico,
+                                  o => o.pkOrdenMedico,
+                                  (e, o) => new { e, o })
+                            .Where(x => x.o.fkEmpleado == emp.PkEmpleado)
+                            .OrderByDescending(x => x.e.fechaEvaluacion)
+                            .Select(x => x.e)
+                            .FirstOrDefault();
+                    }
+
                     string edad = emp.Edad;
                     if (emp.FechaNacimiento.HasValue)
                     {
@@ -63,6 +77,9 @@ namespace Telerik.Services
                         NumeroEmpleado = emp.PkEmpleado.ToString(),
                         
                         FechaNacimiento = emp.FechaNacimiento.HasValue ? emp.FechaNacimiento.Value.ToString("yyyy-MM-dd") : "",
+                        LugarNacimiento = (ultimaEvaluacion != null && !string.IsNullOrWhiteSpace(ultimaEvaluacion.lugarNacimiento))
+                            ? ultimaEvaluacion.lugarNacimiento
+                            : emp.EstadoDesc,
                         Nss = emp.Nss,
                         Telefono = emp.Telefono,
                         Direccion = string.Join(", ", new string[] {
@@ -73,13 +90,20 @@ namespace Telerik.Services
                             emp.PaisDesc,
                             (!string.IsNullOrEmpty(emp.CPDesc) ? "CP: " + emp.CPDesc : "")
                         }.Where(s => !string.IsNullOrEmpty(s))).Trim(),
-                        EstadoCivil = emp.EstadoCivil,
+                        EstadoCivil = !string.IsNullOrWhiteSpace(emp.EstadoCivil)
+                            ? emp.EstadoCivil
+                            : (ultimaEvaluacion != null ? ultimaEvaluacion.estadoCivil : null),
+                        ManoDominante = ultimaEvaluacion != null ? ultimaEvaluacion.manoDominante : null,
                         TipoSangre = emp.TipoSangre,
+                        FkTipoSangre = emp.FkTipoSangre,
+                        Profesion = ultimaEvaluacion != null ? ultimaEvaluacion.profesion : null,
                         Rfc = emp.Rfc,
                         Curp = "", 
                         TieneHijos = emp.TieneHijos,
                         NumeroHijos = emp.NumeroHijosDesc,
-                        Escolaridad = emp.EscolaridadDesc,
+                        Escolaridad = !string.IsNullOrWhiteSpace(emp.EscolaridadDesc)
+                            ? emp.EscolaridadDesc
+                            : (ultimaEvaluacion != null ? ultimaEvaluacion.escolaridad : null),
                         FkPais = emp.FkPais,
                         FkEstado = emp.FkEstado,
                         FkMunicipio = emp.FkMunicipio,

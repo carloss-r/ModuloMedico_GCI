@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="EvaluacionMedica.aspx.cs" Inherits="Telerik.ServicioMedico.EvaluacionMedica" %>
+    <%@ Page Language="C#" AutoEventWireup="true" CodeBehind="EvaluacionMedica.aspx.cs" Inherits="Telerik.ServicioMedico.EvaluacionMedica" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -17,10 +17,20 @@
 
 
 <div id="gci-modulo-medico-container">
+    <script type="text/javascript">
+        /* eslint-disable */
+        // Variables inyectadas desde servidor - bloque completo deshabilitado para linting
+        window.GCI_DATA = window.GCI_DATA || {};
+        window.GCI_DATA.idOrden = <%= IdOrden %>;
+        window.GCI_DATA.initialSexo = <%= Newtonsoft.Json.JsonConvert.SerializeObject(initialSexo ?? "") %>;
+        window.GCI_DATA.currentTipoServicio = <%= currentTipoServicio %>;
+        /* eslint-enable */
+    </script>
     <script>
-        var idOrden = <%= IdOrden %>;
-        var initialSexo = '<%= initialSexo ?? "" %>';
-        var currentTipoServicio = <%= currentTipoServicio %>;
+        // Variables locales para uso en el código
+        var idOrden = window.GCI_DATA.idOrden;
+        var initialSexo = window.GCI_DATA.initialSexo;
+        var currentTipoServicio = window.GCI_DATA.currentTipoServicio;
     </script>
 
     <!-- ═══ Banner Identificación del Paciente ═══ -->
@@ -127,39 +137,6 @@
             <label>Estado de Nacimiento</label>
             <select id="ddlEstadoNacimiento" class="form-control">
                 <option value="">-- Seleccione --</option>
-                <option value="Aguascalientes">Aguascalientes</option>
-                <option value="Baja California">Baja California</option>
-                <option value="Baja California Sur">Baja California Sur</option>
-                <option value="Campeche">Campeche</option>
-                <option value="Chiapas">Chiapas</option>
-                <option value="Chihuahua">Chihuahua</option>
-                <option value="Ciudad de México">Ciudad de M&eacute;xico</option>
-                <option value="Coahuila">Coahuila</option>
-                <option value="Colima">Colima</option>
-                <option value="Durango">Durango</option>
-                <option value="Estado de México">Estado de M&eacute;xico</option>
-                <option value="Guanajuato">Guanajuato</option>
-                <option value="Guerrero">Guerrero</option>
-                <option value="Hidalgo">Hidalgo</option>
-                <option value="Jalisco">Jalisco</option>
-                <option value="Michoacán">Michoac&aacute;n</option>
-                <option value="Morelos">Morelos</option>
-                <option value="Nayarit">Nayarit</option>
-                <option value="Nuevo León">Nuevo Le&oacute;n</option>
-                <option value="Oaxaca">Oaxaca</option>
-                <option value="Puebla">Puebla</option>
-                <option value="Querétaro">Quer&eacute;taro</option>
-                <option value="Quintana Roo">Quintana Roo</option>
-                <option value="San Luis Potosí">San Luis Potos&iacute;</option>
-                <option value="Sinaloa">Sinaloa</option>
-                <option value="Sonora">Sonora</option>
-                <option value="Tabasco">Tabasco</option>
-                <option value="Tamaulipas">Tamaulipas</option>
-                <option value="Tlaxcala">Tlaxcala</option>
-                <option value="Veracruz">Veracruz</option>
-                <option value="Yucatán">Yucat&aacute;n</option>
-                <option value="Zacatecas">Zacatecas</option>
-                <option value="Extranjero">Extranjero</option>
             </select>
         </div>
         <div class="form-group flex-1">
@@ -172,7 +149,7 @@
         </div>
     </div>
 
-    <!-- Row 3: Estado Civil | Mano Dominante | Teléfono | Examen De -->
+    <!-- Row 3: Estado Civil | Mano Dominante | Teléfono | -->
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>Examen de</label>
@@ -182,10 +159,6 @@
             <label>Estado Civil</label>
             <select id="ddlEstadoCivil" class="form-control">
                 <option value="">-- Seleccione --</option>
-                <option value="1">Soltero(a)</option>
-                <option value="2">Casado(a)</option>
-                <option value="3">Uni&oacute;n Libre</option>
-                <option value="4">Separado / Otro</option>
             </select>
         </div>
         <div class="form-group flex-1">
@@ -262,11 +235,6 @@
             <label>Nivel Acad&eacute;mico</label>
             <select id="ddlEscolaridad" class="form-control">
                 <option value="">-- Seleccione --</option>
-                <option value="NINGUNA">NINGUNA</option>
-                <option value="PRIMARIA">PRIMARIA</option>
-                <option value="SECUNDARIA">SECUNDARIA</option>
-                <option value="PREPARATORIA">PREPARATORIA</option>
-                <option value="UNIVERSIDAD">UNIVERSIDAD</option>
             </select>
         </div>
         <div class="form-group flex-2">
@@ -289,14 +257,6 @@
             <label>Tipo de Sangre</label>
             <select id="ddlTipoSangre" class="form-control">
                 <option value="">-- Seleccione --</option>
-                <option value="1">O+</option>
-                <option value="2">O-</option>
-                <option value="3">A+</option>
-                <option value="4">A-</option>
-                <option value="5">B+</option>
-                <option value="6">B-</option>
-                <option value="7">AB+</option>
-                <option value="8">AB-</option>
             </select>
         </div>
     </div>
@@ -346,7 +306,7 @@
             </thead>
             <tbody id="tbAntecedentesLaborales"><!-- JS generated --></tbody>
         </table>
-        <button class="btn-primary" style="padding:5px 10px; font-size:0.8rem;" onclick="addLaboralRow()">+ A&ntilde;adir Fila</button>
+        <button type="button" class="btn-primary" style="padding:5px 10px; font-size:0.8rem;" onclick="addLaboralRow(); return false;">+ A&ntilde;adir Fila</button>
     </div>
 </div>
 
@@ -529,9 +489,17 @@
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>Glucosa (GLC)</label>
-            <div style="display:flex; align-items:center;">
-                <input type="text" id="txtGlucosa" class="form-control val-dec" placeholder="90" />
-                <span style="margin-left:8px; font-size:0.85rem; color:#777;">mg/dl</span>
+            <div style="margin-bottom:8px;">
+                <label style="font-weight:normal; margin-right:15px;">
+                    <input type="checkbox" id="chkGlucosaAplica" onchange="toggleGlucosaField()" />
+                    ¿Aplica glucosa?
+                </label>
+            </div>
+            <div id="glucosaFieldContainer" style="display:none;">
+                <div style="display:flex; align-items:center;">
+                    <input type="text" id="txtGlucosa" class="form-control val-dec" placeholder="90" disabled />
+                    <span style="margin-left:8px; font-size:0.85rem; color:#777;">mg/dl</span>
+                </div>
             </div>
         </div>
         <div class="form-group flex-1">
@@ -753,14 +721,35 @@
         <div class="paper-row">
             <div class="form-group flex-1">
                 <label>Examen Cl&iacute;nico</label>
-                <div class="check-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
-                    <label class="check-item"><input type="checkbox" id="chkPrepucio" /> Prepucio retr&aacute;ctil</label>
-                    <label class="check-item"><input type="checkbox" id="chkHidrocele" /> Hidrocele</label>
-                    <label class="check-item"><input type="checkbox" id="chkTesticulos" /> Test&iacute;culos</label>
-                    <label class="check-item"><input type="checkbox" id="chkHernia" /> Hernia</label>
-                    <label class="check-item"><input type="checkbox" id="chkFimosis" /> Fimosis</label>
-                    <label class="check-item"><input type="checkbox" id="chkCriptorquidia" /> Criptorquidia</label>
-                    <label class="check-item"><input type="checkbox" id="chkVaricocele" /> Varicocele</label>
+                <div class="check-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <label class="check-item">
+                        <input type="checkbox" id="chkPrepucio" />
+                        Prepucio retr&aacute;ctil
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="chkHidrocele" />
+                        Hidrocele
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="chkTesticulos" />
+                        Test&iacute;culos
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="chkHernia" />
+                        Hernia
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="chkFimosis" />
+                        Fimosis
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="chkCriptorquidia" />
+                        Criptorquidia
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="chkVaricocele" />
+                        Varicocele
+                    </label>
                 </div>
             </div>
         </div>
@@ -1107,6 +1096,36 @@
         border-radius: 14px; padding: 3px 10px;
         font-size: 0.75rem; font-weight: 600;
     }
+    .expr-tag-more { background: #edf2f7; color: #4a5568; }
+    .expr-alert {
+        display: flex; align-items: center; gap: 10px;
+        border-radius: 8px; padding: 10px 12px;
+        margin-bottom: 12px; font-size: 0.86rem;
+    }
+    .expr-alert i { font-size: 1rem; }
+    .expr-alert-risk {
+        background: #fff5f5;
+        border: 1px solid #f5c2c7;
+        color: #842029;
+    }
+    .expr-alert-ok {
+        background: #eefaf0;
+        border: 1px solid #c3e6cb;
+        color: #1f6f35;
+    }
+    .expr-no-risk {
+        background: #f8fafc;
+        border: 1px dashed #d5dde5;
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: #6c7a89;
+        font-size: 0.84rem;
+    }
+    .expr-muted-note {
+        margin-top: 10px;
+        color: #7a828a;
+        font-size: 0.84rem;
+    }
     .expr-diagnostico {
         background: #f8f9fa; border-radius: 8px; padding: 10px 14px;
         font-size: 0.88rem; color: #444; line-height: 1.5;
@@ -1302,6 +1321,34 @@
     .btn-ad-cancel  { background: #f0f0f0; color: #555; }
     .btn-ad-save    { background: #1a5276; color: #fff; }
     .btn-ad-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-ad-print   { background: #27ae60; color: #fff; }
+
+    /* ── Antecedentes Genitourinario Masculino ─────────────────────────── */
+    .antecedentes-grid {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 12px;
+        background-color: #fafafa;
+    }
+    
+    .antecedentes-grid > div {
+        padding: 4px 0;
+    }
+    
+    .antecedentes-grid > div:nth-child(even) {
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        padding: 4px 8px;
+    }
+    
+    .antecedentes-grid input[type="text"] {
+        font-size: 0.9rem;
+        min-height: 32px;
+    }
+    
+    .antecedentes-grid input[type="checkbox"] {
+        transform: scale(1.1);
+    }
 
     /* ── Modal de consentimiento ─────────────────────────── */
     .consent-overlay {
@@ -1492,6 +1539,9 @@
         <button type="button" class="btn-ad btn-ad-save" id="btnGuardarAd" onclick="guardarAd()">
             <i class="fas fa-save"></i> Guardar Antidoping
         </button>
+        <button type="button" class="btn-ad btn-ad-print" id="btnImprimirAd" onclick="imprimirAntidoping()">
+            <i class="fas fa-print"></i> Imprimir Formato
+        </button>
     </div>
 
 </div>
@@ -1507,8 +1557,8 @@
 
     // ── Catálogo de drogas ─────────────────────────────────
     var drugs = [
-        { code: 'coc', name: 'Cocaína (COC)' },
-        { code: 'opi', name: 'Opiáceos (OPI)' },
+        { code: 'coc', name: 'Coca\u00edna (COC)' },
+        { code: 'opi', name: 'Opi\u00e1ceos (OPI)' },
         { code: 'thc', name: 'Marihuana (THC)' },
         { code: 'alc', name: 'Alcohol' },
         { code: 'anf', name: 'Anfetaminas (AMP)' },

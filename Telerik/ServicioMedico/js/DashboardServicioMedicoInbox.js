@@ -1,4 +1,4 @@
-/* Lógica de la Bandeja Médica (DashboardServicioMedico.aspx) */
+/* Lógica de MédicaDashboardServicioMedico.aspx */
 $(document).ready(function () {
     paginaActual = 1;
     registrosPorPagina = 25;
@@ -98,13 +98,16 @@ function verEvaluacionPreview(idOrden) {
         url: 'DashboardServicioMedico.aspx/ObtenerEvaluacionPreview',
         data: { id: idOrden },
         onSuccess: function(r){
-            var resp = r.d;
+            var resp = (r && r.d !== undefined) ? r.d : r;
+            if (typeof resp === 'string') {
+                try { resp = JSON.parse(resp); } catch (e) { }
+            }
             if(!resp || !resp.success) {
                 showMsg('No disponible', (resp && resp.message) ? resp.message : 'No fue posible cargar la evaluación.', 'fa-exclamation-triangle');
                 return;
             }
-            fillEvaluacionPreview(resp.orden, resp.evaluacion);
             $('#modalPreviewEvaluacion').addClass('active');
+            fillEvaluacionPreview(resp.orden || {}, resp.evaluacion || {});
         },
         onError: function(xhr, status, err, msg){
             showMsg('Error', msg, 'fa-times-circle');
@@ -116,48 +119,124 @@ function fillEvaluacionPreview(orden, ev){
     orden = orden || {};
     ev = ev || {};
 
-    $('#prevFolio').text(orden.FolioDisplay || '—');
-    $('#prevOrden').text(orden.PkOrdenMedico || '—');
-    $('#prevNombreTrabajador').text(orden.NombrePersona || '');
+    function toText(v) {
+        return (v === null || v === undefined) ? '' : ('' + v);
+    }
 
-    // Info básica 
-    $('#prevLugarFecha').text(trunc((ev.LugarEvaluacion || '') + (orden.FechaOrdenFormateada ? ('  ' + orden.FechaOrdenFormateada) : ''), 45));
-    $('#prevCargo').text(trunc((orden.PuestoCandidato || ev.Puesto || ''), 25));
-    $('#prevNombre').text(trunc((orden.NombrePersona || ''), 35));
-    $('#prevNss').text(trunc((ev.Nss || orden.NssCandidato || ''), 15));
-    $('#prevNacimiento').text(formatDate(ev.FechaNacimiento) || '');
-    $('#prevEdad').text(ev.Edad ? (ev.Edad) : '');
-    $('#prevLugarNac').text(trunc((ev.LugarNacimiento || ''), 20));
-    $('#prevTelefono').text(trunc((ev.Telefono || ''), 15));
-    $('#prevDomicilio').text(trunc((ev.Domicilio || ''), 50));
-    $('#prevMano').text(trunc((ev.ManoDominante || ''), 10));
-    $('#prevProfesion').text(trunc((ev.Profesion || ''), 25));
-    $('#prevTipoSangre').text(trunc((ev.TipoSangreDesc || getTipoSangre(ev.FkTipoSangre) || ''), 5));
+    function toUpper(v) {
+        return toText(v).toUpperCase();
+    }
 
-    // Sexo checkboxes
-    var sexo = (orden.SexoCandidato || ev.Sexo || '').toUpperCase();
-    $('#prevSexoM').toggleClass('filled', sexo.indexOf('M')>=0 && sexo.indexOf('FEM')<0);
-    $('#prevSexoF').toggleClass('filled', sexo.indexOf('F')>=0);
+    function toNumber(v) {
+        var n = parseInt(v, 10);
+        return isNaN(n) ? null : n;
+    }
 
-    // Estado civil checkboxes
-    var ec = (ev.EstadoCivil||'').toUpperCase();
-    $('#prevEcSoltero').toggleClass('filled', ec.indexOf('SOLTER')>=0 || ec==='1');
-    $('#prevEcCasado').toggleClass('filled', ec.indexOf('CASAD')>=0 || ec==='2');
-    $('#prevEcUnion').toggleClass('filled', ec.indexOf('UNION')>=0 || ec.indexOf('UNIÓN')>=0 || ec==='3');
-    $('#prevEcSeparado').toggleClass('filled', ec.indexOf('SEPAR')>=0 || ec.indexOf('DIVOR')>=0 || ec.indexOf('VIUD')>=0 || ec==='4');
+    function normalizeKey(v) {
+        var txt = toUpper(v).replace(/^\d+\.?\s*/, '').trim();
+        if (txt.normalize) {
+            txt = txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+        txt = txt.replace(/[^A-Z0-9\s\.:-]/g, '');
+        txt = txt.replace(/\s+/g, ' ').trim();
+        return txt;
+    }
 
-    // Nivel académico checkboxes
-    var esc = (ev.Escolaridad || '').toUpperCase();
-    $('#prevNaPrimaria').toggleClass('filled', esc.indexOf('PRIM')>=0);
-    $('#prevNaSecundaria').toggleClass('filled', esc.indexOf('SECUN')>=0);
-    $('#prevNaMedia').toggleClass('filled', esc.indexOf('MEDIA')>=0 || esc.indexOf('PREPA')>=0 || esc.indexOf('BACH')>=0);
-    $('#prevNaUniversidad').toggleClass('filled', esc.indexOf('UNIV')>=0 || esc.indexOf('LIC')>=0 || esc.indexOf('POS')>=0);
+    function safeSection(name, fn) {
+        try {
+            fn();
+        } catch (err) {
+            console.error('Error renderizando sección del preview:', name, err);
+        }
+    }
 
-    // Examen de: ingreso/periódico
-    var mod = (orden.Modalidad || '').toUpperCase();
-    var isCand = (orden.TipoServicioDesc || '').toUpperCase().indexOf('CAND')>=0 || (orden.Modalidad || '').toUpperCase().indexOf('INGRES')>=0;
-    $('#prevExIngreso').toggleClass('filled', isCand);
-    $('#prevExPeriodico').toggleClass('filled', !isCand);
+    function antecedentePositivo(map, label) {
+        var key = normalizeKey(label);
+        if (map[key]) return true;
+        var keys = Object.keys(map);
+        for (var i = 0; i < keys.length; i++) {
+            if (!map[keys[i]]) continue;
+            var k = keys[i];
+            if (
+                (key.indexOf('ENF CORONARIA') >= 0 && k.indexOf('CORONARIA') >= 0) ||
+                (key.indexOf('MENTALES') >= 0 && k.indexOf('MENTAL') >= 0) ||
+                (key.indexOf('CONGENITAS') >= 0 && k.indexOf('CONGEN') >= 0) ||
+                (key.indexOf('HIPERTENSION') >= 0 && (k.indexOf('HIPERTENSION') >= 0 || k.indexOf('HTA') >= 0)) ||
+                (key.indexOf('QUIRURGICOS') >= 0 && k.indexOf('QUIRURG') >= 0) ||
+                (key.indexOf('TRAUMATICOS') >= 0 && k.indexOf('TRAUMAT') >= 0) ||
+                (key.indexOf('ALERGICOS') >= 0 && k.indexOf('ALERG') >= 0) ||
+                (key.indexOf('CONGENITOS') >= 0 && k.indexOf('CONGEN') >= 0) ||
+                (key.indexOf('METABOLICOS') >= 0 && k.indexOf('METABOL') >= 0) ||
+                (key.indexOf('INFECCIOSOS') >= 0 && (k.indexOf('INFECTO') >= 0 || k.indexOf('INFECC') >= 0)) ||
+                (key.indexOf('AGUA POTABLE') >= 0 && k.indexOf('AGUA') >= 0) ||
+                (key.indexOf('ALCANTARILLADO') >= 0 && (k.indexOf('DRENAJE') >= 0 || k.indexOf('ALCANTARILL') >= 0)) ||
+                (key.indexOf('OTROS') >= 0 && k.indexOf('OTROS') >= 0)
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function calcularEdad(fechaNacimientoRaw) {
+        var dt = null;
+        var s = toText(fechaNacimientoRaw);
+        var m = s.match(/\/Date\((\d+)\)\//);
+        if (m) {
+            dt = new Date(parseInt(m[1], 10));
+        } else if (s) {
+            dt = new Date(s);
+        }
+        if (!dt || isNaN(dt.getTime())) return '';
+        var now = new Date();
+        var edad = now.getFullYear() - dt.getFullYear();
+        var mes = now.getMonth() - dt.getMonth();
+        if (mes < 0 || (mes === 0 && now.getDate() < dt.getDate())) edad--;
+        return edad > 0 ? edad : '';
+    }
+
+    safeSection('base', function () {
+        $('#prevFolio').text(toText(orden.FolioDisplay) || '—');
+        $('#prevOrden').text(toText(orden.PkOrdenMedico) || '—');
+        $('#prevNombreTrabajador').text(toText(orden.NombrePersona));
+    });
+
+    safeSection('generales', function () {
+        $('#prevLugarFecha').text(trunc((toText(ev.LugarEvaluacion) || '') + (orden.FechaOrdenFormateada ? ('  ' + orden.FechaOrdenFormateada) : ''), 45));
+        $('#prevCargo').text(trunc(toText(orden.PuestoCandidato || ev.Puesto), 25));
+        $('#prevNombre').text(trunc(toText(orden.NombrePersona), 35));
+        $('#prevNss').text(trunc(toText(ev.Nss || orden.NssCandidato), 15));
+        $('#prevNacimiento').text(formatDate(ev.FechaNacimiento) || '');
+        $('#prevEdad').text(toText(ev.Edad || calcularEdad(ev.FechaNacimiento)));
+        $('#prevLugarNac').text(trunc(toText(ev.LugarNacimiento), 20));
+        $('#prevTelefono').text(trunc(toText(ev.Telefono), 15));
+        $('#prevDomicilio').text(trunc(toText(ev.Domicilio), 50));
+        $('#prevMano').text(trunc(toText(ev.ManoDominante), 10));
+        $('#prevProfesion').text(trunc(toText(ev.Profesion), 25));
+        $('#prevTipoSangre').text(trunc(toText(ev.TipoSangreDesc || getTipoSangre(ev.FkTipoSangre)), 5));
+    });
+
+    safeSection('checkboxes-demograficos', function () {
+        var sexo = toUpper(orden.SexoCandidato || ev.Sexo).trim();
+        $('#prevSexoM').toggleClass('filled', sexo === 'M' || sexo.indexOf('MASC') >= 0 || sexo === '1');
+        $('#prevSexoF').toggleClass('filled', sexo === 'F' || sexo.indexOf('FEM') >= 0 || sexo === '2');
+
+        var ec = toUpper(ev.EstadoCivil).trim();
+        $('#prevEcSoltero').toggleClass('filled', ec.indexOf('SOLTER') >= 0 || ec === '1');
+        $('#prevEcCasado').toggleClass('filled', ec.indexOf('CASAD') >= 0 || ec === '2');
+        $('#prevEcUnion').toggleClass('filled', ec.indexOf('UNION') >= 0 || ec === '3');
+        $('#prevEcSeparado').toggleClass('filled', ec.indexOf('SEPAR') >= 0 || ec.indexOf('DIVOR') >= 0 || ec.indexOf('VIUD') >= 0 || ec === '4');
+
+        var esc = toUpper(ev.Escolaridad);
+        $('#prevNaPrimaria').toggleClass('filled', esc.indexOf('PRIM') >= 0);
+        $('#prevNaSecundaria').toggleClass('filled', esc.indexOf('SECUN') >= 0);
+        $('#prevNaMedia').toggleClass('filled', esc.indexOf('MEDIA') >= 0 || esc.indexOf('PREPA') >= 0 || esc.indexOf('BACH') >= 0);
+        $('#prevNaUniversidad').toggleClass('filled', esc.indexOf('UNIV') >= 0 || esc.indexOf('LIC') >= 0 || esc.indexOf('POS') >= 0);
+
+        var isCand = toUpper(orden.TipoServicioDesc).indexOf('INGRES') >= 0 || toUpper(orden.Modalidad).indexOf('INGRES') >= 0;
+        $('#prevExIngreso').toggleClass('filled', isCand);
+        $('#prevExPeriodico').toggleClass('filled', !isCand);
+    });
 
     // Helper para truncar texto
     function trunc(txt, max){
@@ -168,27 +247,26 @@ function fillEvaluacionPreview(orden, ev){
     }
 
     // Antecedentes - separar por categoría
-    var ahf = {}; // Heredo-familiares
-    var app = {}; // Personales patológicos
-    if(ev.Antecedentes && ev.Antecedentes.length){
-        ev.Antecedentes.forEach(function(a){
-            if(a && a.NombreCondicion){
-                var key = (a.NombreCondicion+'').toUpperCase();
-                var cat = (a.Categoria || '').toUpperCase();
-                // Heredo-familiares contienen palabras clave específicas
-                if(cat.indexOf('HEREDO')>=0 || cat.indexOf('FAMILIAR')>=0 ||
-                   key.indexOf('HTA')>=0 || key.indexOf('DIABETES')>=0 || key.indexOf('CARDIO')>=0 ||
-                   key.indexOf('ACV')>=0 || key.indexOf('TIROIDES')>=0 || key.indexOf('ASMA')>=0 ||
-                   key.indexOf('TBC')>=0 || key.indexOf('EPILEPSIA')>=0 || key.indexOf('MENTAL')>=0 ||
-                   key.indexOf('ALCOHOL')>=0 || key.indexOf('CONGENITA')>=0 || key.indexOf('CANCER')>=0 ||
-                   key.indexOf('VARICES')>=0 || key.indexOf('ALERGIA')>=0){
-                    ahf[key] = !!a.EsPositivo;
-                } else {
-                    app[key] = !!a.EsPositivo;
-                }
-            }
-        });
-    }
+    var ahf = {};
+    var app = {};
+    safeSection('antecedentes-map', function () {
+        if (ev.Antecedentes && ev.Antecedentes.length) {
+            ev.Antecedentes.forEach(function (a) {
+                if (!a || !a.NombreCondicion) return;
+                var key = normalizeKey(a.NombreCondicion);
+                var cat = normalizeKey(a.Categoria);
+                var isAhf = cat.indexOf('HEREDO') >= 0 || cat.indexOf('FAMILIAR') >= 0 ||
+                    key.indexOf('HTA') >= 0 || key.indexOf('DIABETES') >= 0 || key.indexOf('CORONARIA') >= 0 ||
+                    key.indexOf('ACV') >= 0 || key.indexOf('TIROIDES') >= 0 || key.indexOf('ASMA') >= 0 ||
+                    key.indexOf('TBC') >= 0 || key.indexOf('EPILEPSIA') >= 0 || key.indexOf('MENTAL') >= 0 ||
+                    key.indexOf('ALCOHOL') >= 0 || key.indexOf('CONGEN') >= 0 || key.indexOf('CANCER') >= 0 ||
+                    key.indexOf('VARICES') >= 0 || key.indexOf('ALERGIA') >= 0;
+
+                if (isAhf) ahf[key] = !!a.EsPositivo;
+                else app[key] = !!a.EsPositivo;
+            });
+        }
+    });
 
     // Antecedentes Heredo-Familiares - tabla 5 columnas (3 filas)
     var ahfRows = [
@@ -196,22 +274,23 @@ function fillEvaluacionPreview(orden, ev){
         ['ENF CORONARIA','TIROIDES','TBC','MENTALES','VARICES'],
         ['ACV','ASMA','ALCOHOL','CONGENITAS','']
     ];
-    var ahfHtml = '<table class="ant-table">';
-    ahfRows.forEach(function(row){
-        ahfHtml += '<tr>';
-        row.forEach(function(item){
-            if(item){
-                var key = item.toUpperCase();
-                var isPos = ahf[key] || false;
-                ahfHtml += '<td style="width:20%; vertical-align:top;"><div class="ant-item"><span class="underline">' + (isPos ? 'X' : '') + '</span>' + item + '</div></td>';
-            } else {
-                ahfHtml += '<td style="width:20%;"></td>';
-            }
+    safeSection('antecedentes-ahf', function () {
+        var ahfHtml = '<table class="ant-table">';
+        ahfRows.forEach(function(row){
+            ahfHtml += '<tr>';
+            row.forEach(function(item){
+                if(item){
+                    var isPos = antecedentePositivo(ahf, item);
+                    ahfHtml += '<td style="width:20%; vertical-align:top;"><div class="ant-item"><span class="underline">' + (isPos ? 'X' : '') + '</span>' + item + '</div></td>';
+                } else {
+                    ahfHtml += '<td style="width:20%;"></td>';
+                }
+            });
+            ahfHtml += '</tr>';
         });
-        ahfHtml += '</tr>';
+        ahfHtml += '</table>';
+        $('#prevAhfContainer').html(ahfHtml);
     });
-    ahfHtml += '</table>';
-    $('#prevAhfContainer').html(ahfHtml);
 
     // Antecedentes Personales Patológicos - tabla 4 columnas
     var appRows = [
@@ -220,76 +299,82 @@ function fillEvaluacionPreview(orden, ev){
         ['TRAUMATICOS','INFECCIOSOS','TRANSFUSIONALES','ALCANTARILLADO'],
         ['ALERGICOS','TUMORALES','LITIASIS','OTROS:']
     ];
-    var appHtml = '<table class="ant-table">';
-    appRows.forEach(function(row){
-        appHtml += '<tr>';
-        row.forEach(function(item){
-            var key = item.toUpperCase();
-            var isPos = app[key] || false;
-            appHtml += '<td style="width:25%; vertical-align:top;"><div class="ant-item"><span class="underline">' + (isPos ? 'X' : '') + '</span>' + item + '</div></td>';
+    safeSection('antecedentes-app', function () {
+        var appHtml = '<table class="ant-table">';
+        appRows.forEach(function(row){
+            appHtml += '<tr>';
+            row.forEach(function(item){
+                var isPos = antecedentePositivo(app, item);
+                appHtml += '<td style="width:25%; vertical-align:top;"><div class="ant-item"><span class="underline">' + (isPos ? 'X' : '') + '</span>' + item + '</div></td>';
+            });
+            appHtml += '</tr>';
         });
-        appHtml += '</tr>';
+        var obsTxt = trunc(ev.Observaciones, 100);
+        appHtml += '<tr><td colspan="4" style="font-size:8px; padding:2px 4px;"><strong>Observaciones:</strong> ' + escapeHtml(obsTxt) + '</td></tr>';
+        appHtml += '<tr><td colspan="4" style="font-size:8px; padding:2px 4px;"><strong>ANTECEDENTES PERSONALES NO PATOLOGICOS:</strong></td></tr>';
+        appHtml += '</table>';
+        $('#prevAppContainer').html(appHtml);
     });
-    // Observaciones con truncado
-    var obsTxt = trunc(ev.Observaciones, 100);
-    appHtml += '<tr><td colspan="4" style="font-size:8px; padding:2px 4px;"><strong>Observaciones:</strong> ' + escapeHtml(obsTxt) + '</td></tr>';
-    appHtml += '<tr><td colspan="4" style="font-size:8px; padding:2px 4px;"><strong>ANTECEDENTES PERSONALES NO PATOLOGICOS:</strong></td></tr>';
-    appHtml += '</table>';
-    $('#prevAppContainer').html(appHtml);
 
-    // Antecedentes Laborales - truncados
-    if(ev.AntecedentesLaborales && ev.AntecedentesLaborales.length){
-        var lab = ev.AntecedentesLaborales[0];
-        $('#prevLabEmpresa').text(trunc(lab.Empresa, 25));
-        $('#prevLabTiempo').text(trunc(lab.TiempoLaborado, 15));
-        $('#prevLabPuesto').text(trunc(lab.Puesto, 20));
-        $('#prevLabAgentes').text(trunc(lab.AgentesExpuesto, 20));
-        $('#prevLabAccidentes').text(trunc(lab.AccidentesPrevios, 15));
-    } else {
-        $('#prevLabEmpresa,#prevLabTiempo,#prevLabPuesto,#prevLabAgentes,#prevLabAccidentes').text('');
-    }
+    safeSection('laborales', function () {
+        if(ev.AntecedentesLaborales && ev.AntecedentesLaborales.length){
+            var lab = ev.AntecedentesLaborales[0] || {};
+            $('#prevLabEmpresa').text(trunc(toText(lab.Empresa), 25));
+            $('#prevLabTiempo').text(trunc(toText(lab.TiempoLaborado), 15));
+            $('#prevLabPuesto').text(trunc(toText(lab.Puesto), 20));
+            $('#prevLabAgentes').text(trunc(toText(lab.AgentesExpuesto), 20));
+            $('#prevLabAccidentes').text(trunc(toText(lab.AccidentesPrevios), 15));
+        } else {
+            $('#prevLabEmpresa,#prevLabTiempo,#prevLabPuesto,#prevLabAgentes,#prevLabAccidentes').text('');
+        }
+    });
 
-    // Hábitos - truncados
-    var hab = ev.Habitos || {};
-    var habHtml = '';
-    habHtml += '<div class="hab-row"><span class="cb' + (hab.Fuma ? ' filled' : '') + '"></span><span style="width:50px;">Fuma:</span>';
-    habHtml += '<strong>Años de hábito</strong>&nbsp;<span class="hab-line">' + (hab.AnosFumando || '') + '</span>';
-    habHtml += '&nbsp;<strong>No. Cigarros/día:</strong>&nbsp;<span class="hab-line">' + (hab.CigarrosDiarios || '') + '</span>';
-    habHtml += '&nbsp;<strong>EX</strong>&nbsp;<span class="hab-line">' + (hab.EsExFumador ? 'Sí' : '') + '</span></div>';
-    habHtml += '<div class="hab-row"><span class="cb' + (hab.UsaDrogas ? ' filled' : '') + '"></span><span style="width:50px;">Drogas:</span>';
-    habHtml += '<strong>Tipo de droga:</strong>&nbsp;<span class="hab-line">' + escapeHtml(trunc(hab.TipoDrogas, 25)) + '</span></div>';
-    habHtml += '<div class="hab-row"><span class="cb' + (hab.BebeAlcohol ? ' filled' : '') + '"></span><span>Alcohol:</span>';
-    habHtml += '<span class="hab-line" style="margin-left:10px;">' + escapeHtml(trunc(hab.FrecuenciaAlcohol, 20)) + '</span></div>';
-    habHtml += '<div class="hab-row"><span class="cb' + (hab.HaceDeporte ? ' filled' : '') + '"></span><span style="width:50px;">Deporte:</span>';
-    habHtml += '<span class="hab-line">' + escapeHtml(trunc(hab.TipoDeporte, 20)) + '</span>';
-    habHtml += '&nbsp;<strong>Frecuencia</strong>&nbsp;<span class="hab-line">' + escapeHtml(trunc(hab.FrecuenciaDeporte, 15)) + '</span></div>';
-    habHtml += '<div class="hab-row"><span style="width:85px;"><strong>Tiempo Libre:</strong></span>';
-    habHtml += '<span class="hab-line">' + escapeHtml(trunc(hab.DescripcionTiempoLibre, 35)) + '</span></div>';
-    $('#prevHabitosContainer').html(habHtml);
+    safeSection('habitos', function () {
+        var hab = ev.Habitos || {};
+        var habHtml = '';
+        habHtml += '<div class="hab-row"><span class="cb' + (hab.Fuma ? ' filled' : '') + '"></span><span style="width:50px;">Fuma:</span>';
+        habHtml += '<strong>Años de hábito</strong>&nbsp;<span class="hab-line">' + toText(hab.AnosFumando) + '</span>';
+        habHtml += '&nbsp;<strong>No. Cigarros/día:</strong>&nbsp;<span class="hab-line">' + toText(hab.CigarrosDiarios) + '</span>';
+        habHtml += '&nbsp;<strong>EX</strong>&nbsp;<span class="hab-line">' + (hab.EsExFumador ? 'Sí' : '') + '</span></div>';
+        habHtml += '<div class="hab-row"><span class="cb' + (hab.UsaDrogas ? ' filled' : '') + '"></span><span style="width:50px;">Drogas:</span>';
+        habHtml += '<strong>Tipo de droga:</strong>&nbsp;<span class="hab-line">' + escapeHtml(trunc(toText(hab.TipoDrogas), 25)) + '</span></div>';
+        habHtml += '<div class="hab-row"><span class="cb' + (hab.BebeAlcohol ? ' filled' : '') + '"></span><span>Alcohol:</span>';
+        habHtml += '<span class="hab-line" style="margin-left:10px;">' + escapeHtml(trunc(toText(hab.FrecuenciaAlcohol), 20)) + '</span></div>';
+        habHtml += '<div class="hab-row"><span class="cb' + (hab.HaceDeporte ? ' filled' : '') + '"></span><span style="width:50px;">Deporte:</span>';
+        habHtml += '<span class="hab-line">' + escapeHtml(trunc(toText(hab.TipoDeporte), 20)) + '</span>';
+        habHtml += '&nbsp;<strong>Frecuencia</strong>&nbsp;<span class="hab-line">' + escapeHtml(trunc(toText(hab.FrecuenciaDeporte), 15)) + '</span></div>';
+        habHtml += '<div class="hab-row"><span style="width:85px;"><strong>Tiempo Libre:</strong></span>';
+        habHtml += '<span class="hab-line">' + escapeHtml(trunc(toText(hab.DescripcionTiempoLibre), 35)) + '</span></div>';
+        $('#prevHabitosContainer').html(habHtml);
+    });
 
-    // Vacunas
-    var vac = ev.Vacunacion || {};
-    var vacHtml = '<strong>VACUNAS</strong>&nbsp;&nbsp;';
-    vacHtml += '<strong>TÉTANOS</strong>&nbsp;1<span class="vac-line">' + (vac.TetanosDosis1 ? 'X' : '') + '</span>';
-    vacHtml += '&nbsp;2<span class="vac-line">' + (vac.TetanosDosis2 ? 'X' : '') + '</span>';
-    vacHtml += '&nbsp;3<span class="vac-line">' + (vac.TetanosDosis3 ? 'X' : '') + '</span>';
-    vacHtml += '&nbsp;&nbsp;<strong>Hepatitis</strong>&nbsp;1<span class="vac-line">' + (vac.HepatitisDosis1 ? 'X' : '') + '</span>';
-    vacHtml += '&nbsp;2<span class="vac-line">' + (vac.HepatitisDosis2 ? 'X' : '') + '</span>';
-    vacHtml += '&nbsp;&nbsp;<strong>H1N1:</strong><span class="vac-line">' + (vac.InfluenzaH1N1 ? 'X' : '') + '</span>';
-    $('#prevVacunasContainer').html(vacHtml);
+    safeSection('vacunas', function () {
+        var vac = ev.Vacunacion || {};
+        var vacHtml = '<strong>VACUNAS</strong>&nbsp;&nbsp;';
+        vacHtml += '<strong>TÉTANOS</strong>&nbsp;1<span class="vac-line">' + (vac.TetanosDosis1 ? 'X' : '') + '</span>';
+        vacHtml += '&nbsp;2<span class="vac-line">' + (vac.TetanosDosis2 ? 'X' : '') + '</span>';
+        vacHtml += '&nbsp;3<span class="vac-line">' + (vac.TetanosDosis3 ? 'X' : '') + '</span>';
+        vacHtml += '&nbsp;&nbsp;<strong>Hepatitis</strong>&nbsp;1<span class="vac-line">' + (vac.HepatitisDosis1 ? 'X' : '') + '</span>';
+        vacHtml += '&nbsp;2<span class="vac-line">' + (vac.HepatitisDosis2 ? 'X' : '') + '</span>';
+        vacHtml += '&nbsp;&nbsp;<strong>H1N1:</strong><span class="vac-line">' + (vac.InfluenzaH1N1 ? 'X' : '') + '</span>';
+        $('#prevVacunasContainer').html(vacHtml);
+    });
 
-    // Exploración física: signos
-    $('#prevTa').text((ev.PresionSistolica && ev.PresionDiastolica) ? (ev.PresionSistolica + '/' + ev.PresionDiastolica) : '');
-    $('#prevFc').text(ev.FrecuenciaCardiaca || '');
-    $('#prevFr').text(ev.FrecuenciaRespiratoria || '');
-    $('#prevTemp').text(ev.Temperatura || '');
-    $('#prevPeso').text(ev.PesoKg || '');
-    $('#prevEstatura').text(ev.AlturaMetros || '');
-    $('#prevImc').text(ev.Imc || '');
-    // Aparatos y Sistemas - truncado a 50 caracteres
-    $('#prevAparatos').text(trunc(ev.AparatosSistemas, 50));
-    // Sintomas - truncado a 100 caracteres
-    $('#prevSintomas').text(trunc(ev.SintomasPaciente, 100));
+    safeSection('exploracion-signos', function () {
+        $('#prevTa').text((ev.PresionSistolica && ev.PresionDiastolica) ? (ev.PresionSistolica + '/' + ev.PresionDiastolica) : '');
+        $('#prevFc').text(toText(ev.FrecuenciaCardiaca));
+        $('#prevFr').text(toText(ev.FrecuenciaRespiratoria));
+        $('#prevTemp').text(toText(ev.Temperatura));
+        $('#prevPeso').text(toText(ev.PesoKg));
+        $('#prevEstatura').text(toText(ev.AlturaMetros));
+        $('#prevImc').text(toText(ev.Imc));
+        $('#prevGlucosa').text(toText(ev.Glucosa));
+        $('#prevOximetria').text(toText(ev.Oximetria));
+        $('#prevImcDesc').text(toText(ev.ImcDescripcion));
+        $('#prevAlergias').text(trunc(toText(ev.Alergias), 60) || 'No registradas');
+        $('#prevAparatos').text(trunc(toText(ev.AparatosSistemas), 50));
+        $('#prevSintomas').text(trunc(toText(ev.SintomasPaciente), 100));
+    });
 
     // Tabla de exploración (20 items)
     var areas = [
@@ -297,89 +382,107 @@ function fillEvaluacionPreview(orden, ev){
         'Columna-espalda','Extremidades','Piel','Ap. Respiratorio','Cardiaco','Vascular periférico',
         'Abdomen','Neurológico','Genitales','Hernias','Otro'
     ];
-    var efMap = {};
-    if(ev.OrdenExamenFisico && ev.OrdenExamenFisico.length){
-        ev.OrdenExamenFisico.forEach(function(x){
-            if(x && x.SistemaCuerpo) efMap[(x.SistemaCuerpo+'').toUpperCase()] = x;
+    safeSection('exploracion-tabla', function () {
+        var efMap = {};
+        if(ev.OrdenExamenFisico && ev.OrdenExamenFisico.length){
+            ev.OrdenExamenFisico.forEach(function(x){
+                if(x && x.SistemaCuerpo) efMap[normalizeKey(x.SistemaCuerpo)] = x;
+            });
+        }
+        var explHtml = '<tr><th class="col-item"></th><th class="col-norm">Normal</th><th class="col-anorm">Anormal</th><th class="col-desc">Descripción de Hallazgos</th></tr>';
+        areas.forEach(function(a, idx){
+            var found = efMap[normalizeKey(a)] || null;
+            var normal = found ? !!found.EsNormal : false;
+            var anormal = found ? !found.EsNormal && found.Hallazgos : false;
+            var hall = found ? trunc(toText(found.Hallazgos), 30) : '';
+            explHtml += '<tr><td>' + (idx+1) + '. ' + a + ':</td>';
+            explHtml += '<td class="col-norm">' + (normal ? 'X' : '') + '</td>';
+            explHtml += '<td class="col-anorm">' + (anormal ? 'X' : '') + '</td>';
+            explHtml += '<td>' + escapeHtml(hall) + '</td></tr>';
         });
-    }
-    var explHtml = '<tr><th class="col-item"></th><th class="col-norm">Normal</th><th class="col-anorm">Anormal</th><th class="col-desc">Descripción de Hallazgos</th></tr>';
-    areas.forEach(function(a, idx){
-        var found = efMap[a.toUpperCase()] || null;
-        var normal = found ? !!found.EsNormal : false;
-        var anormal = found ? !found.EsNormal && found.Hallazgos : false;
-        var hall = found ? trunc(found.Hallazgos, 30) : '';
-        explHtml += '<tr><td>' + (idx+1) + '. ' + a + ':</td>';
-        explHtml += '<td class="col-norm">' + (normal ? 'X' : '') + '</td>';
-        explHtml += '<td class="col-anorm">' + (anormal ? 'X' : '') + '</td>';
-        explHtml += '<td>' + escapeHtml(hall) + '</td></tr>';
+        $('#prevExploracion').html(explHtml);
     });
-    $('#prevExploracion').html(explHtml);
 
-    // Página 2 — femenino
-    if(ev.DetalleFemenino){
-        var f2 = ev.DetalleFemenino;
-        $('#prevGinecoBlock').show();
-        $('#prevMasculinoBlock').hide();
-        $('#prevPlanificacion').text(trunc(f2.MetodoPlanificacion, 15));
-        $('#prevMenarca').text(f2.EdadMenarca || '');
-        $('#prevCiclos').text(trunc(f2.Ciclos, 10));
-        $('#prevFum').text(formatDate(f2.FechaUltimaMenstruacion) || '');
-        $('#prevNumHijos').text(trunc(f2.NumeroHijosEdades, 15));
-        $('#prevIvsaFem').text(f2.Ivsa || '');
-        $('#prevCitVag').text(formatDate(f2.FechaUltimoPapanicolau) || '');
-        $('#prevEts').text(trunc(f2.Ets, 10));
-        $('#prevGestas').text(f2.Gestas || '');
-        $('#prevPartos').text(f2.Partos || '');
-        $('#prevAbortos').text(f2.Abortos || '');
-        $('#prevCesareas').text(f2.Cesareas || '');
-    } else if(ev.DetalleMasculino) {
-        $('#prevGinecoBlock').hide();
-        $('#prevMasculinoBlock').show();
-        var m2 = ev.DetalleMasculino;
-        $('#prevPrepucio').toggleClass('filled', !!m2.PrepucioRetractil);
-        $('#prevTesticulos').toggleClass('filled', !!m2.TesticulosDescendidos);
-        $('#prevFimosis').toggleClass('filled', !!m2.Fimosis);
-        $('#prevCriptorquidia').toggleClass('filled', !!m2.Criptorquidia);
-        $('#prevVaricocele').toggleClass('filled', !!m2.Varicocele);
-        $('#prevHidrocele').toggleClass('filled', !!m2.Hidrocele);
-        $('#prevHernia').toggleClass('filled', !!m2.Hernia);
-        $('#prevIvsaMasc').toggleClass('filled', !!m2.Ivsa);
-        $('#prevPsa').toggleClass('filled', !!m2.Psa);
-        $('#prevMpf').toggleClass('filled', !!m2.MetodoPlanificacion);
-    } else {
-        $('#prevGinecoBlock').hide();
-        $('#prevMasculinoBlock').hide();
-    }
+    safeSection('sexo-especifico', function () {
+        if(ev.DetalleFemenino){
+            var f2 = ev.DetalleFemenino;
+            $('#prevGinecoBlock').show();
+            $('#prevMasculinoBlock').hide();
+            $('#prevPlanificacion').text(trunc(toText(f2.MetodoPlanificacion), 15));
+            $('#prevMenarca').text(toText(f2.EdadMenarca));
+            $('#prevCiclos').text(trunc(toText(f2.Ciclos), 10));
+            $('#prevFum').text(formatDate(f2.FechaUltimaMenstruacion) || '');
+            $('#prevNumHijos').text(trunc(toText(f2.NumeroHijosEdades), 15));
+            $('#prevIvsaFem').text(toText(f2.Ivsa));
+            $('#prevCitVag').text(formatDate(f2.FechaUltimoPapanicolau) || '');
+            $('#prevEts').text(trunc(toText(f2.Ets), 10));
+            $('#prevGestas').text(toText(f2.Gestas));
+            $('#prevPartos').text(toText(f2.Partos));
+            $('#prevAbortos').text(toText(f2.Abortos));
+            $('#prevCesareas').text(toText(f2.Cesareas));
+        } else if(ev.DetalleMasculino) {
+            $('#prevGinecoBlock').hide();
+            $('#prevMasculinoBlock').show();
+            var m2 = ev.DetalleMasculino;
+            $('#prevPrepucio').toggleClass('filled', !!m2.PrepucioRetractil);
+            $('#prevTesticulos').toggleClass('filled', !!m2.TesticulosDescendidos);
+            $('#prevFimosis').toggleClass('filled', !!m2.Fimosis);
+            $('#prevCriptorquidia').toggleClass('filled', !!m2.Criptorquidia);
+            $('#prevVaricocele').toggleClass('filled', !!m2.Varicocele);
+            $('#prevHidrocele').toggleClass('filled', !!m2.Hidrocele);
+            $('#prevHernia').toggleClass('filled', !!m2.Hernia);
+            $('#prevIvsaMasc').toggleClass('filled', !!m2.Ivsa);
+            $('#prevPsa').toggleClass('filled', !!m2.Psa);
+            $('#prevMpf').toggleClass('filled', !!m2.MetodoPlanificacion);
+        } else {
+            $('#prevGinecoBlock').hide();
+            $('#prevMasculinoBlock').hide();
+        }
+    });
 
-    // Columna Vertebral
-    var col = ev.Columna || {};
-    function cvVal(v){ return v===1 ? 'N' : (v===2 ? 'A' : (v===3 ? 'D' : '')); }
-    $('#prevLordC').text(cvVal(col.LordosisCervical));
-    $('#prevLordD').text(cvVal(col.LordosisDorsal));
-    $('#prevLordL').text(cvVal(col.LordosisLumbar));
-    $('#prevCifoC').text(cvVal(col.CifosisCervical));
-    $('#prevCifoD').text(cvVal(col.CifosisDorsal));
-    $('#prevCifoL').text(cvVal(col.CifosisLumbar));
-    $('#prevEscDd').text(col.EscoliosisDorsalDerecha ? 'X' : '');
-    $('#prevEscLd').text(col.EscoliosisLumbarDerecha ? 'X' : '');
-    $('#prevEscDobD').text(col.EscoliosisDobleDerecha ? 'X' : '');
-    $('#prevEscDi').text(col.EscoliosisDorsalIzquierda ? 'X' : '');
-    $('#prevEscLi').text(col.EscoliosisLumbarIzquierda ? 'X' : '');
-    $('#prevEscDobI').text(col.EscoliosisDobleIzquierda ? 'X' : '');
+    safeSection('agudeza-visual', function () {
+        var av = ev.AgudezaVisual || {};
+        $('#prevOdSin').text(toText(av.OdSinLentes));
+        $('#prevOiSin').text(toText(av.OiSinLentes));
+        $('#prevAoSin').text(toText(av.AoSinLentes));
+        $('#prevOdCon').text(toText(av.OdConLentes));
+        $('#prevOiCon').text(toText(av.OiConLentes));
+        $('#prevAoCon').text(toText(av.AoConLentes));
+        $('#prevUsaLentes').text(toText(av.UsaLentes));
+        $('#prevDaltonismo').text(toText(av.Daltonismo));
+        $('#prevRefVisual').text(toText(av.ReferenciaVisual));
+    });
 
-    // Diagnóstico - truncado a 80 caracteres
-    $('#prevDiagnostico').text(trunc(ev.Observaciones, 80));
-    $('#prevDiagnostico2').text('');
+    safeSection('columna-resultado', function () {
+        var col = ev.Columna || {};
+        function cvVal(v){
+            var n = toNumber(v);
+            return n === 1 ? 'N' : (n === 2 ? 'A' : (n === 3 ? 'D' : ''));
+        }
+        $('#prevLordC').text(cvVal(col.LordosisCervical));
+        $('#prevLordD').text(cvVal(col.LordosisDorsal));
+        $('#prevLordL').text(cvVal(col.LordosisLumbar));
+        $('#prevCifoC').text(cvVal(col.CifosisCervical));
+        $('#prevCifoD').text(cvVal(col.CifosisDorsal));
+        $('#prevCifoL').text(cvVal(col.CifosisLumbar));
+        $('#prevEscDd').text(col.EscoliosisDorsalDerecha ? 'X' : '');
+        $('#prevEscLd').text(col.EscoliosisLumbarDerecha ? 'X' : '');
+        $('#prevEscDobD').text(col.EscoliosisDobleDerecha ? 'X' : '');
+        $('#prevEscDi').text(col.EscoliosisDorsalIzquierda ? 'X' : '');
+        $('#prevEscLi').text(col.EscoliosisLumbarIzquierda ? 'X' : '');
+        $('#prevEscDobI').text(col.EscoliosisDobleIzquierda ? 'X' : '');
 
-    // Resultado
-    $('#prevResApto').toggleClass('filled', ev.FkAptitudMedica === 1);
-    $('#prevResNoApto').toggleClass('filled', ev.FkAptitudMedica === 3);
-    $('#prevResRestr').toggleClass('filled', ev.FkAptitudMedica === 2);
+        $('#prevDiagnostico').text(trunc(toText(ev.Observaciones), 80));
+        $('#prevDiagnostico2').text('');
 
-    // Recomendaciones - truncado a 80 caracteres
-    $('#prevRecomendaciones').text(trunc(ev.Recomendaciones, 80));
-    $('#prevRecomendaciones2').text('');
+        var apt = toNumber(ev.FkAptitudMedica);
+        $('#prevResApto').toggleClass('filled', apt === 1);
+        $('#prevResNoApto').toggleClass('filled', apt === 3);
+        $('#prevResRestr').toggleClass('filled', apt === 2);
+
+        $('#prevRecomendaciones').text(trunc(toText(ev.Recomendaciones), 80));
+        $('#prevRecomendaciones2').text('');
+    });
 }
 
 function getTipoSangre(fk){
@@ -584,7 +687,7 @@ function onCambioTamanoPagina() {
 }
 
 function verDetalle(id) {
-    // Forzar endpoint en el MISMO path actual (evita problemas de rutas/base href/virtual dirs)
+    // Construir endpoint sobre el path actual para evitar problemas de rutas/base href/virtual dirs.
     var endpoint = window.location.pathname + '/VerDetalle';
 
     apiCall({

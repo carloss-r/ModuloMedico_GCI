@@ -346,10 +346,15 @@
                                             <div class="ef-field"><strong>Estatura:</strong>&nbsp;<span class="ef-val" id="prevEstatura"></span>&nbsp;m</div>
                                         </div>
                                         <div class="ef-row">
-                                            <div class="ef-field"><strong>IMC:</strong>&nbsp;<span class="ef-val" id="prevImc"></span></div>
+                                            <div class="ef-field"><strong>IMC:</strong>&nbsp;<span class="ef-val" id="prevImc"></span>&nbsp;(<span id="prevImcDesc"></span>)</div>
                                             <div class="ef-field"><strong>Temp:</strong>&nbsp;<span class="ef-val" id="prevTemp"></span></div>
+                                            <div class="ef-field"><strong>Glucosa:</strong>&nbsp;<span class="ef-val" id="prevGlucosa"></span>&nbsp;mg/dl</div>
+                                            <div class="ef-field"><strong>Oximetría:</strong>&nbsp;<span class="ef-val" id="prevOximetria"></span>&nbsp;%</div>
+                                        </div>
+                                        <div class="ef-row">
                                             <div class="ef-field"><strong>Aparatos y sistemas:</strong>&nbsp;<span class="ef-val" id="prevAparatos" style="min-width:200px;"></span></div>
                                         </div>
+                                        <div style="margin-top:4px;"><strong>Alergias:</strong>&nbsp;<span id="prevAlergias" style="color:#dc3545; font-weight:bold;"></span></div>
                                         <div style="margin-top:4px;"><strong>Síntomas:</strong>&nbsp;<span id="prevSintomas"></span></div>
                                     </div>
 
@@ -396,6 +401,36 @@
                                     <!-- HOJA 2 -->
                                     <div class="hoja-row">
                                         <strong>HOJA:</strong>&nbsp;&nbsp;2&nbsp;&nbsp;<strong>DE</strong>&nbsp;&nbsp;2
+                                    </div>
+
+                                    <!-- AGUDEZA VISUAL -->
+                                    <div class="p2-block" id="prevAgudezaBlock">
+                                        <div style="font-weight:bold; margin-bottom:5px; font-size:10px;">AGUDEZA VISUAL:</div>
+                                        <table class="cv-table" style="font-size:9px;">
+                                            <tr>
+                                                <th></th>
+                                                <th>OD</th>
+                                                <th>OI</th>
+                                                <th>AO</th>
+                                            </tr>
+                                            <tr>
+                                                <td class="row-label">Sin Lentes</td>
+                                                <td id="prevOdSin"></td>
+                                                <td id="prevOiSin"></td>
+                                                <td id="prevAoSin"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="row-label">Con Lentes</td>
+                                                <td id="prevOdCon"></td>
+                                                <td id="prevOiCon"></td>
+                                                <td id="prevAoCon"></td>
+                                            </tr>
+                                        </table>
+                                        <div class="p2-row" style="margin-top:3px;">
+                                            <strong>Usa lentes:</strong>&nbsp;<span id="prevUsaLentes"></span>
+                                            &nbsp;&nbsp;<strong>Daltonismo:</strong>&nbsp;<span id="prevDaltonismo"></span>
+                                            &nbsp;&nbsp;<strong>Referencia:</strong>&nbsp;<span id="prevRefVisual"></span>
+                                        </div>
                                     </div>
 
                                     <!-- GINECO-OBSTÉTRICOS -->

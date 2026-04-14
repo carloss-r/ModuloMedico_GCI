@@ -19,11 +19,14 @@ namespace Telerik.Models.ViewModels
         
         // Datos Demográficos para Autocompletado
         public string FechaNacimiento { get; set; }
+        public string LugarNacimiento { get; set; }
         public string Nss { get; set; }
         public string Telefono { get; set; }
         public string Direccion { get; set; }
         public string EstadoCivil { get; set; }
+        public string ManoDominante { get; set; }
         public string TipoSangre { get; set; }
+        public string Profesion { get; set; }
         public string Rfc { get; set; }
         public string Curp { get; set; }
         public bool TieneHijos { get; set; }

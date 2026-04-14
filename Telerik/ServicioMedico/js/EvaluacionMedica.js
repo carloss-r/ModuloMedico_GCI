@@ -6,6 +6,62 @@ function showError(msg) {
     $('#msgOverlay').css('display', 'flex');
 }
 
+function mapearAntecedentesHeredados(d) {
+    if (!d) return;
+
+    // Reiniciar solo sección de antecedentes para evitar residuos visuales
+    $('.chk-ant').each(function() {
+        var $row = $(this).closest('tr');
+        $(this).prop('checked', false).trigger('change');
+        $row.find('.ant-det').val('');
+        $row.css({ 'background-color': '', 'border-left': '' }).removeAttr('title');
+        $row.find('.ant-det').css({ 'background-color': '', 'border-color': '' });
+    });
+
+    if (d.Antecedentes && d.Antecedentes.length > 0) {
+        d.Antecedentes.forEach(function(a) {
+            var $chk = $('.chk-ant[data-name="' + a.NombreCondicion + '"]');
+            if ($chk.length > 0) {
+                var $row = $chk.closest('tr');
+                $chk.prop('checked', a.EsPositivo).trigger('change');
+                if (a.EsPositivo) {
+                    $row.find('.ant-det').val(a.Detalles || '');
+                }
+                if (a.EsPositivo || (a.Detalles && a.Detalles.trim() !== '')) {
+                    $row.css({ 'background-color': '#fff9e6', 'border-left': '4px solid #f0ad4e' });
+                    $row.attr('title', 'Dato heredado del expediente previo');
+                    $row.find('.ant-det').css({ 'background-color': '#fffdf3', 'border-color': '#f0d58a' });
+                }
+            }
+        });
+    }
+
+    // Heredar Hábitos del expediente previo
+    if (d.Habitos) {
+        var h = d.Habitos;
+        $('#chkFuma').prop('checked', h.Fuma).trigger('change');
+        if (h.Fuma) {
+            $('#txtAnosFuma').val(h.AnosFumando || '');
+            $('#txtCigarrillos').val(h.CigarrosDiarios || '');
+        }
+        $('#chkExFumador').prop('checked', h.EsExFumador);
+        $('#chkAlcohol').prop('checked', h.BebeAlcohol).trigger('change');
+        if (h.BebeAlcohol) $('#txtFrecAlcohol').val(h.FrecuenciaAlcohol || '');
+        $('#chkDrogas').prop('checked', h.UsaDrogas).trigger('change');
+        if (h.UsaDrogas) $('#txtTipoDrogas').val(h.TipoDrogas || '');
+        $('#chkDeporte').prop('checked', h.HaceDeporte).trigger('change');
+        if (h.HaceDeporte) $('#txtTipoDeporte').val(h.TipoDeporte || '');
+        $('#txtTiempoLibre').val(h.DescripcionTiempoLibre || '');
+
+        // Resaltar sección de hábitos como heredada
+        $('.toggle-habito').each(function() {
+            if ($(this).is(':checked')) {
+                $(this).closest('.form-group, tr, div').css({ 'background-color': '#fff9e6' });
+            }
+        });
+    }
+}
+
 function showInfo(msg) {
     $('#msgIcon').html('<i class="fas fa-info-circle" style="color: #3498db;"></i>');
     $('#msgTitle').text('Informaci\u00f3n');
@@ -238,6 +294,20 @@ function initForms() {
     // Inicializar cascada de catÃ¡logos geogrÃ¡ficos
     cargarPaises();
     cargarEstadoNacimiento(1); // Cargar estados de MÃ©xico por defecto
+    
+    // Cargar catálogos adicionales desde la base de datos
+    cargarEstadoCivil();
+    cargarTipoSangre();
+    cargarProfesiones();
+    cargarNivelEscolaridad();
+    
+    // Mantener campo de profesión siempre habilitado
+    $('#ddlEscolaridad').on('change', function() {
+        mantenerProfesionHabilitada();
+    });
+    
+    // Inicializar campo de profesión
+    mantenerProfesionHabilitada();
 
     $('#ddlPais').on('change', function() {
         var idPais = $(this).val();
@@ -336,7 +406,7 @@ function addLaboralRow() {
         <td><input type="text" class="form-control lab-tie" placeholder="Ej. 1 AÃ±o" /></td>
         <td><input type="text" class="form-control lab-age" placeholder="Polvo, ruido, etc." /></td>
         <td><input type="text" class="form-control lab-acc" placeholder="Ninguno" /></td>
-        <td><button class="btn-danger" style="padding: 2px 6px; font-size: 0.8rem;" onclick="$(this).closest('tr').remove()"><i class="fas fa-trash"></i></button></td>
+        <td><button type="button" class="btn-danger" style="padding: 2px 6px; font-size: 0.8rem;" onclick="$(this).closest('tr').remove(); return false;"><i class="fas fa-trash"></i></button></td>
     </tr>`;
     $('#tbAntecedentesLaborales').append(row);
 }
@@ -393,32 +463,112 @@ function loadPatientData(idOrden) {
            
             if(p.Nss) $('#txtNss').val(p.Nss);
             if(p.Escolaridad) {
-                var esc = p.Escolaridad.toUpperCase().trim();
-                // Normalizaci\u00f3n para el dropdown
-                if(esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
-                if(esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
-                $('#ddlEscolaridad').val(esc);
+                // Esperar a que el catálogo esté cargado para seleccionar el valor
+                var waitEscolaridad = setInterval(function(){
+                    if($('#ddlEscolaridad option').length > 1) {
+                        clearInterval(waitEscolaridad);
+                        var esc = p.Escolaridad.toUpperCase().trim();
+                        // Normalización para el dropdown
+                        if(esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
+                        if(esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
+                        
+                        // Intentar seleccionar por texto o valor
+                        var found = false;
+                        $('#ddlEscolaridad option').each(function() {
+                            if($(this).text().toUpperCase() === esc || $(this).val().toString().toUpperCase() === esc) {
+                                $(this).prop('selected', true);
+                                found = true;
+                                return false;
+                            }
+                        });
+                        
+                        if(!found) {
+                            // Si no encuentra exacto, busca coincidencia parcial
+                            $('#ddlEscolaridad option').filter(function() {
+                                return $(this).text().toUpperCase().indexOf(esc) >= 0 || esc.indexOf($(this).text().toUpperCase()) >= 0;
+                            }).prop('selected', true);
+                        }
+                    }
+                }, 100);
             }
             
             if(p.FechaNacimiento) {
                 var formattedDate = formatDateForInput(p.FechaNacimiento);
                 $('#txtFechaNacimiento').val(formattedDate).trigger('change');
             }
+            if(p.LugarNacimiento) {
+                var ln = p.LugarNacimiento.toUpperCase();
+                var foundLn = false;
+                $('#ddlEstadoNacimiento option').each(function() {
+                    if($(this).text().toUpperCase() === ln || $(this).val().toUpperCase() === ln) {
+                        $(this).prop('selected', true);
+                        foundLn = true;
+                        return false;
+                    }
+                });
+                if(!foundLn) $('#ddlEstadoNacimiento').val(p.LugarNacimiento);
+            }
             if(p.Telefono) $('#txtTelefono').val(p.Telefono);
             if(p.Direccion) $('#txtDomicilio').val(p.Direccion);
             if(p.EstadoCivil) {
-                $('#ddlEstadoCivil option').filter(function() {
-                    return $(this).text().toUpperCase().indexOf(p.EstadoCivil.toUpperCase()) >= 0 || p.EstadoCivil.toUpperCase().indexOf($(this).val().toUpperCase()) >= 0; 
-                }).prop('selected', true);
+                // Esperar a que el catálogo esté cargado para seleccionar el valor
+                var waitEstadoCivil = setInterval(function(){
+                    if($('#ddlEstadoCivil option').length > 1) {
+                        clearInterval(waitEstadoCivil);
+                        $('#ddlEstadoCivil option').filter(function() {
+                            return $(this).text().toUpperCase().indexOf(p.EstadoCivil.toUpperCase()) >= 0 || 
+                                   $(this).val().toString().toUpperCase() === p.EstadoCivil.toUpperCase() ||
+                                   $(this).text().toUpperCase() === p.EstadoCivil.toUpperCase();
+                        }).prop('selected', true);
+                    }
+                }, 100);
             }
+            
+            if(p.ManoDominante) {
+                // Esperar a que el catálogo esté cargado para seleccionar el valor
+                var waitManoDominante = setInterval(function(){
+                    if($('#ddlManoDominante option').length > 0) {
+                        clearInterval(waitManoDominante);
+                        $('#ddlManoDominante option').filter(function() {
+                            return $(this).text().toUpperCase().indexOf(p.ManoDominante.toUpperCase()) >= 0 || 
+                                   $(this).val().toString().toUpperCase() === p.ManoDominante.toUpperCase() ||
+                                   $(this).text().toUpperCase() === p.ManoDominante.toUpperCase();
+                        }).prop('selected', true);
+                    }
+                }, 100);
+            }
+            
             if(p.TipoSangre) {
-                $('#ddlTipoSangre').val(p.FkTipoSangre || '');
+                // Esperar a que el catálogo esté cargado para seleccionar el valor
+                var waitTipoSangre = setInterval(function(){
+                    if($('#ddlTipoSangre option').length > 1) {
+                        clearInterval(waitTipoSangre);
+                        var valor = p.FkTipoSangre || '';
+                        if (valor) {
+                            $('#ddlTipoSangre').val(valor);
+                        }
+                        if (!$('#ddlTipoSangre').val() && p.TipoSangre) {
+                            var ts = p.TipoSangre.toUpperCase();
+                            $('#ddlTipoSangre option').each(function() {
+                                if ($(this).text().toUpperCase() === ts) {
+                                    $('#ddlTipoSangre').val($(this).val());
+                                    return false;
+                                }
+                            });
+                        }
+                    }
+                }, 100);
+            }
+            
+            if(p.Profesion) {
+                $('#txtProfesion').val(p.Profesion);
             }
             
             if(p.LugarEvaluacion) {
                 $('#txtLugarEvaluacion').val(p.LugarEvaluacion);
             }
             
+            // Precargar datos demográficos que ya están correctos
             if(p.Tipo === 'CANDIDATO') {
                 $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
                 $('#txtEscolaridad').prop('readonly', false);
@@ -428,12 +578,29 @@ function loadPatientData(idOrden) {
                 $('#ddlSexo').prop('disabled', false);
                 $('#secLaborales').show();
             } else {
-                $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', true);
-                $('#txtEscolaridad').prop('readonly', true);
-                // Domicilio solo lectura para empleados (sus datos vienen de BD y se editan en mÃ³dulo RH)
-                $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', true);
-                // NOTA: Se desbloquean los selects de zona geogrÃ¡fica para poder utilizarlos y probarlos
+                // EMPLEADO: Datos generales precargados y readonly (ya están correctos en BD)
+                $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno').prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#txtPuesto, #txtArea, #txtEmpresa').prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#txtEdad').prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#txtNss').prop('readonly', true).css('background-color', '#f8f9fa');
+                
+                // Datos demográficos básicos precargados (no cambiar en evaluación médica)
+                $('#txtFechaNacimiento').prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#ddlEstadoCivil').prop('disabled', true).css('background-color', '#f8f9fa');
+                $('#ddlManoDominante').prop('disabled', true).css('background-color', '#f8f9fa');
+                $('#txtTelefono').prop('readonly', true).css('background-color', '#f8f9fa');
+                
+                // Escolaridad y profesión - mantener habilitados (pueden actualizar)
+                $('#ddlEscolaridad').prop('disabled', false);
+                $('#txtProfesion').prop('disabled', false);
+                
+                // Domicilio - mantener habilitado para actualización
+                $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
                 $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
+                
+                // Datos clínicos previos - precargar pero permitir actualización
+                $('#ddlTipoSangre').prop('disabled', false);
+                
                 $('#secLaborales').show();
             }
 
@@ -502,13 +669,14 @@ function loadPatientData(idOrden) {
                 setSexoDisplay(""); 
             }
 
-            // LÃ³gica de Expediente ClÃ­nico (Pre-cargar historial)
+            // Lógica de Expediente Clínico (Mostrar resumen rápido)
+            
             if(resp.evaluacionActual) {
                 mapearEvaluacionAlFormulario(resp.evaluacionActual);
             } else if(resp.evaluacionPrevia) {
-                mapearEvaluacionAlFormulario(resp.evaluacionPrevia, true); // true = es historial
-                // NotificaciÃ³n sutil (Toast) en lugar de alerta invasiva
-                showToast("Se han pre-cargado los antecedentes y hÃ¡bitos de la Ãºltima evaluaciÃ³n para su verificaciÃ³n.", "info");
+                mapearAntecedentesHeredados(resp.evaluacionPrevia);
+                mostrarResumenExpediente(resp.evaluacionPrevia);
+                showToast("ANTECEDENTES HEREDADOS: Se cargaron antecedentes previos para seguimiento clínico.", "info");
             }
 
         } else {
@@ -580,6 +748,126 @@ function cargarMunicipios(idEstado) {
     }});
 }
 
+// ------ CATALOGOS ADICIONALES ------
+
+function cargarEstadoCivil() {
+    $.ajax({ 
+        url: 'EvaluacionMedica.aspx/ObtenerEstadoCivil', 
+        type: 'POST', 
+        contentType: 'application/json', 
+        success: function(r) { 
+            var resp = r.d;
+            if(resp && resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function(item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlEstadoCivil').html(options);
+            } else {
+                console.error('Error al cargar Estado Civil:', resp ? resp.message : 'Respuesta inválida');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX en cargarEstadoCivil:', error);
+            console.error('Respuesta servidor:', xhr.responseText);
+        }
+    });
+}
+
+function cargarTipoSangre() {
+    $.ajax({ 
+        url: 'EvaluacionMedica.aspx/ObtenerTipoSangre', 
+        type: 'POST', 
+        contentType: 'application/json', 
+        success: function(r) { 
+            var resp = r.d;
+            if(resp && resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function(item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlTipoSangre').html(options);
+            } else {
+                console.error('Error al cargar Tipo de Sangre:', resp ? resp.message : 'Respuesta inválida');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX en cargarTipoSangre:', error);
+            console.error('Respuesta servidor:', xhr.responseText);
+        }
+    });
+}
+
+function cargarProfesiones() {
+    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerProfesiones', type: 'POST', contentType: 'application/json', success: function(r) { var resp = r.d;
+        if(resp.success && resp.data) {
+            var options = '<option value="">-- Seleccione --</option>';
+            resp.data.forEach(function(item) {
+                options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+            });
+            $('#ddlProfesion').html(options);
+        }
+    }});
+}
+
+function cargarNivelEscolaridad() {
+    $.ajax({ 
+        url: 'EvaluacionMedica.aspx/ObtenerNivelEscolaridad', 
+        type: 'POST', 
+        contentType: 'application/json', 
+        success: function(r) { 
+            var resp = r.d;
+            if(resp && resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function(item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                // Agregar opciones dinámicas al final sin sobrescribir opciones existentes
+                $('#ddlEscolaridad').append(options);
+                
+                // Mantener campo de profesión habilitado después de cargar
+                setTimeout(function() {
+                    mantenerProfesionHabilitada();
+                }, 100);
+            } else {
+                console.error('Error al cargar Nivel Escolaridad:', resp ? resp.message : 'Respuesta inválida');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX en cargarNivelEscolaridad:', error);
+            console.error('Respuesta servidor:', xhr.responseText);
+        }
+    });
+}
+
+// Función para mantener el campo de profesión siempre habilitado
+function mantenerProfesionHabilitada() {
+    var $campoProfesion = $('#txtProfesion');
+    
+    // Siempre mantener el campo habilitado
+    $campoProfesion.prop('disabled', false);
+    $campoProfesion.removeClass('disabled');
+    $campoProfesion.attr('placeholder', 'Profesión...');
+}
+
+// Función para controlar la visibilidad del campo de glucosa
+function toggleGlucosaField() {
+    var $chkAplica = $('#chkGlucosaAplica');
+    var $container = $('#glucosaFieldContainer');
+    var $txtGlucosa = $('#txtGlucosa');
+    
+    if ($chkAplica.is(':checked')) {
+        // Mostrar campo y habilitarlo
+        $container.show();
+        $txtGlucosa.prop('disabled', false);
+    } else {
+        // Ocultar campo, deshabilitarlo y limpiar valor
+        $container.hide();
+        $txtGlucosa.prop('disabled', true);
+        $txtGlucosa.val('');
+    }
+}
+
 function cargarColonias(idMunicipio) {
     $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerColonias', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idMunicipio: idMunicipio }), success: function(r) { var resp = r.d;
         if(resp.success && resp.data) {
@@ -590,6 +878,62 @@ function cargarColonias(idMunicipio) {
             $('#ddlColonia').html(options);
         }
     }});
+}
+
+// Función para mostrar resumen ultra rápido del expediente clínico
+function mostrarResumenExpediente(evaluacion) {
+    if (!evaluacion) {
+        return;
+    }
+    
+    // Resumen priorizando antecedentes - datos más importantes primero
+    var resumenHtml = `
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 12px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 20px; margin-right: 10px;"></i>
+                <h6 style="color: #856404; margin: 0; font-weight: bold;">RESUMEN CLÍNICO - ANTECEDENTES IMPORTANTES</h6>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; font-size: 12px;">
+                <!-- ANTECEDENTES - PRIORIDAD MÁXIMA -->
+                <div style="background: white; padding: 10px; border-radius: 4px; border-left: 4px solid #dc3545;">
+                    <strong style="color: #dc3545; font-size: 13px;">🏥 ANTECEDENTES (Datos más importantes):</strong><br>
+                    <div style="margin-top: 5px;">
+                        <strong>Patológicos:</strong> ${evaluacion.AntecedentesPatologicos || 'No registrados'}<br>
+                        <strong>No Patológicos:</strong> ${evaluacion.AntecedentesNoPatologicos || 'No registrados'}<br>
+                        <strong>Quirúrgicos:</strong> ${evaluacion.AntecedentesQuirurgicos || 'No registrados'}<br>
+                        <strong>Hereditarios:</strong> ${evaluacion.AntecedentesHereditarios || 'No registrados'}<br>
+                        <strong>Alergias:</strong> <span style="color: #dc3545; font-weight: bold;">${evaluacion.Alergias || 'No registradas'}</span>
+                    </div>
+                </div>
+                
+                <!-- Signos Vitales - Datos secundarios -->
+                <div style="background: white; padding: 8px; border-radius: 4px;">
+                    <strong style="color: #495057;">📊 Signos Vitales:</strong><br>
+                    • Presión: ${evaluacion.PresionSistolica || '--'}/${evaluacion.PresionDiastolica || '--'} mmHg<br>
+                    • FC: ${evaluacion.FrecuenciaCardiaca || '--'} lpm<br>
+                    • Temp: ${evaluacion.Temperatura || '--'}°C<br>
+                    • IMC: ${evaluacion.Imc || '--'}
+                </div>
+            </div>
+            
+            <!-- Diagnóstico y recomendaciones -->
+            <div style="background: white; padding: 8px; border-radius: 4px; margin-top: 10px; border-left: 4px solid #28a745;">
+                <strong style="color: #28a745;">🩺 Diagnóstico y Seguimiento:</strong><br>
+                <div style="margin-top: 5px;">
+                    <strong>Diagnóstico:</strong> ${evaluacion.Observaciones ? evaluacion.Observaciones.substring(0, 120) + '...' : 'Sin diagnóstico previo'}<br>
+                    <strong>Recomendaciones:</strong> ${evaluacion.Recomendaciones ? evaluacion.Recomendaciones.substring(0, 100) + '...' : 'Sin recomendaciones previas'}
+                </div>
+            </div>
+            
+            <div style="text-align: right; margin-top: 8px; font-size: 11px; color: #6c757d;">
+                <i class="fas fa-calendar"></i> ${evaluacion.FechaEvaluacion || 'Fecha no registrada'}
+            </div>
+        </div>
+    `;
+    
+    // Insertar el resumen después del banner del paciente
+    $('#paperBanner').after(resumenHtml);
 }
 // medical-wizard.js
 // Handles navigation and step validation
@@ -725,9 +1069,6 @@ function validateStep(step) {
         checkReq($('#ddlMunicipio'), 'Seleccione municipio');
         checkReq($('#ddlColonia'), 'Seleccione colonia');
         checkReq($('#ddlEscolaridad'), 'Seleccione escolaridad');
-        if (!$('#txtProfesion').is(':disabled')) {
-            checkReq($('#txtProfesion'), 'Indique profesiÃ³n u oficio');
-        }
         checkReq($('#ddlSexo'), 'Sexo obligatorio');
         checkReq($('#ddlTipoSangre'), 'Seleccione tipo de sangre');
 
@@ -745,8 +1086,8 @@ function validateStep(step) {
 
     if (step === 3) {
         if ($('#chkFuma').is(':checked')) {
-            checkReq($('#txtAnosFuma'), 'Indique aÃ±os');
-            checkReq($('#txtCigarrillos'), 'Indique cigarros/dÃ­a');
+            checkReq($('#txtAnosFuma'), 'Indique a\u00f1os');
+            checkReq($('#txtCigarrillos'), 'Indique cigarros/d\u00eda');
         }
         if ($('#chkDrogas').is(':checked')) {
             checkReq($('#txtTipoDrogas'), 'Especifique tipo de droga');
@@ -758,25 +1099,25 @@ function validateStep(step) {
 
     if (step === 4) {
         var vitals = [
-            { id: '#txtSistolica',       label: 'SistÃ³lica' },
-            { id: '#txtDiastolica',      label: 'DiastÃ³lica' },
+            { id: '#txtSistolica',       label: 'Sist\u00f3lica' },
+            { id: '#txtDiastolica',      label: 'Diast\u00f3lica' },
             { id: '#txtFrecCardiaca',    label: 'FC' },
             { id: '#txtFrecRespiratoria',label: 'FR' },
             { id: '#txtPeso',            label: 'Peso' },
             { id: '#txtEstatura',        label: 'Estatura' },
             { id: '#txtTemperatura',     label: 'Temperatura' },
-            { id: '#txtGlucosa',         label: 'Glucosa' },
-            { id: '#txtOximetria',       label: 'OximetrÃ­a' }
+            { id: '#txtOximetria',       label: 'Oximetr\u00eda' }
         ];
         
         vitals.forEach(function(v) {
             checkReq($(v.id), v.label + ' obligatorio');
         });
+        
+        // Glucosa solo obligatoria si el checkbox "Aplica" est\u00e1 marcado
+        if ($('#chkGlucosaAplica').is(':checked')) {
+            checkReq($('#txtGlucosa'), 'Glucosa obligatorio');
+        }
 
-        // Agudeza Visual
-        checkReq($('#ddlOdSinLentes'), 'Obligatorio');
-        checkReq($('#ddlOiSinLentes'), 'Obligatorio');
-        checkReq($('#ddlAoSinLentes'), 'Obligatorio');
         checkReq($('#ddlUsaLentes'), 'Obligatorio');
     }
 
@@ -901,7 +1242,7 @@ function saveExam() {
         NumInterior: $('#txtNumInt').val(),
 
         Escolaridad: $('#ddlEscolaridad').val(),
-        Profesion: $('#txtProfesion').val(),
+        Profesion: ($('#txtProfesion').val() || '').trim() || 'N/A',
         Alergias: $('#txtAlergias').val(),
         FkTipoSangre: $('#ddlTipoSangre').val(),
         LugarEvaluacion: $('#txtLugarEvaluacion').val(),
@@ -1361,24 +1702,28 @@ function toggleAplicaRow(chk) {
     }
 }
 
+// Función principal para guardar todos los datos del examen de antidoping en la base de datos
 function saveAntidoping() {
+    // Crear objeto FormData para enviar datos y archivos al servidor
     var formData = new FormData();
-    formData.append('PkOrdenMedico', idOrden);
-    formData.append('ConsentimientoFirmado', $('#chkAceptoConsentimiento').is(':checked'));
-    formData.append('Comentarios', $('#txtComentariosAd').val());
+    
+    // Agregar datos básicos del formulario
+    formData.append('PkOrdenMedico', idOrden);  // ID de la orden médica
+    formData.append('ConsentimientoFirmado', $('#chkAceptoConsentimiento').is(':checked'));  // Consentimiento (true/false)
+    formData.append('Comentarios', $('#txtComentariosAd').val());  // Comentarios adicionales
 
-    // Evaluate final verdict based on any positive drug result
+    // Evaluar veredicto final basado en si hay algún resultado positivo
     var hasPositive = false;
     $('.switch-btn.active.pos').length > 0 ? hasPositive = true : hasPositive = false;
     formData.append('VeredictoFinal', hasPositive ? 'POSITIVO' : 'NEGATIVO');
 
-    // Evidence
+    // Manejar archivo de evidencia fotográfica si se seleccionó uno
     var $file = $('#fileEvidencia');
     if ($file.length > 0 && $file[0].files.length > 0) {
-        formData.append('FileEvidencia', $file[0].files[0]);
+        formData.append('FileEvidencia', $file[0].files[0]);  // Adjuntar imagen al formulario
     }
 
-    // Data Drugs
+    // Mapeo de códigos de drogas para procesar resultados
     var drugMappings = [
         { code: 'alc', name: 'Alcohol' },
         { code: 'coc', name: 'Cocaina' },
@@ -1391,30 +1736,38 @@ function saveAntidoping() {
         { code: 'bzd', name: 'Benzodiacepinas' }
     ];
 
+    // Recorrer cada droga para capturar su estado (aplica/no aplica) y resultado (positivo/negativo)
     drugMappings.forEach(function(d) {
-        var $row = $('[data-drug="' + d.code + '"]');
-        var aplica = $row.find('.chk-aplica').is(':checked');
-        var result = $row.find('.res-btns .switch-btn.active').text() === 'Positivo';
-        formData.append('Aplica' + d.name, aplica);
-        formData.append('Resultado' + d.name, result);
+        var $row = $('[data-drug="' + d.code + '"]');  // Encontrar fila de la droga
+        var aplica = $row.find('.chk-aplica').is(':checked');  // ¿Se aplicó la prueba?
+        var result = $row.find('.res-btns .switch-btn.active').text() === 'Positivo';  // ¿Resultado positivo?
+        
+        // Agregar datos de cada droga al formulario
+        formData.append('Aplica' + d.name, aplica);  // Ej: AplicaAlcohol, AplicaCocaina
+        formData.append('Resultado' + d.name, result);  // Ej: ResultadoAlcohol, ResultadoCocaina
     });
 
+    // Enviar todos los datos al servidor via AJAX (sin recargar página)
     $.ajax({
-        url: 'EvaluacionMedica.aspx?action=GuardarAntidoping',
-        type: 'POST',
-        data: formData,
-        contentType: false,
-        processData: false,
+        url: 'EvaluacionMedica.aspx?action=GuardarAntidoping',  // URL del método del servidor
+        type: 'POST',  // Método HTTP POST
+        data: formData,  // Datos del formulario (incluye archivos)
+        contentType: false,  // Dejar que jQuery establezca el content-type correcto para FormData
+        processData: false,  // No procesar los datos (jQuery no debe convertir FormData a string)
         success: function(resp) {
+            // Si el servidor respondió con éxito
             if (resp.success) {
                 showSuccess("Examen Antidoping registrado con \u00e9xito.", function() {
+                    // Redirigir al dashboard de recursos humanos después de guardar
                     window.location.href = '../RecursosHumanos/DashboardRecursosHumanosSM.aspx';
                 });
             } else {
+                // Si hubo error en el servidor, mostrar mensaje de error
                 showError("No se pudo completar el guardado: " + resp.message);
             }
         },
         error: function(xhr, status, error) {
+            // Si hubo error de comunicación con el servidor
             showError("Error de conexi\u00f3n al guardar el antidoping: " + error);
         }
     });
@@ -1490,11 +1843,17 @@ function cargarHistorialEmpleado(idOrden) {
                 return;
             }
 
-            $('#badgeTotalEvals').text(resp.historial.length + ' evaluación(es) previa(s)');
-
-            var html = '';
-            resp.historial.forEach(function(ev, idx) {
+            // Limitar a solo las 2 evaluaciones más recientes para mejor visualización
+            var historialLimitado = resp.historial.slice(0, 2);
+            var totalRegistros = resp.historial.length;
+            var html = '';            
+            historialLimitado.forEach(function(ev, idx) {
                 var aptClass = (ev.AptitudDesc || '').replace(/\s+/g, '-').toUpperCase();
+                var antecedentesPositivos = Array.isArray(ev.AntecedentesPositivos)
+                    ? ev.AntecedentesPositivos.filter(function(a) { return !!a; })
+                    : [];
+                var totalAntecedentes = antecedentesPositivos.length;
+                var tieneRiesgoPrevio = totalAntecedentes > 0;
 
                 var vitals = '';
                 vitals += vital('Peso', ev.PesoKg, 'kg');
@@ -1505,16 +1864,32 @@ function cargarHistorialEmpleado(idOrden) {
                 if (ev.Glucosa)   vitals += vital('Glucosa', ev.Glucosa, 'mg/dL');
                 if (ev.Oximetria) vitals += vital('Oximetría', ev.Oximetria, '%');
 
-                var tags = '';
-                if (ev.AntecedentesPositivos && ev.AntecedentesPositivos.length > 0) {
-                    tags = '<div class="expr-section-title"><i class="fas fa-exclamation-circle" style="color:#e74c3c;"></i> Antecedentes Positivos</div><div class="expr-tags">';
-                    ev.AntecedentesPositivos.forEach(function(a) { tags += '<span class="expr-tag">' + a + '</span>'; });
+                var alertaAntecedentes = '<div class="expr-alert ' + (tieneRiesgoPrevio ? 'expr-alert-risk' : 'expr-alert-ok') + '">' +
+                    '<i class="fas ' + (tieneRiesgoPrevio ? 'fa-exclamation-triangle' : 'fa-check-circle') + '"></i>' +
+                    '<span>' +
+                        (tieneRiesgoPrevio
+                            ? ('Se detectaron <strong>' + totalAntecedentes + ' antecedente(s) positivo(s)</strong> en esta evaluación previa.')
+                            : 'No se registraron antecedentes positivos en esta evaluación previa.') +
+                    '</span>' +
+                '</div>';
+
+                var tags = '<div class="expr-section-title"><i class="fas fa-notes-medical" style="color:#e74c3c;"></i> Antecedentes clínicos previos</div>';
+                if (tieneRiesgoPrevio) {
+                    var limite = 6;
+                    var visibles = antecedentesPositivos.slice(0, limite);
+                    tags += '<div class="expr-tags">';
+                    visibles.forEach(function(a) { tags += '<span class="expr-tag">' + escapeHtml(a) + '</span>'; });
+                    if (totalAntecedentes > limite) {
+                        tags += '<span class="expr-tag expr-tag-more">+' + (totalAntecedentes - limite) + ' más</span>';
+                    }
                     tags += '</div>';
+                } else {
+                    tags += '<div class="expr-no-risk">Sin antecedentes positivos reportados.</div>';
                 }
 
                 var diag = ev.Observaciones
-                    ? '<div class="expr-section-title"><i class="fas fa-clipboard-check"></i> Diagnóstico / Observaciones</div><div class="expr-diagnostico">' + ev.Observaciones + '</div>'
-                    : '';
+                    ? '<div class="expr-section-title"><i class="fas fa-clipboard-check"></i> Hallazgos previos del médico</div><div class="expr-diagnostico">' + escapeHtml(truncateText(ev.Observaciones, 260)) + '</div>'
+                    : '<div class="expr-muted-note">Sin observaciones clínicas previas capturadas.</div>';
 
                 html += '<div class="expr-card">' +
                     '<div class="expr-card-header" onclick="toggleExpedienteCard(this)">' +
@@ -1524,6 +1899,7 @@ function cargarHistorialEmpleado(idOrden) {
                         '<i class="fas fa-chevron-down expr-chevron"></i>' +
                     '</div>' +
                     '<div class="expr-body">' +
+                        alertaAntecedentes +
                         '<div class="expr-vitals-grid">' + vitals + '</div>' +
                         tags + diag +
                     '</div>' +
@@ -1547,6 +1923,22 @@ function vital(label, val, unit) {
     return '<div class="expr-vital"><label>' + label + '</label><span>' + val + ' <span class="expr-unit">' + (unit || '') + '</span></span></div>';
 }
 
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + '...';
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function toggleExpedienteCard(header) {
     var $hdr = $(header);
     var $body = $hdr.next('.expr-body');
@@ -1559,5 +1951,29 @@ function toggleExpedienteCard(header) {
         $hdr.addClass('open');
         $hdr.find('.expr-chevron').addClass('open');
         $body.slideDown(220);
+    }
+}
+
+// Función para abrir e imprimir el formato de examen de antidoping
+function imprimirAntidoping() {
+    // Validar que exista un ID de orden válido
+    if (!idOrden || idOrden <= 0) {
+        showError("No se puede imprimir: ID de orden no válido.");
+        return;  // Detener ejecución si no hay ID válido
+    }
+    
+    // Construir URL para abrir el formato de impresión con auto-impresión activada
+    var url = 'AntidopingPrint.aspx?id=' + idOrden + '&autoPrint=true';
+    
+    // Abrir nueva ventana con el formato de impresión (800x600px, con scroll y redimensionable)
+    var ventana = window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    
+    // Verificar si el navegador permitió abrir la ventana emergente
+    if (!ventana) {
+        // Mostrar error si el bloqueador de ventanas emergentes está activo
+        showError("Por favor, permita ventanas emergentes para imprimir el formato.");
+    } else {
+        // Mostrar mensaje informativo mientras se carga el formato
+        showToast("Abriendo formato de impresión...", "info");
     }
 }

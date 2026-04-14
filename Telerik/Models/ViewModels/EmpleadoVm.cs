@@ -43,6 +43,7 @@ namespace Telerik.Models.ViewModels
         // Otros
         public string EstadoCivil { get; set; }
         public string TipoSangre { get; set; }
+        public int? FkTipoSangre { get; set; }
         public bool TieneHijos { get; set; }
         public string NumeroHijosDesc { get; set; }
         public string EscolaridadDesc { get; set; }
