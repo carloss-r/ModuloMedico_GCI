@@ -412,6 +412,7 @@ namespace Telerik.ServicioMedico
 </html>";
         }
 
+
         private static OrdenServicioMedico CrearOrdenEmpleadoAutomatica(Empleado emp, ApplicationDbContext db, string puestoDesc, string empresaNombre)
         {
             try
@@ -437,6 +438,102 @@ namespace Telerik.ServicioMedico
             {
                 return null;
             }
+        }
+        [WebMethod]
+        public static object ObtenerAntidopingHtml(int pkOrdenMedico)
+        {
+            try
+            {
+                if (pkOrdenMedico <= 0)
+                {
+                    return ErrorResponse("Identificador de orden inválido.");
+                }
+
+                var orden = OrdenServicioMedicoDal.ObtenerPorId(pkOrdenMedico);
+                if (orden == null)
+                {
+                    return ErrorResponse("Orden no encontrada.");
+                }
+
+                string html = GenerarHtmlAntidoping(orden);
+                return new { success = true, html = html };
+            }
+            catch (Exception ex)
+            {
+                return ErrorResponse("Error al generar el formato de antidoping: " + ex.Message);
+            }
+        }
+
+        private static string GenerarHtmlAntidoping(OrdenServicioMedicoVm orden)
+        {
+            // 1. Ruta exacta de tu archivo Antidoping.html
+            string templatePath = HttpContext.Current.Server.MapPath("~/ServicioMedico/Formatos/Antidoping.html");
+            if (!System.IO.File.Exists(templatePath))
+                throw new Exception("Template de antidoping no encontrado en: " + templatePath);
+
+            // 2. Leer el archivo HTML
+            string html = System.IO.File.ReadAllText(templatePath, System.Text.Encoding.UTF8);
+
+            // 3. Obtener resultados desde la base de datos
+            var anti = AntidopingDal.ObtenerPorOrden(orden.PkOrdenMedico);
+
+            // Helpers para limpiar texto y marcar casillas
+            string H(string s) => HttpUtility.HtmlEncode(s ?? "");
+            bool ResultNeg(bool aplica, bool positivo) => aplica && !positivo;
+            bool ResultPos(bool aplica, bool positivo) => aplica && positivo;
+
+            // Lógica de Veredicto
+            string veredictoHtml = "";
+            if (anti != null && !string.IsNullOrWhiteSpace(anti.VeredictoFinal))
+            {
+                bool esNoApto = anti.VeredictoFinal.ToUpper().Contains("NO APTO");
+                veredictoHtml = esNoApto
+                    ? "<span style='border:2px solid #000; padding:4px 12px; font-size:11px; font-weight:bold;'>NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES</span>"
+                    : "<span style='border:2px solid #000; padding:4px 12px; font-size:11px; font-weight:bold;'>APTO PARA REALIZAR ACTIVIDADES OPERACIONALES</span>";
+            }
+
+            // Foto de evidencia
+            string fotoHtml = "";
+            if (anti != null && !string.IsNullOrWhiteSpace(anti.UrlFotoEvidencia))
+                fotoHtml = "<img src='" + anti.UrlFotoEvidencia + "' style='max-width:100%;max-height:100%;object-fit:contain;' />";
+
+            string empresa = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : (orden.EmpresaNombre ?? orden.ProyectoDesc);
+
+            // 4. Diccionario de variables a reemplazar en tu HTML (las que están entre {{ }})
+            var rep = new Dictionary<string, string>
+            {
+                { "{{FECHA}}",        DateTime.Now.ToString("dd/MM/yyyy") },
+                { "{{PROYECTO}}",     H(orden.ProyectoDesc ?? "") },
+                { "{{EMPRESA}}",      H(empresa ?? "") },
+                { "{{NOMBRE}}",       H(orden.NombrePersona ?? "") },
+                { "{{NUM_TRABAJADOR}}", H(orden.FkEmpleado?.ToString() ?? "") },
+                { "{{FOTO_HTML}}",    fotoHtml },
+                { "{{VEREDICTO_HTML}}", veredictoHtml },
+                { "{{COMENTARIOS}}",  H(anti?.Comentarios) },
+                { "{{MEDICO}}",       "LIC. NATALY MARTINEZ PUGA" },
+                
+                // Sustancias (Marca con X si es Negativo o Positivo)
+                { "{{OPI_NEG}}", anti != null && ResultNeg(anti.AplicaOpiaceos, anti.ResultadoOpiaceos) ? "X" : "" },
+                { "{{OPI_POS}}", anti != null && ResultPos(anti.AplicaOpiaceos, anti.ResultadoOpiaceos) ? "X" : "" },
+                { "{{COC_NEG}}", anti != null && ResultNeg(anti.AplicaCocaina, anti.ResultadoCocaina) ? "X" : "" },
+                { "{{COC_POS}}", anti != null && ResultPos(anti.AplicaCocaina, anti.ResultadoCocaina) ? "X" : "" },
+                { "{{BZO_NEG}}", anti != null && ResultNeg(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas) ? "X" : "" },
+                { "{{BZO_POS}}", anti != null && ResultPos(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas) ? "X" : "" },
+                { "{{AMP_NEG}}", anti != null && ResultNeg(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas) ? "X" : "" },
+                { "{{AMP_POS}}", anti != null && ResultPos(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas) ? "X" : "" },
+                { "{{MET_NEG}}", anti != null && ResultNeg(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas) ? "X" : "" },
+                { "{{MET_POS}}", anti != null && ResultPos(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas) ? "X" : "" },
+                { "{{THC_NEG}}", anti != null && ResultNeg(anti.AplicaTHC, anti.ResultadoTHC) ? "X" : "" },
+                { "{{THC_POS}}", anti != null && ResultPos(anti.AplicaTHC, anti.ResultadoTHC) ? "X" : "" },
+                { "{{ALC_NEG}}", anti != null && ResultNeg(anti.AplicaAlcohol, anti.ResultadoAlcohol) ? "X" : "" },
+                { "{{ALC_POS}}", anti != null && ResultPos(anti.AplicaAlcohol, anti.ResultadoAlcohol) ? "X" : "" },
+            };
+
+            // 5. Reemplazar los tags en el HTML
+            foreach (var kv in rep)
+                html = html.Replace(kv.Key, kv.Value);
+
+            return html;
         }
     }
 }
