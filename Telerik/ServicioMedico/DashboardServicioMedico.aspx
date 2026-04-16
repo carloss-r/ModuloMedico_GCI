@@ -220,7 +220,7 @@
     </form>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="./js/DashboardServicioMedicoInbox.js"></script>
+    <script src="js/DashboardServicioMedicoInbox.js?v=1"></script>
     <script>
         function cerrarMsg() { $('#msgOverlay').removeClass('active'); }
         function showMsg(title, body, icon) {

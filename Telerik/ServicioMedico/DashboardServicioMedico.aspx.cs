@@ -535,5 +535,61 @@ namespace Telerik.ServicioMedico
 
             return html;
         }
+        [WebMethod]
+        public static object ObtenerDatosAntidoping(int id)
+        {
+            try
+            {
+                if (id <= 0) return ErrorResponse("ID inválido.");
+
+                var orden = OrdenServicioMedicoDal.ObtenerPorId(id);
+                if (orden == null) return ErrorResponse("Orden no encontrada.");
+
+                var anti = AntidopingDal.ObtenerPorOrden(id);
+                var ms = new Telerik.Services.MedicalService();
+                var paciente = ms.ObtenerInfoPaciente(orden);
+
+                string nombre = !string.IsNullOrEmpty(orden.NombrePersona) ? orden.NombrePersona : paciente?.NombreCompleto;
+                string empresa = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : (!string.IsNullOrEmpty(orden.EmpresaNombre) ? orden.EmpresaNombre : paciente?.Empresa);
+                string proyecto = !string.IsNullOrEmpty(orden.ProyectoDesc) ? orden.ProyectoDesc : paciente?.Proyecto;
+                string numTrabajador = orden.FkEmpleado?.ToString() ?? paciente?.NumeroEmpleado ?? "-";
+
+                return new
+                {
+                    success = true,
+                    data = new
+                    {
+                        Fecha = DateTime.Now.ToString("dd/MM/yyyy"),
+                        Proyecto = proyecto,
+                        Empresa = empresa,
+                        Nombre = nombre,
+                        NumTrabajador = numTrabajador,
+                        Comentarios = anti?.Comentarios,
+                        VeredictoFinal = anti?.VeredictoFinal,
+                        UrlFoto = anti?.UrlFotoEvidencia,
+                        
+                        // Resultados
+                        CocNeg = (anti != null && anti.AplicaCocaina && !anti.ResultadoCocaina),
+                        CocPos = (anti != null && anti.AplicaCocaina && anti.ResultadoCocaina),
+                        ThcNeg = (anti != null && anti.AplicaTHC && !anti.ResultadoTHC),
+                        ThcPos = (anti != null && anti.AplicaTHC && anti.ResultadoTHC),
+                        AmpNeg = (anti != null && anti.AplicaAnfetaminas && !anti.ResultadoAnfetaminas),
+                        AmpPos = (anti != null && anti.AplicaAnfetaminas && anti.ResultadoAnfetaminas),
+                        MetNeg = (anti != null && anti.AplicaMetanfetaminas && !anti.ResultadoMetanfetaminas),
+                        MetPos = (anti != null && anti.AplicaMetanfetaminas && anti.ResultadoMetanfetaminas),
+                        OpiNeg = (anti != null && anti.AplicaOpiaceos && !anti.ResultadoOpiaceos),
+                        OpiPos = (anti != null && anti.AplicaOpiaceos && anti.ResultadoOpiaceos),
+                        BzoNeg = (anti != null && anti.AplicaBenzodiacepinas && !anti.ResultadoBenzodiacepinas),
+                        BzoPos = (anti != null && anti.AplicaBenzodiacepinas && anti.ResultadoBenzodiacepinas),
+                        AlcNeg = (anti != null && anti.AplicaAlcohol && !anti.ResultadoAlcohol),
+                        AlcPos = (anti != null && anti.AplicaAlcohol && anti.ResultadoAlcohol)
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return ErrorResponse("Error: " + ex.Message);
+            }
+        }
     }
 }

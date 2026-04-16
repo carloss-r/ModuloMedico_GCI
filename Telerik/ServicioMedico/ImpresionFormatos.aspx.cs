@@ -447,6 +447,7 @@ namespace Telerik.ServicioMedico
         }
 
         // ── ANTIDOPING — lee el HTML y sustituye tokens ──────────────────────
+        // ── ANTIDOPING — lee el HTML y sustituye tokens ──────────────────────
         private void GenerarAntidopingDesdeHtml()
         {
             string templatePath = Server.MapPath("~/ServicioMedico/Formatos/Antidoping.html");
@@ -455,15 +456,20 @@ namespace Telerik.ServicioMedico
 
             string html = File.ReadAllText(templatePath, Encoding.UTF8);
 
-            string H(string s)  => HttpUtility.HtmlEncode(s ?? "");
-            string Chk(bool neg, bool pos, string tipo) =>
-                tipo == "N" ? (neg && !pos ? "X" : "") : (pos ? "X" : "");
+            string H(string s) => HttpUtility.HtmlEncode(s ?? "");
 
             var anti = AntidopingDal.ObtenerPorOrden(IdOrden);
+            // Agregamos la orden para sacar los datos correctos si es un Candidato
+            var orden = OrdenServicioMedicoDal.ObtenerPorId(IdOrden);
 
-            // Helpers de resultado: si no hay datos guardados se muestra vacío (niño)
+            // Helpers de resultado
             bool ResultNeg(bool aplica, bool positivo) => aplica && !positivo;
             bool ResultPos(bool aplica, bool positivo) => aplica && positivo;
+
+            // Función para dibujar una casilla de verificación bonita en el HTML
+            string CheckBoxHtml(bool marcado) => marcado
+                ? "<span style='font-size:16px; font-weight:bold;'>&#9745;</span>"
+                : "<span style='font-size:16px; color:#aaa;'>&#9744;</span>";
 
             // Veredicto
             string veredictoHtml = "";
@@ -480,38 +486,40 @@ namespace Telerik.ServicioMedico
             if (anti != null && !string.IsNullOrWhiteSpace(anti.UrlFotoEvidencia))
                 fotoHtml = "<img src='" + anti.UrlFotoEvidencia + "' style='max-width:100%;max-height:100%;object-fit:contain;' />";
 
+            // ¡AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR!
+            // Buscamos primero en la 'orden' y si no, en 'Paciente', así nunca sale en blanco.
+            string nombre = !string.IsNullOrEmpty(orden?.NombrePersona) ? orden.NombrePersona : Paciente?.NombreCompleto;
+            string empresa = !string.IsNullOrEmpty(orden?.EmpresaCandidato) ? orden.EmpresaCandidato : (!string.IsNullOrEmpty(orden?.EmpresaNombre) ? orden.EmpresaNombre : Paciente?.Empresa);
+            string proyecto = !string.IsNullOrEmpty(orden?.ProyectoDesc) ? orden.ProyectoDesc : Paciente?.Proyecto;
+            string numTrabajador = orden?.FkEmpleado?.ToString() ?? Paciente?.NumeroEmpleado ?? "-";
+
             var rep = new Dictionary<string, string>
             {
                 { "{{FECHA}}",        DateTime.Now.ToString("dd/MM/yyyy") },
-                { "{{PROYECTO}}",     H(Paciente?.Proyecto ?? "") },
-                { "{{EMPRESA}}",      H(!string.IsNullOrEmpty(Paciente?.Empresa) ? Paciente.Empresa : (Paciente?.Proyecto ?? "")) },
-                { "{{NOMBRE}}",       H(Paciente?.NombreCompleto ?? "") },
-                { "{{NUM_TRABAJADOR}}",H(Paciente?.NumeroEmpleado ?? "") },
+                { "{{PROYECTO}}",     H(proyecto ?? "") },
+                { "{{EMPRESA}}",      H(empresa ?? "") },
+                { "{{NOMBRE}}",       H(nombre ?? "") },
+                { "{{NUM_TRABAJADOR}}",H(numTrabajador) },
                 { "{{FOTO_HTML}}",    fotoHtml },
                 { "{{VEREDICTO_HTML}}",veredictoHtml },
                 { "{{COMENTARIOS}}", H(anti?.Comentarios) },
                 { "{{MEDICO}}",       "LIC. NATALY MARTINEZ PUGA" },
-                // Opiáceos
-                { "{{OPI_NEG}}", anti != null && ResultNeg(anti.AplicaOpiaceos, anti.ResultadoOpiaceos) ? "X" : "" },
-                { "{{OPI_POS}}", anti != null && ResultPos(anti.AplicaOpiaceos, anti.ResultadoOpiaceos) ? "X" : "" },
-                // Cocaína
-                { "{{COC_NEG}}", anti != null && ResultNeg(anti.AplicaCocaina, anti.ResultadoCocaina) ? "X" : "" },
-                { "{{COC_POS}}", anti != null && ResultPos(anti.AplicaCocaina, anti.ResultadoCocaina) ? "X" : "" },
-                // Benzodiacepinas
-                { "{{BZO_NEG}}", anti != null && ResultNeg(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas) ? "X" : "" },
-                { "{{BZO_POS}}", anti != null && ResultPos(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas) ? "X" : "" },
-                // Anfetaminas
-                { "{{AMP_NEG}}", anti != null && ResultNeg(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas) ? "X" : "" },
-                { "{{AMP_POS}}", anti != null && ResultPos(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas) ? "X" : "" },
-                // Metanfetaminas
-                { "{{MET_NEG}}", anti != null && ResultNeg(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas) ? "X" : "" },
-                { "{{MET_POS}}", anti != null && ResultPos(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas) ? "X" : "" },
-                // THC
-                { "{{THC_NEG}}", anti != null && ResultNeg(anti.AplicaTHC, anti.ResultadoTHC) ? "X" : "" },
-                { "{{THC_POS}}", anti != null && ResultPos(anti.AplicaTHC, anti.ResultadoTHC) ? "X" : "" },
-                // Alcohol
-                { "{{ALC_NEG}}", anti != null && ResultNeg(anti.AplicaAlcohol, anti.ResultadoAlcohol) ? "X" : "" },
-                { "{{ALC_POS}}", anti != null && ResultPos(anti.AplicaAlcohol, anti.ResultadoAlcohol) ? "X" : "" },
+                
+                // Sustancias mapeadas con la casilla de verificación
+                { "{{OPI_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaOpiaceos, anti.ResultadoOpiaceos)) : CheckBoxHtml(false) },
+                { "{{OPI_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaOpiaceos, anti.ResultadoOpiaceos)) : CheckBoxHtml(false) },
+                { "{{COC_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaCocaina, anti.ResultadoCocaina)) : CheckBoxHtml(false) },
+                { "{{COC_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaCocaina, anti.ResultadoCocaina)) : CheckBoxHtml(false) },
+                { "{{BZO_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas)) : CheckBoxHtml(false) },
+                { "{{BZO_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas)) : CheckBoxHtml(false) },
+                { "{{AMP_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas)) : CheckBoxHtml(false) },
+                { "{{AMP_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas)) : CheckBoxHtml(false) },
+                { "{{MET_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas)) : CheckBoxHtml(false) },
+                { "{{MET_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas)) : CheckBoxHtml(false) },
+                { "{{THC_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaTHC, anti.ResultadoTHC)) : CheckBoxHtml(false) },
+                { "{{THC_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaTHC, anti.ResultadoTHC)) : CheckBoxHtml(false) },
+                { "{{ALC_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaAlcohol, anti.ResultadoAlcohol)) : CheckBoxHtml(false) },
+                { "{{ALC_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaAlcohol, anti.ResultadoAlcohol)) : CheckBoxHtml(false) },
             };
 
             foreach (var kv in rep)

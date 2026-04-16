@@ -500,6 +500,6 @@ $(document).on('keypress', '#txtNumEmpleado', function(e) {
 
 // Abre el Antidoping en modal con iframe para vista previa e impresión
 function verAntidoping(pkOrdenMedico) {
-    abrirVistaPrevia('ImpresionFormatos.aspx?id=' + pkOrdenMedico + '&tipo=ANTIDOPING', 'Antidoping');
+    abrirVistaPrevia('Formatos/Antidoping.html?id=' + pkOrdenMedico, 'Antidoping');
 }
 

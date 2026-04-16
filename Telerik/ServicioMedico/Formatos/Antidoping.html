@@ -2,55 +2,245 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Examen Toxicológico</title>
+    <title>Autorización de Prueba Toxicológica</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 0; padding: 20px; }
-        .print-content { max-width: 800px; margin: 0 auto; background: #fff; }
-        .header-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; background: #eee; padding: 10px; border: 2px solid #333; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 2px solid #333; }
-        td, th { border: 1px solid #333; padding: 6px 10px; font-size: 12px; }
-        .label-cell { background-color: #f9f9f9; font-weight: bold; width: 20%; }
-        .center { text-align: center; }
-        .sustancias-table th { background: #444; color: #fff; font-size: 11px; text-align: center; }
-        .foto-container { width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .firmas { margin-top: 40px; text-align: center; }
-        .linea-firma { border-top: 1px solid #000; width: 60%; margin: 0 auto; padding-top: 5px; font-weight: bold; }
+        @page { size: portrait; margin: 1cm; }
+        body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 0; line-height: 1.3; font-size: 11px; }
+        .print-content { width: 100%; max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; box-sizing: border-box; }
+        
+        /* Header Table */
+        .header-table { width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 20px; }
+        .header-table td { border: 1px solid #000; padding: 5px; vertical-align: middle; text-align: center; }
+        .logo-td { width: 151px; }
+        .logo-td img { max-width: 140px; max-height: 60px; object-fit: contain; }
+        .title-td { font-weight: bold; font-size: 11px; }
+        
+        /* Main Title Bar */
+        .banner-title { background-color: #e0e0e0; border: 1px solid #000; text-align: center; padding: 5px; font-weight: bold; margin-bottom: 20px; font-size: 12px; }
+        
+        /* Data section */
+        .info-row { margin-bottom: 8px; font-weight: bold; display: flex; align-items: flex-end; }
+        .info-label { width: 80px; }
+        .info-value { border-bottom: 1px solid #000; flex-grow: 1; padding-bottom: 2px; height: 16px; min-width: 150px; max-width: 300px; font-weight: normal; margin-left: 10px; }
+
+        /* Consent Paragraphs */
+        .consent-text { text-align: justify; margin: 25px 0; font-size: 11px; line-height: 1.5; }
+        .consent-text span.underline { border-bottom: 1px solid #000; display: inline-block; min-width: 400px; padding: 0 5px; }
+
+        /* Employee Data */
+        .emp-data { margin-top: 30px; }
+        .emp-data-row { margin-bottom: 25px; font-weight: bold; display: flex; align-items: flex-end; }
+        .emp-data-label { width: 180px; }
+        .emp-data-value { border-bottom: 1px solid #000; flex-grow: 1; padding-bottom: 2px; font-weight: normal; margin-left: 5px; }
+
+        /* Results and Evidence Grid */
+        .results-evidence-grid { display: flex; gap: 30px; margin-top: 25px; align-items: flex-start; }
+        
+        /* Results Table */
+        .results-table { width: 350px; border-collapse: collapse; border: 2px solid #000; }
+        .results-table th { background: #fff; border: 1px solid #000; padding: 4px; text-align: left; font-size: 11px; }
+        .results-table td { border: 1px solid #000; padding: 4px; font-size: 10px; height: 18px; }
+        .substance-col { width: 200px; padding-left: 10px !important; }
+        .mark-col { width: 150px; text-align: center; }
+
+        /* Evidence Box */
+        .evidence-container { border: 4px solid #000; display: flex; height: 320px; width: 250px; flex-shrink: 0; }
+        .evidence-label { width: 40px; background: #e0e0e0; border-right: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; text-align: center; font-size: 13px; }
+        .evidence-label-text { transform: rotate(-90deg); white-space: nowrap; width: 0; }
+        .evidence-photo { flex-grow: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .evidence-photo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        /* Verdict Status */
+        .veredicto-status { margin-top: 30px; font-weight: bold; font-size: 13px; font-family: sans-serif; }
+
+        /* Signature Footer */
+        .footer-signature { margin-top: 80px; text-align: center; position: relative; }
+        .footer-line { border-top: 2px solid #000; width: 400px; margin: 0 auto; padding-top: 5px; }
+        .footer-label { font-weight: bold; font-size: 11px; display: block; margin-top: 3px; }
+
+        @media print {
+            .print-content { padding: 0; }
+            button { display: none; }
+        }
     </style>
 </head>
 <body>
     <div class="print-content">
-        <div class="header-title">RESULTADOS DE EXAMEN TOXICOLÓGICO (ANTIDOPING)</div>
-
-        <table>
+        <!-- HEADER -->
+        <table class="header-table">
             <tr>
-                <td class="label-cell">FECHA:</td>
-                <td>{{FECHA}}</td>
-                <td class="label-cell">PROYECTO:</td>
-                <td>{{PROYECTO}}</td>
+                <td class="logo-td" rowspan="2">
+                    <img src="../../Content/Images/Logo_GCI.png" alt="GCI Logo">
+                </td>
+                <td class="title-td">REGLAMENTO DE SEGURIDAD, SALUD Y MEDIO AMBIENTE</td>
+                <td class="logo-td" rowspan="2">
+                    <img src="../../Content/Images/Logo_HSE.png" alt="HSE Logo">
+                </td>
             </tr>
             <tr>
-                <td class="label-cell">EMPRESA:</td>
-                <td>{{EMPRESA}}</td>
-                <td class="label-cell">NO. TRABAJADOR:</td>
-                <td>{{NUM_TRABAJADOR}}</td>
-            </tr>
-            <tr>
-                <td class="label-cell">NOMBRE:</td>
-                <td colspan="3" style="text-transform: uppercase; font-weight: bold;">{{NOMBRE}}</td>
+                <td class="title-td">GRUPO CONSTRUCTOR INDUSTRIAL OIL & GAS</td>
             </tr>
         </table>
 
-        <table class="sustancias-table">
-            <tr>
-                <th>SUSTANCIA EVALUADA</th>
-                <th>NEGATIVO</th>
-                <th>POSITIVO</th>
-            </tr>
-            <tr><td>Cocaína (COC)</td><td class="center">{{COC_NEG}}</td><td class="center">{{COC_POS}}</td></tr>
-            <tr><td>Marihuana (THC)</td><td class="center">{{THC_NEG}}</td><td class="center">{{THC_POS}}</td></tr>
-            <tr><td>Anfetaminas (AMP)</td><td class="center">{{AMP_NEG}}</td><td class="center">{{AMP_POS}}</td></tr>
-            <tr><td>Metanfetaminas (MET)</td><td class="center">{{MET_NEG}}</td><td class="center">{{MET_POS}}</td></tr>
-            <tr><td>Opiáceos (OPI)</td><td class="center">{{OPI_NEG}}</td><td class="center">{{OPI_POS}}</td></tr>
-            <tr><td>Benzodiacepinas (BZO)</td><td class="center">{{BZO_NEG}}</td><td class="center">{{BZO_POS}}</td></tr>
-            <tr><td>Alcohol</td><td class="center">{{ALC_NEG}}</td><td class="center">{{ALC_POS}}</td></tr>
-        </table>
+        <!-- TITLE -->
+        <div class="banner-title">AUTORIZACION DE PRUEBA DE DETECCION DEL CONSUMO DE DROGAS Y ALCOHOL</div>
+
+        <!-- INITIAL INFO -->
+        <div class="info-row">
+            <div class="info-label">Fecha:</div>
+            <div class="info-value" id="valFecha">{{FECHA}}</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Proyecto:</div>
+            <div class="info-value" id="valProyecto">{{PROYECTO}}</div>
+        </div>
+
+        <!-- CONSENT TEXT -->
+        <div class="consent-text">
+            Considerando el echo, que el consumo de drogas o alcohol es un factor de riesgo para quienes trabajamos en este proyecto y del 
+            interes que tengo por mi seguridad y la de mis compañeros, autorizo a <span class="underline" id="valEmpresaLabel">{{EMPRESA}}</span> para 
+            que se me relicen las pruebas de deteccion de consumo de drogas y alcohol que se estime conveniente, en el momento en que se 
+            tenga a bien efectuar.
+        </div>
+
+        <div class="consent-text">
+            Certifico que el vaso colector esterilizado y/o la tarjeta de deteccion y/o boquilla de alcoholimetro, se encuentran debidamente 
+            sellados y en sus empaques originales, que fueron abiertas, marcados y sellados en mi presencia para la aplicacion de la prueba , 
+            ratfico que la muestra no fue alterada ni manipulada.
+            <br>
+            certifico que he leido y entendido la hoja de consentimiento para la prueba de sustancias controladas y autorizo al personal de 
+            servicio medico para que tomen muestra de orina y aliento .
+        </div>
+
+        <!-- EMPLOYEE DATA -->
+        <div class="emp-data">
+            <div class="emp-data-row">
+                <div class="emp-data-label">Nombre del trabajdor :</div>
+                <div class="emp-data-value" id="valNombre">{{NOMBRE}}</div>
+            </div>
+            <div class="emp-data-row">
+                <div class="emp-data-label">Numero de trabajador :</div>
+                <div class="emp-data-value" id="valNumTrabajador">{{NUM_TRABAJADOR}}</div>
+            </div>
+            <div class="emp-data-row">
+                <div class="emp-data-label">Nombre y firma del trabajador :</div>
+                <div class="emp-data-value"></div>
+            </div>
+        </div>
+
+        <!-- RESULTS AND EVIDENCE GRID -->
+        <div class="results-evidence-grid">
+            <!-- RESULTS TABLE -->
+            <table class="results-table">
+                <tr>
+                    <th colspan="2">Observaciones: Se le realiza prueba de <span style="text-decoration: underline;">ANTIDOPING</span> con los siguientes resultados :</th>
+                </tr>
+                <tr>
+                    <td class="substance-col">OPI (Opiaceos )</td>
+                    <td class="mark-col" id="res_OPI">{{OPI_NEG}}{{OPI_POS}}</td>
+                </tr>
+                <tr>
+                    <td class="substance-col">COC (Cocaina)</td>
+                    <td class="mark-col" id="res_COC">{{COC_NEG}}{{COC_POS}}</td>
+                </tr>
+                <tr>
+                    <td class="substance-col">BZO (Benzodiacepinas)</td>
+                    <td class="mark-col" id="res_BZO">{{BZO_NEG}}{{BZO_POS}}</td>
+                </tr>
+                <tr>
+                    <td class="substance-col">AMP (Anfetaminas )</td>
+                    <td class="mark-col" id="res_AMP">{{AMP_NEG}}{{AMP_POS}}</td>
+                </tr>
+                <tr>
+                    <td class="substance-col">MET (Metanfetaminas )</td>
+                    <td class="mark-col" id="res_MET">{{MET_NEG}}{{MET_POS}}</td>
+                </tr>
+                <tr>
+                    <td class="substance-col">THC (Marihuana)</td>
+                    <td class="mark-col" id="res_THC">{{THC_NEG}}{{THC_POS}}</td>
+                </tr>
+                <tr>
+                    <td class="substance-col">ALCOHOL</td>
+                    <td class="mark-col" id="res_ALC">{{ALC_NEG}}{{ALC_POS}}</td>
+                </tr>
+            </table>
+
+            <!-- EVIDENCE BOX -->
+            <div class="evidence-container">
+                <div class="evidence-label">
+                    <div class="evidence-label-text">EVIDENCIA FOTOGRAFICA</div>
+                </div>
+                <div class="evidence-photo" id="containerFoto">
+                    {{FOTO_HTML}}
+                </div>
+            </div>
+        </div>
+
+        <!-- VEREDICTO -->
+        <div class="veredicto-status" id="valVeredicto">
+            {{VEREDICTO_HTML}}
+        </div>
+
+        <!-- FOOTER SIGNATURE -->
+        <div class="footer-signature">
+            <div style="font-weight: bold; margin-bottom: 2px;" id="valMedico">{{MEDICO}}</div>
+            <div class="footer-line"></div>
+            <span class="footer-label">Nombre y Firma de quien toma la muestra</span>
+        </div>
+    </div>
+
+    <!-- Mantengo el script para importación dinámica de datos -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (id) {
+                cargarDatos(id);
+            }
+        });
+
+        function cargarDatos(id) {
+            $.ajax({
+                url: '../DashboardServicioMedico.aspx/ObtenerDatosAntidoping',
+                type: 'POST',
+                data: JSON.stringify({ id: parseInt(id) }),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.d && response.d.success) {
+                        renderData(response.d.data);
+                    }
+                }
+            });
+        }
+
+        function renderData(data) {
+            $('#valFecha').text(data.Fecha);
+            $('#valProyecto').text(data.Proyecto);
+            $('#valEmpresaLabel').text(data.Empresa);
+            $('#valNombre').text(data.Nombre);
+            $('#valNumTrabajador').text(data.NumTrabajador);
+            $('#valMedico').text("LIC. NATALY MARTINEZ PUGA");
+            
+            const mark = "X";
+            $('#res_OPI').text(data.OpiPos ? 'POSITIVO' : 'NEGATIVO');
+            $('#res_COC').text(data.CocPos ? 'POSITIVO' : 'NEGATIVO');
+            $('#res_BZO').text(data.BzoPos ? 'POSITIVO' : 'NEGATIVO');
+            $('#res_AMP').text(data.AmpPos ? 'POSITIVO' : 'NEGATIVO');
+            $('#res_MET').text(data.MetPos ? 'POSITIVO' : 'NEGATIVO');
+            $('#res_THC').text(data.ThcPos ? 'POSITIVO' : 'NEGATIVO');
+            $('#res_ALC').text(data.AlcPos ? 'POSITIVO' : 'NEGATIVO');
+
+            if (data.VeredictoFinal) {
+                const esNoApto = data.VeredictoFinal.toUpperCase().includes("NO APTO");
+                $('#valVeredicto').text(esNoApto ? "NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES" : "APTO PARA REALIZAR ACTIVIDADES OPERACIONALES");
+            }
+
+            if (data.UrlFoto) {
+                $('#containerFoto').html('<img src="' + data.UrlFoto + '" />');
+            }
+        }
+    </script>
+</body>
+</html>
