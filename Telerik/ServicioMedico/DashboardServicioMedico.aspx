@@ -9,6 +9,9 @@
     <!-- Estilos Independientes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../RecursosHumanos/styles/DashboardRecursosHumanosSM.css" />
     <link rel="stylesheet" href="/ServicioMedico/styles/DashboardServicioMedico.css" />
 </head>
@@ -72,7 +75,6 @@
                                 <tr>
                                     <th>Folio</th>
                                     <th>Fecha</th>
-                                    <th>Modalidad</th>
                                     <th>Candidato / Empleado</th>
                                     <th>Empresa</th>
                                     <th>Proyecto</th>
@@ -83,7 +85,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tbodySolicitudes">
-                                <tr><td colspan="10" class="no-data">Cargando bandeja...</td></tr>
+                                <tr><td colspan="9" class="no-data">Cargando bandeja...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -143,7 +145,9 @@
                     </div>
                     <div class="modal-actions">
                         <a href="#" id="btnIrEvaluar" class="btn-gci btn-gci-primary"><i class="fas fa-stethoscope"></i> Iniciar Evaluación</a>
-                        <a href="#" id="btnVerResultados" class="btn-gci btn-gci-secondary"><i class="fas fa-file-medical"></i> Ver Resultados</a>
+                        <button type="button" id="btnVerExamen" class="btn-gci btn-gci-secondary" style="display:none;"><i class="fas fa-file-medical"></i> Ver Examen</button>
+                        <button type="button" id="btnVerAntidoping" class="btn-gci btn-gci-vial" style="display:none; color:#7c3aed; background:#f5f3ff; border:1px solid #c4b5fd;"><i class="fas fa-vial"></i> Ver Antidoping</button>
+                        <button type="button" id="btnVerPase" class="btn-gci btn-gci-info"><i class="fas fa-file-signature"></i> Ver Pase</button>
                         <div style="flex:1;"></div>
                         <button type="button" class="btn-gci btn-gci-secondary" onclick="cerrarModal()">Cerrar</button>
                     </div>
@@ -190,6 +194,28 @@
             </div>
         </div>
 
+        <!-- ══════════ Modal de Pase Médico (Directo - Igual que RRHH) ══════════ -->
+        <div class="modal-overlay" id="modalPase" style="z-index: 10002;">
+            <div class="modal-box" style="width: 850px; max-height: 90vh; display: flex; flex-direction: column;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-file-signature"></i> Pase Médico</h3>
+                    <button type="button" class="modal-close" onclick="cerrarModalPase()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body" style="flex: 1; overflow: auto; padding: 0;">
+                    <div id="paseContent" style="padding: 20px; background: #f5f5f5;">
+                        <!-- El contenido del pase se cargará aquí vía AJAX -->
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-gci btn-gci-info" onclick="imprimirPaseModal()">
+                        <i class="fas fa-print"></i> Imprimir Pase
+                    </button>
+                    <div style="flex:1;"></div>
+                    <button type="button" class="btn-gci btn-gci-secondary" onclick="cerrarModalPase()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal Evaluación Empleado -->
         <div id="modalEvaluacionEmpleado" style="display:none;">
             <div class="modal-emp-overlay" onclick="if(event.target===this)cerrarModalEvaluacionEmpleado()">
@@ -210,7 +236,7 @@
                     </div>
                     <div class="modal-emp-footer">
                         <button type="button" class="btn-gci btn-gci-secondary" onclick="cerrarModalEvaluacionEmpleado()">Cancelar</button>
-                        <button type="button" id="btnCrearEvaluacion" class="btn-gci btn-gci-primary" style="display:none;" onclick="crearEvaluacionEmpleado()">
+                        <button type="button" id="btnCrearEvaluacion" class="btn-gci btn-gci-primary" style="display:none;" onclick="iniciarCreacionEvaluacion()">
                             <i class="fas fa-file-medical"></i> Crear Evaluación
                         </button>
                     </div>

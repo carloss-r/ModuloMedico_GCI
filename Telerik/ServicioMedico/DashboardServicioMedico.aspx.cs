@@ -86,9 +86,9 @@ namespace Telerik.ServicioMedico
 
                 return new { success = true, data = solicitudes, total = totalRegistros };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return ErrorResponse("Error al cargar la bandeja médica.");
+                return ErrorResponse("Error al cargar la bandeja médica: " + ex.Message + " | " + (ex.InnerException?.Message ?? ""));
             }
         }
 
@@ -132,7 +132,9 @@ namespace Telerik.ServicioMedico
                         orden.NombrePersona,
                         orden.ProyectoDesc,
                         EmpresaNombre = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato : (orden.EmpresaNombre ?? orden.ProyectoDesc),
-                        FkEstatus = orden.FkEstatus ?? 0
+                        FkEstatus = orden.FkEstatus ?? 0,
+                        TieneEvaluacion = orden.TieneEvaluacion,
+                        TieneAntidoping = orden.TieneAntidoping
                     },
                     empleado = datosEmpleado
                 };
@@ -180,6 +182,26 @@ namespace Telerik.ServicioMedico
             catch (Exception)
             {
                 return ErrorResponse("Error al cargar la previsualización de la evaluación.");
+            }
+        }
+
+        [WebMethod]
+        public static object CrearOrdenEvaluacion(int pkEmpleado)
+        {
+            try
+            {
+                int? fkProyecto = null;
+                using (var db = new ApplicationDbContext())
+                {
+                    fkProyecto = db.Empleados.Where(e => e.pkEmpleado == pkEmpleado).Select(e => e.fkProyecto).FirstOrDefault();
+                }
+
+                int pkOrden = Telerik.Models.DAL.OrdenServicioMedicoDal.Insertar(pkEmpleado, null, fkProyecto, 2);
+                return new { success = true, PkOrdenMedico = pkOrden };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = "Error al crear la orden: " + ex.Message };
             }
         }
 
@@ -303,115 +325,41 @@ namespace Telerik.ServicioMedico
 
         private static string GenerarHtmlPase(OrdenServicioMedicoVm orden)
         {
+            string templatePath = System.Web.HttpContext.Current.Server.MapPath("~/ServicioMedico/Formatos/PaseMedico.html");
+            if (!System.IO.File.Exists(templatePath)) 
+                return "<p style='color:red;'>Error: Plantilla de Pase Médico no encontrada en " + templatePath + "</p>";
+
+            string html = System.IO.File.ReadAllText(templatePath, System.Text.Encoding.UTF8);
+
             string empresa = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato :
                             (!string.IsNullOrEmpty(orden.EmpresaNombre) ? orden.EmpresaNombre : orden.ProyectoDesc);
             empresa = string.IsNullOrWhiteSpace(empresa) ? "-" : empresa;
 
-            string puesto = orden.PuestoCandidato ?? "-";
-            string nombre = orden.NombrePersona ?? "-";
-            string proyecto = orden.ProyectoDesc ?? "-";
-            string fecha = orden.FechaOrdenFormateada ?? DateTime.Now.ToString("dd/MM/yyyy");
+            string H(object s) => System.Web.HttpUtility.HtmlEncode(s?.ToString() ?? "");
 
+            // Obtener evaluación si existe para mostrar aptitud
             var evaluacion = EvaluacionDal.ObtenerPorOrden(orden.PkOrdenMedico);
-            string checkApto = (evaluacion != null && evaluacion.FkAptitudMedica == 1) ? "✔" : "";
-            string checkCond = (evaluacion != null && evaluacion.FkAptitudMedica == 2) ? "✔" : "";
-            string checkNoAp = (evaluacion != null && evaluacion.FkAptitudMedica == 3) ? "✔" : "";
-            string recomendaciones = string.IsNullOrWhiteSpace(evaluacion != null ? evaluacion.Recomendaciones : null)
-                ? ""
-                : evaluacion.Recomendaciones;
+            int apt = (evaluacion != null) ? (evaluacion.FkAptitudMedica ?? 0) : 0;
+            string recomendaciones = (evaluacion?.Recomendaciones ?? "").ToUpper();
 
-            return $@"<!DOCTYPE html>
-<html>
-<head>
-    <meta name='viewport' content='width=device-width' />
-    <style>
-        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; margin: 0; padding: 20px; }}
-        .print-content {{ max-width: 700px; margin: 0 auto; background: #fff; }}
-        table {{ width: 100%; border-collapse: collapse; }}
-        .main-table {{ border: 2px solid #333; margin-bottom: 0; }}
-        .main-table td {{ border-right: 1px solid #333; border-bottom: 1px solid #333; padding: 6px 10px; }}
-        .label-cell {{ font-size: 11px; font-weight: bold; width: 15%; background-color: #f9f9f9; }}
-        .value-cell {{ font-size: 12px; width: 35%; }}
-        .header-cell {{ text-align: center; padding: 8px; font-size: 15px; font-weight: bold; border-bottom: 2px solid #333; letter-spacing: 1px; background-color: #eee; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-        .instruction-table {{ border-left: 2px solid #333; border-right: 2px solid #333; margin-top: 0; }}
-        .instruction-header {{ text-align: center; padding: 6px; background: #444; color: #fff; font-size: 10px; font-weight: bold; letter-spacing: 0.5px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-        .instruction-subheader {{ text-align: center; padding: 3px; font-size: 10px; color: #555; border-bottom: 1px solid #333; }}
-        .option-cell {{ width: 33%; text-align: center; padding: 12px; font-size: 12px; font-weight: bold; border-right: 1px solid #333; border-bottom: 1px solid #333; }}
-        .option-cell:last-child {{ border-right: none; }}
-        .special-table {{ border-left: 2px solid #333; border-right: 2px solid #333; }}
-        .fill-instruction {{ padding: 3px 10px; font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid #999; }}
-        .special-label {{ padding: 8px 10px; font-size: 11px; color: #333; }}
-        .line-row td {{ padding: 5px 10px; border-bottom: 1px solid #999; }}
-        .signature-table {{ border: 2px solid #333; margin-top: 0; }}
-        .signature-space {{ height: 50px; border-right: 1px solid #333; border-bottom: 1px solid #333; }}
-        .signature-space:last-child {{ border-right: none; }}
-        .signature-label {{ width: 33%; text-align: center; padding: 6px; font-size: 9px; font-weight: bold; border-right: 1px solid #333; vertical-align: top; }}
-        .signature-label:last-child {{ border-right: none; }}
-    </style>
-</head>
-<body>
-    <div class='print-content'>
-        <table class='main-table'>
-            <tr><td colspan='4' class='header-cell'>SERVICIO MEDICO</td></tr>
-            <tr>
-                <td class='label-cell'>EMPRESA</td>
-                <td class='value-cell'>{HttpUtility.HtmlEncode(empresa.ToUpper())}</td>
-                <td class='label-cell'>FECHA:</td>
-                <td class='value-cell'>{fecha}</td>
-            </tr>
-            <tr>
-                <td class='label-cell'>PROYECTO</td>
-                <td colspan='3' class='value-cell'>{HttpUtility.HtmlEncode(proyecto.ToUpper())}</td>
-            </tr>
-            <tr>
-                <td colspan='4' style='padding:6px 10px; font-size:11px; border-bottom:1px solid #333;'>
-                    <span style='font-weight:bold;'>POR ESTE CONDUCTO LE ENVIO AL SR.(A):</span>
-                    <span style='margin-left:8px; font-size:12px; text-transform:uppercase;'>{HttpUtility.HtmlEncode(nombre.ToUpper())}</span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan='4' style='padding:6px 10px; font-size:11px; border-bottom:1px solid #333;'>
-                    <span style='font-weight:bold;'>CANDIDATO(A) A OCUPAR EL PUESTO DE:</span>
-                    <span style='margin-left:8px; font-size:12px; text-transform:uppercase;'>{HttpUtility.HtmlEncode(puesto.ToUpper())}</span>
-                </td>
-            </tr>
-        </table>
+            var rep = new Dictionary<string, string>
+            {
+                { "{{EMPRESA}}",         H(empresa).ToUpper() },
+                { "{{FECHA}}",           orden.FechaOrden?.ToString("dd/MM/yyyy") ?? DateTime.Now.ToString("dd/MM/yyyy") },
+                { "{{PROYECTO}}",        H(orden.ProyectoDesc ?? "-").ToUpper() },
+                { "{{NOMBRE}}",          H(orden.NombrePersona ?? "-").ToUpper() },
+                { "{{PUESTO}}",          H(orden.PuestoCandidato ?? "-").ToUpper() },
+                { "{{RES_APTO}}",        apt == 1 ? "&#10004;" : "" },
+                { "{{RES_CONDICIONADO}}",apt == 2 ? "&#10004;" : "" },
+                { "{{RES_NO_APTO}}",     apt == 3 ? "&#10004;" : "" },
+                { "{{RECOMENDACIONES}}", H(recomendaciones) },
+            };
 
-        <table class='instruction-table'>
-            <tr><td colspan='3' class='instruction-header'>INSTRUCCIÓN AL AREA DE RECLUTAMIENTO Y SELECCIÓN</td></tr>
-            <tr><td colspan='3' class='instruction-subheader'>El candidato es considerado como:</td></tr>
-            <tr>
-                <td class='option-cell' style='vertical-align: middle;'>APTO <br/><span style='font-size: 20px; color: #1a5276;'>{checkApto}</span></td>
-                <td class='option-cell' style='vertical-align: middle;'>APTO CONDICIONADO <br/><span style='font-size: 20px; color: #1a5276;'>{checkCond}</span></td>
-                <td class='option-cell' style='vertical-align: middle;'>NO APTO <br/><span style='font-size: 20px; color: #1a5276;'>{checkNoAp}</span></td>
-            </tr>
-        </table>
+            foreach (var kv in rep) 
+                html = html.Replace(kv.Key, kv.Value);
 
-        <table class='special-table'>
-            <tr><td class='fill-instruction'>RELLENAR O MARCAR LA CASILLA INDICADA</td></tr>
-            <tr><td class='special-label'>Existe alguna indicación especial para el candidato:</td></tr>
-            <tr class='line-row'>
-                <td style='height: 60px; vertical-align: top; font-size: 11px; padding: 5px 15px;'>{HttpUtility.HtmlEncode(recomendaciones.ToUpper())}</td>
-            </tr>
-        </table>
-
-        <table class='signature-table'>
-            <tr>
-                <td class='signature-space'>&nbsp;</td>
-                <td class='signature-space'>&nbsp;</td>
-                <td class='signature-space'>&nbsp;</td>
-            </tr>
-            <tr>
-                <td class='signature-label'>Nombre y firma<br/>Reclutamiento</td>
-                <td class='signature-label'>Vo. Bo. Nombre y firma<br/>del médico</td>
-                <td class='signature-label'>EN CASO DE SER CONDICIONADO (NOMBRE Y FIRMA DE QUIEN AUTORIZA)</td>
-            </tr>
-        </table>
-    </div>
-</body>
-</html>";
+            return html;
         }
-
 
         private static OrdenServicioMedico CrearOrdenEmpleadoAutomatica(Empleado emp, ApplicationDbContext db, string puestoDesc, string empresaNombre)
         {
@@ -420,10 +368,11 @@ namespace Telerik.ServicioMedico
                 // Obtener tipo de servicio EXAMEN MEDICO
                 int fkTipoServicio = db.TiposServicio.FirstOrDefault(t => t.descripcion != null && (t.descripcion.Contains("EXAMEN") || t.descripcion.Contains("MEDICO")))?.pkTipoServicio ?? 1;
                 int fkEstatus = 1; // PENDIENTE
-
+                
                 var orden = new OrdenServicioMedico
                 {
                     fkEmpleado = emp.pkEmpleado,
+                    fkProyecto = emp.fkProyecto,
                     fkTipoServicio = fkTipoServicio,
                     fkEstatus = fkEstatus,
                     fechaOrden = DateTime.Now

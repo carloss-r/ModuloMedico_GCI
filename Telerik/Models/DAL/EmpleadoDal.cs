@@ -1,5 +1,6 @@
-using System.Linq;
-using Telerik.Models;
+using System;
+using System.Data;
+using System.Data.SqlClient;
 using Telerik.Models.ViewModels;
 
 namespace Telerik.Models.DAL
@@ -8,67 +9,73 @@ namespace Telerik.Models.DAL
     {
         public static EmpleadoVm BuscarPorNumero(int pkEmpleado)
         {
-            using (var db = new ApplicationDbContext())
+            // Empleado -> Empleados
+            // Empresa -> Empresas
+            // Proyecto -> Proyectos
+            // Puesto -> Puesto (Singular)
+            // Cat_Pais -> Pais (Sin prefijo)
+            string sql = @"
+                SELECT e.*, 
+                       p.descripcion as PuestoDesc, 
+                       emp.nombre as EmpresaDesc, 
+                       pr.descripcion as ProyectoDesc,
+                       pais.descripcion as PaisDesc,
+                       edo.descripcion as EstadoDesc,
+                       mun.descripcion as MunicipioDesc,
+                       col.descripcion as ColoniaDesc,
+                       cp.descripcion as CPDesc,
+                       ec.descripcion as EstadoCivilDesc,
+                       ts.descripcion as TipoSangreDesc
+                FROM Empleados e
+                LEFT JOIN Puesto p ON e.fkPuesto = p.pkPuesto
+                LEFT JOIN Empresas emp ON e.fkEmpresa = emp.pkEmpresa
+                LEFT JOIN Proyectos pr ON e.fkProyecto = pr.pkProyecto
+                LEFT JOIN Pais pais ON e.fkPais = pais.pkPais
+                LEFT JOIN Estado edo ON e.fkEstado = edo.pkEstado
+                LEFT JOIN Municipio mun ON e.fkMunicipio = mun.pkMunicipio
+                LEFT JOIN Colonia col ON e.fkColonia = col.pkColonia
+                LEFT JOIN CP cp ON e.fkCP = cp.pkCP
+                LEFT JOIN EstadoCivil ec ON e.fkEstadoCivil = ec.pkEstadoCivil
+                LEFT JOIN TipoSangre ts ON e.fkTipoSangre = ts.pkTipoSangre
+                WHERE e.pkEmpleado = @id";
+
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", pkEmpleado));
+            if (dt.Rows.Count == 0) return null;
+
+            DataRow r = dt.Rows[0];
+            return new EmpleadoVm
             {
-                return (from e in db.Empleados
-                        join p in db.Puestos on e.fkPuesto equals p.pkPuesto into pjoin
-                        from p in pjoin.DefaultIfEmpty()
-                        join emp in db.Empresas on e.fkEmpresa equals emp.pkEmpresa into ejoin
-                        from emp in ejoin.DefaultIfEmpty()
-                        join pr in db.Proyectos on e.fkProyecto equals pr.pkProyecto into prjoin
-                        from pr in prjoin.DefaultIfEmpty()
-                        join pais in db.Paises on e.fkPais equals pais.pkPais into paisjoin
-                        from pais in paisjoin.DefaultIfEmpty()
-                        join estado in db.Estados on e.fkEstado equals estado.pkEstado into estjoin
-                        from estado in estjoin.DefaultIfEmpty()
-                        join mun in db.Municipios on e.fkMunicipio equals mun.pkMunicipio into munjoin
-                        from mun in munjoin.DefaultIfEmpty()
-                        join col in db.Colonias on e.fkColonia equals col.pkColonia into coljoin
-                        from col in coljoin.DefaultIfEmpty()
-                        join cp in db.CodigosPostales on e.fkCP equals cp.pkCP into cpjoin
-                        from cp in cpjoin.DefaultIfEmpty()
-                        join ec in db.EstadoCivil on e.fkEstadoCivil equals ec.pkEstadoCivil into ecjoin
-                        from ec in ecjoin.DefaultIfEmpty()
-                        join ts in db.TipoSangre on e.fkTipoSangre equals ts.pkTipoSangre into tsjoin
-                        from ts in tsjoin.DefaultIfEmpty()
-                        where e.pkEmpleado == pkEmpleado
-                        select new EmpleadoVm
-                        {
-                            PkEmpleado      = e.pkEmpleado,
-                            Nombre          = e.nombre,
-                            APaterno        = e.aPaterno,
-                            AMaterno        = e.aMaterno,
-                            Nss             = e.numeroSeguroSocial,
-                            Rfc             = e.rfc,
-                            Curp            = e.curp,
-                            Telefono        = e.telefono,
-                            FechaNacimiento = e.fechaNacimiento,
-                            Sexo            = e.fkSexo,
-                            PuestoDesc      = p != null ? p.descripcion : null,
-                            EmpresaDesc     = emp != null ? emp.nombre : null,
-                            ProyectoDesc    = pr != null ? pr.descripcion : null,
-                            // Geographic FKs
-                            FkPais          = e.fkPais,
-                            FkEstado        = e.fkEstado,
-                            FkMunicipio     = e.fkMunicipio,
-                            FkColonia       = e.fkColonia,
-                            FkCP            = e.fkCP,
-                            Calle           = e.calle,
-                            NumExterior     = e.numExterior,
-                            NumInterior     = e.numInterior,
-                            // Geographic Descriptions
-                            PaisDesc        = pais != null ? pais.descripcion : null,
-                            EstadoDesc      = estado != null ? estado.descripcion : null,
-                            MunicipioDesc   = mun != null ? mun.descripcion : null,
-                            ColoniaDesc     = col != null ? col.descripcion : null,
-                            CPDesc          = cp != null ? cp.descripcion : null,
-                            // Otros
-                            EstadoCivil     = ec != null ? ec.descripcion : null,
-                            TipoSangre      = ts != null ? ts.descripcion : null,
-                            FkTipoSangre    = e.fkTipoSangre,
-                            TieneHijos      = e.tieneHijos ?? false
-                        }).FirstOrDefault();
-            }
+                PkEmpleado      = (int)r["pkEmpleado"],
+                Nombre          = r["nombre"]?.ToString(),
+                APaterno        = r["aPaterno"]?.ToString(),
+                AMaterno        = r["aMaterno"]?.ToString(),
+                Nss             = r["numeroSeguroSocial"]?.ToString(),
+                Rfc             = r["rfc"]?.ToString(),
+                Curp            = r["curp"]?.ToString(),
+                Telefono        = r["telefono"]?.ToString(),
+                FechaNacimiento = r["fechaNacimiento"] != DBNull.Value ? (DateTime?)r["fechaNacimiento"] : null,
+                Sexo            = r["fkSexo"]?.ToString(),
+                PuestoDesc      = r["PuestoDesc"]?.ToString(),
+                EmpresaDesc     = r["EmpresaDesc"]?.ToString(),
+                ProyectoDesc    = r["ProyectoDesc"]?.ToString(),
+                FkPais          = r["fkPais"] != DBNull.Value ? (int?)r["fkPais"] : null,
+                FkEstado        = r["fkEstado"] != DBNull.Value ? (int?)r["fkEstado"] : null,
+                FkMunicipio     = r["fkMunicipio"] != DBNull.Value ? (int?)r["fkMunicipio"] : null,
+                FkColonia       = r["fkColonia"] != DBNull.Value ? (int?)r["fkColonia"] : null,
+                FkCP            = r["fkCP"] != DBNull.Value ? (int?)r["fkCP"] : null,
+                Calle           = r["calle"]?.ToString(),
+                NumExterior     = r["numExterior"]?.ToString(),
+                NumInterior     = r["numInterior"]?.ToString(),
+                PaisDesc        = r["PaisDesc"]?.ToString(),
+                EstadoDesc      = r["EstadoDesc"]?.ToString(),
+                MunicipioDesc   = r["MunicipioDesc"]?.ToString(),
+                ColoniaDesc     = r["ColoniaDesc"]?.ToString(),
+                CPDesc          = r["CPDesc"]?.ToString(),
+                EstadoCivil     = r["EstadoCivilDesc"]?.ToString(),
+                TipoSangre      = r["TipoSangreDesc"]?.ToString(),
+                FkTipoSangre    = r["fkTipoSangre"] != DBNull.Value ? (int?)r["fkTipoSangre"] : null,
+                TieneHijos      = r["tieneHijos"] != DBNull.Value && (bool)r["tieneHijos"]
+            };
         }
     }
 }

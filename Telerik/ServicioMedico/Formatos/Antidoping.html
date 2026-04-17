@@ -45,8 +45,8 @@
 
         /* Evidence Box */
         .evidence-container { border: 4px solid #000; display: flex; height: 320px; width: 250px; flex-shrink: 0; }
-        .evidence-label { width: 40px; background: #e0e0e0; border-right: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; text-align: center; font-size: 13px; }
-        .evidence-label-text { transform: rotate(-90deg); white-space: nowrap; width: 0; }
+        .evidence-label { width: 35px; background: #e0e0e0; border-right: 2px solid #000; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .evidence-label-text { writing-mode: vertical-lr; transform: rotate(180deg); font-size: 12px; letter-spacing: 2px; }
         .evidence-photo { flex-grow: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .evidence-photo img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
@@ -131,38 +131,22 @@
         <!-- RESULTS AND EVIDENCE GRID -->
         <div class="results-evidence-grid">
             <!-- RESULTS TABLE -->
-            <table class="results-table">
+            <table class="results-table" style="width: 420px;">
                 <tr>
-                    <th colspan="2">Observaciones: Se le realiza prueba de <span style="text-decoration: underline;">ANTIDOPING</span> con los siguientes resultados :</th>
+                    <th colspan="3" style="background:#f0f0f0; border: 1px solid #000; padding: 5px;">Determinaci&oacute;n de Metabolitos en Orina / Alcoholimetr&iacute;a</th>
                 </tr>
-                <tr>
-                    <td class="substance-col">OPI (Opiaceos )</td>
-                    <td class="mark-col" id="res_OPI">{{OPI_NEG}}{{OPI_POS}}</td>
+                <tr style="background:#f9f9f9; font-weight:bold; text-align:center;">
+                    <td style="width:160px;">SUSTANCIA</td>
+                    <td style="width:80px;">NEGATIVO</td>
+                    <td style="width:80px;">POSITIVO</td>
                 </tr>
-                <tr>
-                    <td class="substance-col">COC (Cocaina)</td>
-                    <td class="mark-col" id="res_COC">{{COC_NEG}}{{COC_POS}}</td>
-                </tr>
-                <tr>
-                    <td class="substance-col">BZO (Benzodiacepinas)</td>
-                    <td class="mark-col" id="res_BZO">{{BZO_NEG}}{{BZO_POS}}</td>
-                </tr>
-                <tr>
-                    <td class="substance-col">AMP (Anfetaminas )</td>
-                    <td class="mark-col" id="res_AMP">{{AMP_NEG}}{{AMP_POS}}</td>
-                </tr>
-                <tr>
-                    <td class="substance-col">MET (Metanfetaminas )</td>
-                    <td class="mark-col" id="res_MET">{{MET_NEG}}{{MET_POS}}</td>
-                </tr>
-                <tr>
-                    <td class="substance-col">THC (Marihuana)</td>
-                    <td class="mark-col" id="res_THC">{{THC_NEG}}{{THC_POS}}</td>
-                </tr>
-                <tr>
-                    <td class="substance-col">ALCOHOL</td>
-                    <td class="mark-col" id="res_ALC">{{ALC_NEG}}{{ALC_POS}}</td>
-                </tr>
+                {{ROW_OPI}}
+                {{ROW_COC}}
+                {{ROW_BZO}}
+                {{ROW_AMP}}
+                {{ROW_MET}}
+                {{ROW_THC}}
+                {{ROW_ALC}}
             </table>
 
             <!-- EVIDENCE BOX -->
@@ -188,59 +172,5 @@
             <span class="footer-label">Nombre y Firma de quien toma la muestra</span>
         </div>
     </div>
-
-    <!-- Mantengo el script para importación dinámica de datos -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-            if (id) {
-                cargarDatos(id);
-            }
-        });
-
-        function cargarDatos(id) {
-            $.ajax({
-                url: '../DashboardServicioMedico.aspx/ObtenerDatosAntidoping',
-                type: 'POST',
-                data: JSON.stringify({ id: parseInt(id) }),
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.d && response.d.success) {
-                        renderData(response.d.data);
-                    }
-                }
-            });
-        }
-
-        function renderData(data) {
-            $('#valFecha').text(data.Fecha);
-            $('#valProyecto').text(data.Proyecto);
-            $('#valEmpresaLabel').text(data.Empresa);
-            $('#valNombre').text(data.Nombre);
-            $('#valNumTrabajador').text(data.NumTrabajador);
-            $('#valMedico').text("LIC. NATALY MARTINEZ PUGA");
-            
-            const mark = "X";
-            $('#res_OPI').text(data.OpiPos ? 'POSITIVO' : 'NEGATIVO');
-            $('#res_COC').text(data.CocPos ? 'POSITIVO' : 'NEGATIVO');
-            $('#res_BZO').text(data.BzoPos ? 'POSITIVO' : 'NEGATIVO');
-            $('#res_AMP').text(data.AmpPos ? 'POSITIVO' : 'NEGATIVO');
-            $('#res_MET').text(data.MetPos ? 'POSITIVO' : 'NEGATIVO');
-            $('#res_THC').text(data.ThcPos ? 'POSITIVO' : 'NEGATIVO');
-            $('#res_ALC').text(data.AlcPos ? 'POSITIVO' : 'NEGATIVO');
-
-            if (data.VeredictoFinal) {
-                const esNoApto = data.VeredictoFinal.toUpperCase().includes("NO APTO");
-                $('#valVeredicto').text(esNoApto ? "NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES" : "APTO PARA REALIZAR ACTIVIDADES OPERACIONALES");
-            }
-
-            if (data.UrlFoto) {
-                $('#containerFoto').html('<img src="' + data.UrlFoto + '" />');
-            }
-        }
-    </script>
 </body>
 </html>

@@ -207,5 +207,11 @@ namespace Telerik.Models.ViewModels
         public string  Observaciones     { get; set; }
         public string  LugarEvaluacion   { get; set; }
         public List<string> AntecedentesPositivos { get; set; }
+        
+        // Nuevos campos para comparativa extendida
+        public string  VacunasResumen    { get; set; }
+        public string  VisionResumen     { get; set; }
+        public string  SistemasAnormales { get; set; }
+        public string  ColumnaResumen    { get; set; }
     }
 }

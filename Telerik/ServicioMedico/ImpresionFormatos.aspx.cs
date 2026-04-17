@@ -1,26 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Web;
-using System.Web.UI;
-using Telerik.Models.DAL;
 using Telerik.Models.ViewModels;
-using Telerik.Services;
+using Telerik.Models.DAL;
 
 namespace Telerik.ServicioMedico
 {
     public partial class ImpresionFormatos : System.Web.UI.Page
     {
-        public int    IdOrden      { get; set; }
-        public string TipoDoc      { get; set; }
-        public PacienteInfoVm     Paciente   { get; set; }
-        public EvaluacionMedicaVm Evaluacion { get; set; }
-        public string PaseHtml     { get; set; }
-        public string ErrorMessage { get; set; }
+        public int            IdOrden      { get; set; }
+        public string         TipoDoc      { get; set; }
+        public string         PaseHtml     { get; set; }
+        public string         ErrorMessage { get; set; }
+        public PacienteInfoVm Paciente     { get; set; }
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -32,14 +27,6 @@ namespace Telerik.ServicioMedico
                 IdOrden = id;
                 TipoDoc = (Request.QueryString["tipo"] ?? "").ToUpper();
 
-                var ms    = new MedicalService();
-                var orden = OrdenServicioMedicoDal.ObtenerPorId(id);
-                if (orden == null)
-                    throw new Exception("Solicitud #" + id + " no encontrada.");
-
-                Paciente   = ms.ObtenerInfoPaciente(orden);
-                Evaluacion = EvaluacionDal.ObtenerPorOrden(id);
-
                 if      (TipoDoc == "PASE")       GenerarPaseHtml();
                 else if (TipoDoc == "EXAMEN")     GenerarExamenDesdeHtml();
                 else if (TipoDoc == "ANTIDOPING") GenerarAntidopingDesdeHtml();
@@ -47,485 +34,226 @@ namespace Telerik.ServicioMedico
             catch (Exception ex) { ErrorMessage = ex.Message; }
         }
 
-        // ── PASE DE SERVICIO MÉDICO — lee el HTML y sustituye tokens ──
+        // ── PASE DE SERVICIO MÉDICO ──
         private void GenerarPaseHtml()
         {
-            // Ruta al template HTML
+            var orden = OrdenServicioMedicoDal.ObtenerPorId(IdOrden);
+            if (orden == null) throw new Exception("No se encontró la información del pase.");
+
             string templatePath = Server.MapPath("~/ServicioMedico/Formatos/PaseMedico.html");
-            if (!File.Exists(templatePath))
-                throw new Exception("Template de pase no encontrado: " + templatePath);
+            if (!File.Exists(templatePath)) throw new Exception("Template de pase no encontrado.");
 
             string html = File.ReadAllText(templatePath, Encoding.UTF8);
+            string H(object s) => HttpUtility.HtmlEncode(s?.ToString() ?? "");
 
-            string H(string s) => HttpUtility.HtmlEncode(s ?? "");
-
-            string emp = !string.IsNullOrEmpty(Paciente?.Empresa) ? Paciente.Empresa : (Paciente?.Proyecto ?? "");
-            int apt = Evaluacion?.FkAptitudMedica ?? 0;
+            int apt = orden.FkAptitudMedica ?? 0;
+            string empresa = !string.IsNullOrEmpty(orden.EmpresaCandidato) ? orden.EmpresaCandidato :
+                            (!string.IsNullOrEmpty(orden.EmpresaNombre) ? orden.EmpresaNombre : orden.ProyectoDesc);
+            empresa = string.IsNullOrWhiteSpace(empresa) ? "-" : empresa;
 
             var rep = new Dictionary<string, string>
             {
-                { "{{EMPRESA}}",         H(emp.ToUpper()) },
-                { "{{FECHA}}",           DateTime.Now.ToString("dd/MM/yyyy") },
-                { "{{PROYECTO}}",        H((Paciente?.Proyecto ?? "").ToUpper()) },
-                { "{{NOMBRE}}",          H((Paciente?.NombreCompleto ?? "").ToUpper()) },
-                { "{{PUESTO}}",          H((Paciente?.Puesto ?? "").ToUpper()) },
+                { "{{EMPRESA}}",         H(empresa).ToUpper() },
+                { "{{FECHA}}",           orden.FechaOrden?.ToString("dd/MM/yyyy") ?? DateTime.Now.ToString("dd/MM/yyyy") },
+                { "{{PROYECTO}}",        H(orden.ProyectoDesc ?? "-").ToUpper() },
+                { "{{NOMBRE}}",          H(orden.NombrePersona ?? "-").ToUpper() },
+                { "{{PUESTO}}",          H(orden.PuestoCandidato ?? "-").ToUpper() },
                 { "{{RES_APTO}}",        apt == 1 ? "&#10004;" : "" },
                 { "{{RES_CONDICIONADO}}",apt == 2 ? "&#10004;" : "" },
                 { "{{RES_NO_APTO}}",     apt == 3 ? "&#10004;" : "" },
-                { "{{RECOMENDACIONES}}", H(Evaluacion?.Recomendaciones) },
+                { "{{RECOMENDACIONES}}", H(orden.Recomendaciones ?? "").ToUpper() },
             };
 
-            foreach (var kv in rep)
-                html = html.Replace(kv.Key, kv.Value);
-
+            foreach (var kv in rep) html = html.Replace(kv.Key, kv.Value);
             PaseHtml = html;
         }
 
-        // ── EXAMEN MÉDICO — lee el HTML y sustituye tokens ─────────────
+        // ── EXAMEN MÉDICO ──
         private void GenerarExamenDesdeHtml()
         {
-            // Ruta al template HTML
-            string templatePath = Server.MapPath("~/ServicioMedico/Formatos/EvaluacionMedica.html");
-            if (!File.Exists(templatePath))
-                throw new Exception("Template no encontrado: " + templatePath);
+            var orden = OrdenServicioMedicoDal.ObtenerPorId(IdOrden);
+            var eval = EvaluacionDal.ObtenerPorOrden(IdOrden);
+            if (orden == null || eval == null) throw new Exception("Información médica incompleta.");
 
+            string templatePath = Server.MapPath("~/ServicioMedico/Formatos/EvaluacionMedica.html");
+            if (!File.Exists(templatePath)) throw new Exception("Template no encontrado.");
             string html = File.ReadAllText(templatePath, Encoding.UTF8);
 
-            // ── Helpers ──────────────────────────────────────────────
-            string H(string s)  => HttpUtility.HtmlEncode(s ?? "");
-            string Chk(bool v)  => v ? "X" : "";
-            string CV(int? v)   => v == 1 ? "N" : v == 2 ? "A" : v == 3 ? "D" : "";
+            string H(object s) => HttpUtility.HtmlEncode(s?.ToString() ?? "");
+            string Chk(bool v) => v ? "X" : "";
+            string CV(int? i)  => i == 1 ? "N" : i == 2 ? "A" : i == 3 ? "D" : "";
 
-            bool esM  = ((Paciente?.Sexo ?? "").ToUpper().StartsWith("M") || (Paciente?.Sexo ?? "").ToUpper().Contains("MASC"));
-            bool esF  = ((Paciente?.Sexo ?? "").ToUpper().StartsWith("F") || (Paciente?.Sexo ?? "").ToUpper().Contains("FEM"));
-            bool esC  = ((Paciente?.Tipo ?? "").ToUpper().Contains("CAND"));
+            string sexo = (orden.SexoCandidato ?? "").ToUpper();
+            bool esM = sexo.StartsWith("M") || sexo.Contains("MAS");
+            bool esF = sexo.StartsWith("F") || sexo.Contains("FEM");
+            bool esC = orden.FkEmpleado == null;
 
-            string lugar = string.IsNullOrWhiteSpace(Evaluacion?.LugarEvaluacion) ? "Tula de Allende" : Evaluacion.LugarEvaluacion;
+            string ec = (eval.EstadoCivil ?? "").ToUpper();
+            string ew = (eval.Escolaridad ?? "").ToUpper();
 
-            // Antecedente positivo → "X"
-            string Ant(string kw)
-            {
-                var a = Evaluacion?.Antecedentes?.FirstOrDefault(x =>
-                    (x.NombreCondicion ?? "").ToUpperInvariant().Contains(kw.ToUpperInvariant()));
-                return (a != null && a.EsPositivo) ? "X" : "";
-            }
-
-            // Tipo de sangre (evaluación; si no hay dato, catálogo del paciente)
-            int? fkTipoSangre = Evaluacion?.FkTipoSangre ?? Paciente?.FkTipoSangre;
-            string ts;
-            switch (fkTipoSangre)
-            { case 1: ts="O+"; break; case 2: ts="O-"; break; case 3: ts="A+"; break; case 4: ts="A-"; break;
-              case 5: ts="B+"; break; case 6: ts="B-"; break; case 7: ts="AB+"; break; case 8: ts="AB-"; break;
-              default: ts = ""; break; }
-
-            // Estado civil y escolaridad: prioridad evaluación guardada; si no, expediente del paciente
-            string ecRaw = Evaluacion != null && !string.IsNullOrWhiteSpace(Evaluacion.EstadoCivil)
-                ? Evaluacion.EstadoCivil
-                : (Paciente != null ? Paciente.EstadoCivil : null);
-            string ec = (ecRaw ?? "").Trim().ToUpperInvariant();
-
-            string ewRaw = Evaluacion != null && !string.IsNullOrWhiteSpace(Evaluacion.Escolaridad)
-                ? Evaluacion.Escolaridad
-                : (Paciente != null ? Paciente.Escolaridad : null);
-            string ew = (ewRaw ?? "").ToUpperInvariant();
-
-            string fechaNacImpresa = "";
-            if (Evaluacion?.FechaNacimiento != null)
-                fechaNacImpresa = Evaluacion.FechaNacimiento.Value.ToString("dd/MM/yyyy");
-            else if (Paciente != null && !string.IsNullOrWhiteSpace(Paciente.FechaNacimiento))
-            {
-                DateTime fn;
-                fechaNacImpresa = DateTime.TryParse(Paciente.FechaNacimiento, out fn)
-                    ? fn.ToString("dd/MM/yyyy")
-                    : Paciente.FechaNacimiento.Trim();
-            }
-
-            // Domicilio compuesto
-            string dom = Evaluacion?.Domicilio ?? "";
-            if (string.IsNullOrWhiteSpace(dom))
-            {
-                var pp = new List<string>();
-                if (!string.IsNullOrWhiteSpace(Evaluacion?.Calle))       pp.Add(Evaluacion.Calle);
-                if (!string.IsNullOrWhiteSpace(Evaluacion?.NumExterior)) pp.Add("#" + Evaluacion.NumExterior);
-                if (!string.IsNullOrWhiteSpace(Evaluacion?.NumInterior)) pp.Add("Int. " + Evaluacion.NumInterior);
-                dom = string.Join(" ", pp);
-            }
-
-            var col = Evaluacion?.Columna;
-            var hb  = Evaluacion?.Habitos;
-            var vac = Evaluacion?.Vacunacion;
-            var gf  = Evaluacion?.DetalleFemenino;
-            var gm  = Evaluacion?.DetalleMasculino;
-            int apt = Evaluacion?.FkAptitudMedica ?? 0;
-
-            // ── Antecedentes laborales: generar filas HTML ────────────
-            var laborales = new StringBuilder();
-            if (Evaluacion?.AntecedentesLaborales != null && Evaluacion.AntecedentesLaborales.Any())
-            {
-                foreach (var al in Evaluacion.AntecedentesLaborales)
-                    laborales.AppendFormat("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td></tr>\n",
-                        H(al?.Empresa), H(al?.TiempoLaborado), H(al?.Puesto), H(al?.AgentesExpuesto), H(al?.AccidentesPrevios));
-            }
-            else
-            {
-                laborales.Append("<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>\n");
-                laborales.Append("<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>\n");
-            }
-
-            // TA legible: evita mostrar solo "/" cuando faltan datos
-            string taStr = "";
-            if (Evaluacion != null && (Evaluacion.PresionSistolica.HasValue || Evaluacion.PresionDiastolica.HasValue))
-            {
-                taStr = (Evaluacion.PresionSistolica.HasValue ? Evaluacion.PresionSistolica.Value.ToString() : "")
-                    + "/"
-                    + (Evaluacion.PresionDiastolica.HasValue ? Evaluacion.PresionDiastolica.Value.ToString() : "");
-            }
-
-            // ── Reemplazos ────────────────────────────────────────────
-            var rep = new Dictionary<string, string>
-            {
-                // Identificación
-                {"{{LUGAR_FECHA}}",   H(lugar + ", " + DateTime.Now.ToString("dd/MM/yyyy"))},
-                {"{{CARGO}}",         H(Paciente?.Puesto)},
-                {"{{NOMBRE}}",        H(Paciente?.NombreCompleto)},
-                {"{{NSS}}",           H(!string.IsNullOrWhiteSpace(Evaluacion?.Nss) ? Evaluacion.Nss : Paciente?.Nss)},
-                {"{{FECHA_NAC}}",     H(fechaNacImpresa)},
-                {"{{EDAD}}",          H(Paciente?.Edad)},
-                {"{{LUGAR_NAC}}",     H(!string.IsNullOrWhiteSpace(Evaluacion?.LugarNacimiento) ? Evaluacion.LugarNacimiento : Paciente?.LugarNacimiento)},
-                // Estado civil
+            // Reemplazos Base
+            var rep = new Dictionary<string, string> {
+                {"{{LUGAR_FECHA}}",   H((eval.LugarEvaluacion ?? "Tula de Allende") + ", " + DateTime.Now.ToString("dd/MM/yyyy"))},
+                {"{{CARGO}}",         H(orden.PuestoCandidato)}, {"{{NOMBRE}}", H(orden.NombrePersona)}, {"{{NSS}}", H(eval.Nss)},
+                {"{{FECHA_NAC}}",     eval.FechaNacimiento?.ToString("dd/MM/yyyy") ?? ""}, 
+                {"{{EDAD}}",          CalcularEdad(eval.FechaNacimiento)}, 
+                {"{{LUGAR_NAC}}",     H(eval.LugarNacimiento)},
                 {"{{EC_SOLTERO}}",    ec.Contains("SOLTER") || ec == "1" ? "X" : ""},
                 {"{{EC_CASADO}}",     ec.Contains("CASAD")  || ec == "2" ? "X" : ""},
                 {"{{EC_UNION}}",      ec.Contains("UNION")  || ec.Contains("UNI\u00d3N") || ec == "3" ? "X" : ""},
                 {"{{EC_SEPARADO}}",   ec.Contains("SEPAR")  || ec.Contains("DIVOR") || ec.Contains("VIUD") || ec == "4" ? "X" : ""},
-                {"{{MANO}}",          H(Evaluacion?.ManoDominante)},
-                {"{{TELEFONO}}",      H(Evaluacion?.Telefono)},
-                {"{{DOMICILIO}}",     H(dom)},
-                // Escolaridad
-                {"{{ESC_PRIM}}",      ew.Contains("PRIM") ? "X" : ""},
-                {"{{ESC_SEC}}",       ew.Contains("SECUN") ? "X" : ""},
+                {"{{MANO}}",          H(eval.ManoDominante)}, {"{{TELEFONO}}", H(eval.Telefono)}, {"{{DOMICILIO}}", H(eval.Domicilio)},
+                {"{{ESC_PRIM}}",      ew.Contains("PRIM") ? "X" : ""}, {"{{ESC_SEC}}", ew.Contains("SECUN") ? "X" : ""},
                 {"{{ESC_MED}}",       ew.Contains("MEDIA") || ew.Contains("PREPA") || ew.Contains("BACH") ? "X" : ""},
                 {"{{ESC_UNI}}",       ew.Contains("UNIV")  || ew.Contains("LIC") || ew.Contains("PROF") || ew.Contains("POSG") ? "X" : ""},
-                {"{{PROFESION}}",     H(Evaluacion?.Profesion)},
-                // Tipo de examen / sexo / sangre
-                {"{{EX_INGRESO}}",    esC ? "X" : ""},
-                {"{{EX_PERIODICO}}",  !esC ? "X" : ""},
-                {"{{SEXO_MASC_BG}}",  esM ? "background:#333;color:#fff;" : "background:#eee;"},
-                {"{{SEXO_FEM_BG}}",   esF ? "background:#333;color:#fff;" : "background:#eee;"},
-                {"{{TIPO_SANGRE}}",   ts},
-                // Antecedentes heredo-familiares
-                {"{{AHF_HTA}}",       Ant("HTA")},
-                {"{{AHF_CORONARIA}}", Ant("CORONARIA")},
-                {"{{AHF_ACV}}",       Ant("ACV")},
-                {"{{AHF_DIABETES}}",  Ant("DIABETES")},
-                {"{{AHF_TIROIDES}}",  Ant("TIROIDES")},
-                {"{{AHF_ASMA}}",      Ant("ASMA")},
-                {"{{AHF_ALERGIA}}",   Ant("ALERGIA")},
-                {"{{AHF_TBC}}",       Ant("TBC")},
-                {"{{AHF_ALCOHOL}}",   Ant("ALCOHOL")},
-                {"{{AHF_EPILEPSIA}}", Ant("EPILEPSIA")},
-                {"{{AHF_MENTALES}}",  Ant("MENTALES")},
-                {"{{AHF_CONGENITAS}}",Ant("CONGENITA")},
-                {"{{AHF_CANCER}}",    Ant("CANCER")},
-                {"{{AHF_VARICES}}",   Ant("VARICES")},
-                // Antecedentes personales patológicos
-                {"{{APP_HIPERTENSION}}",    Ant("HIPERTENSION")},
-                {"{{APP_QUIRURGICOS}}",     Ant("QUIRURGICO")},
-                {"{{APP_TRAUMATICOS}}",     Ant("TRAUMATICO")},
-                {"{{APP_ALERGICOS}}",       Ant("ALERGICO")},
-                {"{{APP_CONGENITOS}}",      Ant("CONGENITO")},
-                {"{{APP_METABOLICOS}}",     Ant("METABOLICO")},
-                {"{{APP_INFECCIOSOS}}",     Ant("INFECCIOSO")},
-                {"{{APP_TUMORALES}}",       Ant("TUMORAL")},
-                {"{{APP_RESPIRATORIAS}}",   Ant("RESPIRATORIA")},
-                {"{{APP_MEDICAMENTOS}}",    Ant("MEDICAMENTO")},
-                {"{{APP_TRANSFUSIONALES}}", Ant("TRANSFUSION")},
-                {"{{APP_LITIASIS}}",        Ant("LITIASIS")},
-                {"{{APP_HACINAMIENTO}}",    Ant("HACINAMIENTO")},
-                {"{{APP_AGUA}}",            Ant("AGUA")},
-                {"{{APP_ALCANTARILLADO}}",  Ant("ALCANTARILLADO")},
-                {"{{APP_OTROS}}",           Ant("OTRO")},
-                {"{{APP_OBSERVACIONES}}",   H(Evaluacion?.SintomasPaciente)},
-                // Antecedentes laborales
-                {"{{LABORALES_ROWS}}", laborales.ToString()},
-                // Hábitos
-                {"{{HAB_FUMA}}",          Chk(hb != null && hb.Fuma)},
-                {"{{HAB_ANOS_FUMA}}",     H(hb?.AnosFumando?.ToString())},
-                {"{{HAB_CIGARROS}}",      H(hb?.CigarrosDiarios?.ToString())},
-                {"{{HAB_EX_FUMADOR}}",    hb != null && hb.EsExFumador ? "Si" : ""},
-                {"{{HAB_DROGAS}}",        Chk(hb != null && hb.UsaDrogas)},
-                {"{{HAB_TIPO_DROGA}}",    H(hb?.TipoDrogas)},
-                {"{{HAB_ALCOHOL}}",       Chk(hb != null && hb.BebeAlcohol)},
-                {"{{HAB_FREC_ALCOHOL}}",  H(hb?.FrecuenciaAlcohol)},
-                {"{{HAB_DEPORTE}}",       Chk(hb != null && hb.HaceDeporte)},
-                {"{{HAB_TIPO_DEPORTE}}",  H(hb?.TipoDeporte)},
-                {"{{HAB_TIEMPO_LIBRE}}",  H(hb?.DescripcionTiempoLibre)},
-                // Vacunas
-                {"{{VAC_T1}}",   Chk(vac != null && vac.TetanosDosis1)},
-                {"{{VAC_T2}}",   Chk(vac != null && vac.TetanosDosis2)},
-                {"{{VAC_T3}}",   Chk(vac != null && vac.TetanosDosis3)},
-                {"{{VAC_H1}}",   Chk(vac != null && vac.HepatitisDosis1)},
-                {"{{VAC_H2}}",   Chk(vac != null && vac.HepatitisDosis2)},
-                {"{{VAC_H1N1}}", Chk(vac != null && vac.InfluenzaH1N1)},
-                // Exploración física – signos vitales
-                {"{{EF_TA}}",       H(taStr)},
-                {"{{EF_FC}}",       H(Evaluacion?.FrecuenciaCardiaca?.ToString())},
-                {"{{EF_FR}}",       H(Evaluacion?.FrecuenciaRespiratoria?.ToString())},
-                {"{{EF_PESO}}",     H(Evaluacion?.PesoKg?.ToString())},
-                {"{{EF_TALLA}}",    H(Evaluacion?.AlturaMetros?.ToString())},
-                {"{{EF_IMC}}",      H(Evaluacion?.Imc?.ToString())},
-                {"{{EF_TEMP}}",     H(Evaluacion?.Temperatura?.ToString())},
-                {"{{EF_APARATOS}}", H(Evaluacion?.AparatosSistemas)},
-                {"{{EF_SINTOMAS}}", H(Evaluacion?.SintomasPaciente)},
-                // Ginecológicos
-                {"{{GF_MENARCA}}",      H(gf?.EdadMenarca?.ToString())},
-                {"{{GF_CICLOS}}",       H(gf?.Ciclos)},
-                {"{{GF_FUM}}",          H(gf?.FechaUltimaMenstruacion?.ToString("dd/MM/yyyy"))},
-                {"{{GF_PLANIFICACION}}",H(gf?.MetodoPlanificacion)},
-                {"{{GF_CITVAG}}",       H(gf?.FechaUltimoPapanicolau?.ToString("dd/MM/yyyy"))},
-                {"{{GF_ETS}}",          H(gf?.Ets)},
-                {"{{GF_GESTAS}}",       H(gf?.Gestas?.ToString())},
-                {"{{GF_PARTOS}}",       H(gf?.Partos?.ToString())},
-                {"{{GF_ABORTOS}}",      H(gf?.Abortos?.ToString())},
-                {"{{GF_CESAREAS}}",     H(gf?.Cesareas?.ToString())},
-                // Genitourinario masculino
-                {"{{GM_PREPUCIO}}",     Chk(gm != null && gm.PrepucioRetractil)},
-                {"{{GM_TESTICULOS}}",   Chk(gm != null && gm.TesticulosDescendidos)},
-                {"{{GM_FIMOSIS}}",      Chk(gm != null && gm.Fimosis)},
-                {"{{GM_CRIPTORQUIDIA}}",Chk(gm != null && gm.Criptorquidia)},
-                {"{{GM_VARICOCELE}}",   Chk(gm != null && gm.Varicocele)},
-                {"{{GM_HIDROCELE}}",    Chk(gm != null && gm.Hidrocele)},
-                {"{{GM_HERNIA}}",       Chk(gm != null && gm.Hernia)},
-                {"{{GM_PSA}}",          H(gm?.Psa)},
-                {"{{GM_MPF}}",          H(gm?.MetodoPlanificacion)},
-                // Columna vertebral
-                {"{{CV_LORD_CERV}}", CV(col?.LordosisCervical)},
-                {"{{CV_LORD_DORS}}", CV(col?.LordosisDorsal)},
-                {"{{CV_LORD_LUMB}}", CV(col?.LordosisLumbar)},
-                {"{{CV_CIF_CERV}}",  CV(col?.CifosisCervical)},
-                {"{{CV_CIF_DORS}}",  CV(col?.CifosisDorsal)},
-                {"{{CV_CIF_LUMB}}",  CV(col?.CifosisLumbar)},
-                // Escoliosis
-                {"{{ESC_DORS_DER}}",  Chk(col != null && col.EscoliosisDorsalDerecha)},
-                {"{{ESC_LUMB_DER}}",  Chk(col != null && col.EscoliosisLumbarDerecha)},
-                {"{{ESC_DOBLE_DER}}", Chk(col != null && col.EscoliosisDobleDerecha)},
-                {"{{ESC_DORS_IZQ}}",  Chk(col != null && col.EscoliosisDorsalIzquierda)},
-                {"{{ESC_LUMB_IZQ}}",  Chk(col != null && col.EscoliosisLumbarIzquierda)},
-                {"{{ESC_DOBLE_IZQ}}", Chk(col != null && col.EscoliosisDobleIzquierda)},
-                // Diagnóstico / resultado
-                {"{{DIAGNOSTICO}}",       H(Evaluacion?.Observaciones)},
-                {"{{RES_APTO}}",          apt == 1 ? "X" : ""},
-                {"{{RES_NO_APTO}}",       apt == 3 ? "X" : ""},
-                {"{{RES_RESTRICCIONES}}", apt == 2 ? "X" : ""},
-                {"{{RECOMENDACIONES}}",   H(Evaluacion?.Recomendaciones)},
+                {"{{PROFESION}}",     H(eval.Profesion)}, {"{{EX_INGRESO}}", esC ? "X" : ""}, {"{{EX_PERIODICO}}", !esC ? "X" : ""},
+                {"{{SEXO_MASC_BG}}",  esM ? "background:#333;color:#fff;" : "background:#eee;"}, {"{{SEXO_FEM_BG}}", esF ? "background:#333;color:#fff;" : "background:#eee;"}, {"{{TIPO_SANGRE}}", H(GetSangreText(eval.FkTipoSangre))},
+                {"{{APP_OBSERVACIONES}}", H(eval.SintomasPaciente)}, {"{{DIAGNOSTICO}}", H(eval.Observaciones)}, {"{{RECOMENDACIONES}}", H(eval.Recomendaciones)},
+                {"{{RES_APTO}}",      eval.FkAptitudMedica == 1 ? "X" : ""}, {"{{RES_NO_APTO}}", eval.FkAptitudMedica == 3 ? "X" : ""}, {"{{RES_RESTRICCIONES}}", eval.FkAptitudMedica == 2 ? "X" : ""},
+                // Signos
+                {"{{EF_TA}}",         eval.PresionSistolica + "/" + eval.PresionDiastolica}, {"{{EF_FC}}", H(eval.FrecuenciaCardiaca)}, {"{{EF_FR}}", H(eval.FrecuenciaRespiratoria)},
+                {"{{EF_PESO}}",       H(eval.PesoKg)}, {"{{EF_TALLA}}", H(eval.AlturaMetros)}, {"{{EF_IMC}}", H(eval.Imc)}, {"{{EF_TEMP}}", H(eval.Temperatura)}, {"{{EF_APARATOS}}", H(eval.AparatosSistemas)}, {"{{EF_SINTOMAS}}", H(eval.SintomasPaciente)},
+                // Habitos / Vacunas
+                {"{{HAB_FUMA}}",      eval.Habitos != null ? Chk(eval.Habitos.Fuma) : ""}, {"{{HAB_ANOS_FUMA}}", H(eval.Habitos?.AnosFumando)}, {"{{HAB_CIGARROS}}", H(eval.Habitos?.CigarrosDiarios)}, {"{{HAB_EX_FUMADOR}}", eval.Habitos != null && eval.Habitos.EsExFumador ? "Si" : ""},
+                {"{{HAB_DROGAS}}",    eval.Habitos != null ? Chk(eval.Habitos.UsaDrogas) : ""}, {"{{HAB_TIPO_DROGA}}", H(eval.Habitos?.TipoDrogas)}, {"{{HAB_ALCOHOL}}", eval.Habitos != null ? Chk(eval.Habitos.BebeAlcohol) : ""}, {"{{HAB_FREC_ALCOHOL}}", H(eval.Habitos?.FrecuenciaAlcohol)},
+                {"{{HAB_DEPORTE}}",   eval.Habitos != null ? Chk(eval.Habitos.HaceDeporte) : ""}, {"{{HAB_TIPO_DEPORTE}}", H(eval.Habitos?.TipoDeporte)}, {"{{HAB_TIEMPO_LIBRE}}", H(eval.Habitos?.DescripcionTiempoLibre)},
+                {"{{VAC_T1}}",        eval.Vacunacion != null ? Chk(eval.Vacunacion.TetanosDosis1) : ""}, {"{{VAC_T2}}", eval.Vacunacion != null ? Chk(eval.Vacunacion.TetanosDosis2) : ""}, {"{{VAC_T3}}", eval.Vacunacion != null ? Chk(eval.Vacunacion.TetanosDosis3) : ""},
+                {"{{VAC_H1}}",        eval.Vacunacion != null ? Chk(eval.Vacunacion.HepatitisDosis1) : ""}, {"{{VAC_H2}}", eval.Vacunacion != null ? Chk(eval.Vacunacion.HepatitisDosis2) : ""}, {"{{VAC_H1N1}}", eval.Vacunacion != null ? Chk(eval.Vacunacion.InfluenzaH1N1) : ""},
+                // Columna / Ginec
+                {"{{CV_LORD_CERV}}",  CV(eval.Columna?.LordosisCervical)}, {"{{CV_LORD_DORS}}", CV(eval.Columna?.LordosisDorsal)}, {"{{CV_LORD_LUMB}}", CV(eval.Columna?.LordosisLumbar)}, {"{{CV_CIF_CERV}}", CV(eval.Columna?.CifosisCervical)}, {"{{CV_CIF_DORS}}", CV(eval.Columna?.CifosisDorsal)}, {"{{CV_CIF_LUMB}}", CV(eval.Columna?.CifosisLumbar)},
+                {"{{ESC_DORS_DER}}",  eval.Columna != null ? Chk(eval.Columna.EscoliosisDorsalDerecha) : ""}, {"{{ESC_LUMB_DER}}", eval.Columna != null ? Chk(eval.Columna.EscoliosisLumbarDerecha) : ""}, {"{{ESC_DOBLE_DER}}", eval.Columna != null ? Chk(eval.Columna.EscoliosisDobleDerecha) : ""},
+                {"{{ESC_DORS_IZQ}}",  eval.Columna != null ? Chk(eval.Columna.EscoliosisDorsalIzquierda) : ""}, {"{{ESC_LUMB_IZQ}}", eval.Columna != null ? Chk(eval.Columna.EscoliosisLumbarIzquierda) : ""}, {"{{ESC_DOBLE_IZQ}}", eval.Columna != null ? Chk(eval.Columna.EscoliosisDobleIzquierda) : ""},
+                {"{{GF_MENARCA}}",    H(eval.DetalleFemenino?.EdadMenarca)}, {"{{GF_CICLOS}}", H(eval.DetalleFemenino?.Ciclos)}, {"{{GF_FUM}}", eval.DetalleFemenino?.FechaUltimaMenstruacion?.ToString("dd/MM/yyyy") ?? ""}, {"{{GF_PLANIFICACION}}", H(eval.DetalleFemenino?.MetodoPlanificacion)}, {"{{GF_CITVAG}}", eval.DetalleFemenino?.FechaUltimoPapanicolau?.ToString("dd/MM/yyyy") ?? ""}, {"{{GF_GESTAS}}", H(eval.DetalleFemenino?.Gestas)}, {"{{GF_PARTOS}}", H(eval.DetalleFemenino?.Partos)}, {"{{GF_ABORTOS}}", H(eval.DetalleFemenino?.Abortos)}, {"{{GF_CESAREAS}}", H(eval.DetalleFemenino?.Cesareas)},
+                {"{{GM_PREPUCIO}}",   eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.PrepucioRetractil) : ""}, {"{{GM_TESTICULOS}}", eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.TesticulosDescendidos) : ""}, {"{{GM_FIMOSIS}}", eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.Fimosis) : ""}, {"{{GM_CRIPTORQUIDIA}}", eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.Criptorquidia) : ""}, {"{{GM_VARICOCELE}}", eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.Varicocele) : ""}, {"{{GM_HIDROCELE}}", eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.Hidrocele) : ""}, {"{{GM_HERNIA}}", eval.DetalleMasculino != null ? Chk(eval.DetalleMasculino.Hernia) : ""}, {"{{GM_PSA}}", H(eval.DetalleMasculino?.Psa)}, {"{{GM_MPF}}", H(eval.DetalleMasculino?.MetodoPlanificacion)},
             };
 
-            // 20 filas N/A/D (plantilla {{EF_1_N}} … {{EF_20_D}}) — deben coincidir con EvaluacionMedica.js (examSystems)
-            AgregarTokensExamenFisico20(rep, Evaluacion != null ? Evaluacion.OrdenExamenFisico : null, H);
+            // Antecedentes (Tags)
+            string Ant(string kw) => eval.Antecedentes.Any(a => a.NombreCondicion.ToUpper().Contains(kw.ToUpper()) && a.EsPositivo) ? "X" : "";
+            
+            // AHF - Heredo Familiares
+            var ahfKeys = new[] { "HTA", "CORONARIA", "ACV", "DIABETES", "TIROIDES", "ASMA", "ALERGIA", "TBC", "ALCOHOL", "EPILEPSIA", "MENTALES", "CONGENITAS", "CANCER", "VARICES" };
+            foreach (var k in ahfKeys) rep["{{AHF_" + k + "}}"] = Ant(k);
+            
+            // APP - Personales Patológicos
+            var appKeys = new[] { "HIPERTENSION", "QUIRURGICOS", "TRAUMATICOS", "ALERGICOS", "CONGENITOS", "METABOLICOS", "INFECCIOSOS", "TUMORALES", "RESPIRATORIAS", "MEDICAMENTOS", "TRANSFUSIONALES", "LITIASIS", "HACINAMIENTO", "AGUA", "ALCANTARILLADO", "OTROS" };
+            foreach (var k in appKeys) rep["{{APP_" + k + "}}"] = Ant(k);
 
-            // Aplicar todos los reemplazos
-            foreach (var kv in rep)
-                html = html.Replace(kv.Key, kv.Value);
+            // Gineco adicionales
+            rep["{{GF_ETS}}"] = H(eval.DetalleFemenino?.Ets);
+            rep["{{GF_IVSA}}"] = H(eval.DetalleFemenino?.Ivsa);
+            rep["{{GF_HIJOS}}"] = H(eval.DetalleFemenino?.NumeroHijosEdades);
 
+            // Campo Realizó (Doctor) - Por ahora línea en blanco o nombre si lo tuviéramos
+            rep["{{REALIZO}}"] = "________________________________________________";
+
+            // Laborales Rows
+            var laborales = new StringBuilder();
+            if (eval.AntecedentesLaborales != null && eval.AntecedentesLaborales.Count > 0) {
+                foreach (var al in eval.AntecedentesLaborales)
+                    laborales.AppendFormat("<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td></tr>\n",
+                        H(al.Empresa), H(al.TiempoLaborado), H(al.Puesto), H(al.AgentesExpuesto), H(al.AccidentesPrevios));
+            } else {
+                laborales.Append("<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>\n");
+            }
+            rep["{{LABORALES_ROWS}}"] = laborales.ToString();
+
+            // Examen Fisico (20 filas)
+            AgregarTokensExamenFisico20(rep, eval.OrdenExamenFisico, H);
+
+            foreach (var kv in rep) html = html.Replace(kv.Key, kv.Value ?? "");
             PaseHtml = html;
         }
 
-        /// <summary>
-        /// Rellena {{EF_n_N}}, {{EF_n_A}}, {{EF_n_D}} para n=1..20 a partir de OrdenExamenFisico.
-        /// Las etiquetas deben alinearse con examSystems en EvaluacionMedica.js.
-        /// </summary>
-        private static void AgregarTokensExamenFisico20(Dictionary<string, string> rep, List<OrdenExamenFisicoVm> lista,
-            Func<string, string> H)
+        private static void AgregarTokensExamenFisico20(Dictionary<string, string> rep, List<OrdenExamenFisicoVm> exfs, Func<object, string> H)
         {
-            var examSystems = new[]
-            {
-                "1. Cabeza", "2. Ojos", "3. Nariz", "4. Boca",
-                "5. Dentadura", "6. Faringe", "7. Amígdalas", "8. Otoscopia",
-                "9. Cuello", "10. Columna-espalda", "11. Extremidades", "12. Piel",
-                "13. Ap. Respiratorio", "14. Cardiaco", "15. Vascular periférico",
-                "16. Abdomen", "17. Neurológico", "18. Genitales", "19. Hernias", "20. Otro"
+            var examSystems = new[] {
+                "Cabeza", "Ojos", "Nariz", "Boca", "Dentadura", "Faringe", "Amígdalas", "Otoscopia",
+                "Cuello", "Columna-espalda", "Extremidades", "Piel", "Ap. Respiratorio", "Cardiaco", "Vascular periférico",
+                "Abdomen", "Neurológico", "Genitales", "Hernias", "Otro"
             };
-            for (int i = 0; i < 20; i++)
-            {
-                var row = BuscarExamenFisicoPorEtiqueta(lista, examSystems[i]);
+            for (int i = 0; i < 20; i++) {
                 string n = "", a = "", d = "";
-                if (row != null)
-                {
-                    if (row.EsNormal)
-                        n = "X";
-                    else
-                    {
-                        a = "X";
-                        d = H(row.Hallazgos);
-                    }
+                string target = examSystems[i].ToUpper();
+                var item = exfs.FirstOrDefault(x => x.SistemaCuerpo.ToUpper().Contains(target));
+                if (item != null) {
+                    if (item.EsNormal) n = "X";
+                    else { a = "X"; d = H(item.Hallazgos); }
                 }
-                int num = i + 1;
-                rep["{{EF_" + num + "_N}}"] = n;
-                rep["{{EF_" + num + "_A}}"] = a;
-                rep["{{EF_" + num + "_D}}"] = d;
+                int shipNum = i + 1;
+                rep["{{EF_" + shipNum + "_N}}"] = n; rep["{{EF_" + shipNum + "_A}}"] = a; rep["{{EF_" + shipNum + "_D}}"] = d;
             }
         }
 
-        private static OrdenExamenFisicoVm BuscarExamenFisicoPorEtiqueta(List<OrdenExamenFisicoVm> lista, string etiquetaCanonical)
-        {
-            if (lista == null || lista.Count == 0 || string.IsNullOrEmpty(etiquetaCanonical))
-                return null;
-
-            foreach (var x in lista)
-            {
-                if (x == null || string.IsNullOrEmpty(x.SistemaCuerpo)) continue;
-                if (string.Equals(x.SistemaCuerpo.Trim(), etiquetaCanonical, StringComparison.OrdinalIgnoreCase))
-                    return x;
-            }
-
-            var normCanon = NormalizarEtiquetaSistema(etiquetaCanonical);
-            foreach (var x in lista)
-            {
-                if (x?.SistemaCuerpo == null) continue;
-                if (NormalizarEtiquetaSistema(x.SistemaCuerpo) == normCanon)
-                    return x;
-            }
-
-            var tail = etiquetaCanonical;
-            var p = etiquetaCanonical.IndexOf('.');
-            if (p >= 0 && p + 1 < etiquetaCanonical.Length)
-                tail = etiquetaCanonical.Substring(p + 1).Trim();
-
-            foreach (var x in lista)
-            {
-                if (string.IsNullOrEmpty(x?.SistemaCuerpo)) continue;
-                var sc = x.SistemaCuerpo.Trim();
-                if (sc.IndexOf(tail, StringComparison.OrdinalIgnoreCase) >= 0)
-                    return x;
-            }
-
-            var nt = NormalizarEtiquetaSistema(tail);
-            foreach (var x in lista)
-            {
-                if (string.IsNullOrEmpty(x?.SistemaCuerpo)) continue;
-                var nx = NormalizarEtiquetaSistema(x.SistemaCuerpo);
-                if (nx.Contains(nt) || nt.Contains(nx))
-                    return x;
-            }
-
-            return null;
-        }
-
-        private static string NormalizarEtiquetaSistema(string s)
-        {
-            if (string.IsNullOrEmpty(s)) return "";
-            s = QuitarPrefijoNumericoLista(s).Trim().ToLowerInvariant();
-            return Regex.Replace(QuitarMarcasDiacriticas(s), @"\s+", "");
-        }
-
-        private static string QuitarPrefijoNumericoLista(string s)
-        {
-            if (string.IsNullOrEmpty(s)) return s;
-            var t = s.TrimStart();
-            int i = 0;
-            while (i < t.Length && char.IsDigit(t[i])) i++;
-            if (i == 0) return s.Trim();
-            if (i < t.Length && t[i] == '.')
-            {
-                i++;
-                while (i < t.Length && char.IsWhiteSpace(t[i])) i++;
-                return i < t.Length ? t.Substring(i) : "";
-            }
-            return s.Trim();
-        }
-
-        private static string QuitarMarcasDiacriticas(string text)
-        {
-            if (string.IsNullOrEmpty(text)) return text;
-            var normalized = text.Normalize(NormalizationForm.FormD);
-            var sb = new StringBuilder(normalized.Length);
-            foreach (var c in normalized)
-            {
-                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-                    sb.Append(c);
-            }
-            return sb.ToString().Normalize(NormalizationForm.FormC);
-        }
-
-        // ── ANTIDOPING — lee el HTML y sustituye tokens ──────────────────────
-        // ── ANTIDOPING — lee el HTML y sustituye tokens ──────────────────────
+        // ── ANTIDOPING ──
         private void GenerarAntidopingDesdeHtml()
         {
-            string templatePath = Server.MapPath("~/ServicioMedico/Formatos/Antidoping.html");
-            if (!File.Exists(templatePath))
-                throw new Exception("Template de antidoping no encontrado: " + templatePath);
+            var orden = OrdenServicioMedicoDal.ObtenerPorId(IdOrden);
+            var anti = AntidopingDal.ObtenerPorOrden(IdOrden);
+            if (orden == null || anti == null) throw new Exception("Orden o prueba toxicológica no encontrada.");
 
+            string templatePath = Server.MapPath("~/ServicioMedico/Formatos/Antidoping.html");
+            if (!File.Exists(templatePath)) throw new Exception("Template de antidoping no encontrado.");
             string html = File.ReadAllText(templatePath, Encoding.UTF8);
 
-            string H(string s) => HttpUtility.HtmlEncode(s ?? "");
+            string H(object s) => HttpUtility.HtmlEncode(s?.ToString() ?? "");
+            string ChkBox(bool marcado) => marcado ? "&#9745;" : "&#9744;";
 
-            var anti = AntidopingDal.ObtenerPorOrden(IdOrden);
-            // Agregamos la orden para sacar los datos correctos si es un Candidato
-            var orden = OrdenServicioMedicoDal.ObtenerPorId(IdOrden);
-
-            // Helpers de resultado
-            bool ResultNeg(bool aplica, bool positivo) => aplica && !positivo;
-            bool ResultPos(bool aplica, bool positivo) => aplica && positivo;
-
-            // Función para dibujar una casilla de verificación bonita en el HTML
-            string CheckBoxHtml(bool marcado) => marcado
-                ? "<span style='font-size:16px; font-weight:bold;'>&#9745;</span>"
-                : "<span style='font-size:16px; color:#aaa;'>&#9744;</span>";
-
-            // Veredicto
             string veredictoHtml = "";
-            if (anti != null && !string.IsNullOrWhiteSpace(anti.VeredictoFinal))
-            {
-                bool esNoApto = anti.VeredictoFinal.ToUpper().Contains("NO APTO");
-                veredictoHtml = esNoApto
-                    ? "<span style='border:2px solid #000; padding:4px 12px; font-size:11px; font-weight:bold;'>NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES</span>"
-                    : "<span style='border:2px solid #000; padding:4px 12px; font-size:11px; font-weight:bold;'>APTO PARA REALIZAR ACTIVIDADES OPERACIONALES</span>";
+            bool esNoApto = (anti.VeredictoFinal ?? "").ToUpper().Contains("NO APTO");
+            veredictoHtml = "<span style='border:2px solid #000; padding:4px 12px; font-weight:bold;'>" + 
+                            (esNoApto ? "NO APTO PARA REALIZAR ACTIVIDADES OPERACIONALES" : "APTO PARA REALIZAR ACTIVIDADES OPERACIONALES") + "</span>";
+
+            string fotoHtml = string.IsNullOrEmpty(anti.UrlFotoEvidencia) ? "" : $"<img src='{anti.UrlFotoEvidencia}' style='max-width:100%;max-height:100%;object-fit:contain;' />";
+
+            // Helpers para construir filas dinámicas
+            string BuildRow(string label, bool aplica, bool resultado) {
+                if (!aplica) return "";
+                string neg = !resultado ? "&#9745;" : "&#9744;";
+                string pos =  resultado ? "&#9745;" : "&#9744;";
+                return $"<tr><td class='substance-col'>{label}</td><td class='mark-col'>{neg}</td><td class='mark-col'>{pos}</td></tr>";
             }
-
-            // Foto de evidencia
-            string fotoHtml = "";
-            if (anti != null && !string.IsNullOrWhiteSpace(anti.UrlFotoEvidencia))
-                fotoHtml = "<img src='" + anti.UrlFotoEvidencia + "' style='max-width:100%;max-height:100%;object-fit:contain;' />";
-
-            // ¡AQUÍ ESTÁ LA CORRECCIÓN DEL ERROR!
-            // Buscamos primero en la 'orden' y si no, en 'Paciente', así nunca sale en blanco.
-            string nombre = !string.IsNullOrEmpty(orden?.NombrePersona) ? orden.NombrePersona : Paciente?.NombreCompleto;
-            string empresa = !string.IsNullOrEmpty(orden?.EmpresaCandidato) ? orden.EmpresaCandidato : (!string.IsNullOrEmpty(orden?.EmpresaNombre) ? orden.EmpresaNombre : Paciente?.Empresa);
-            string proyecto = !string.IsNullOrEmpty(orden?.ProyectoDesc) ? orden.ProyectoDesc : Paciente?.Proyecto;
-            string numTrabajador = orden?.FkEmpleado?.ToString() ?? Paciente?.NumeroEmpleado ?? "-";
 
             var rep = new Dictionary<string, string>
             {
                 { "{{FECHA}}",        DateTime.Now.ToString("dd/MM/yyyy") },
-                { "{{PROYECTO}}",     H(proyecto ?? "") },
-                { "{{EMPRESA}}",      H(empresa ?? "") },
-                { "{{NOMBRE}}",       H(nombre ?? "") },
-                { "{{NUM_TRABAJADOR}}",H(numTrabajador) },
-                { "{{FOTO_HTML}}",    fotoHtml },
-                { "{{VEREDICTO_HTML}}",veredictoHtml },
-                { "{{COMENTARIOS}}", H(anti?.Comentarios) },
+                { "{{PROYECTO}}",     H(orden.ProyectoDesc) }, 
+                { "{{EMPRESA}}",      H(orden.EmpresaNombre ?? orden.EmpresaCandidato) },
+                { "{{NOMBRE}}",       H(orden.NombrePersona).ToUpper() }, 
+                { "{{NUM_TRABAJADOR}}", orden.FkEmpleado?.ToString() ?? "-" },
+                { "{{FOTO_HTML}}",    fotoHtml }, 
+                { "{{VEREDICTO_HTML}}", veredictoHtml },
+                { "{{COMENTARIOS}}",  H(anti.Comentarios) }, 
                 { "{{MEDICO}}",       "LIC. NATALY MARTINEZ PUGA" },
                 
-                // Sustancias mapeadas con la casilla de verificación
-                { "{{OPI_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaOpiaceos, anti.ResultadoOpiaceos)) : CheckBoxHtml(false) },
-                { "{{OPI_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaOpiaceos, anti.ResultadoOpiaceos)) : CheckBoxHtml(false) },
-                { "{{COC_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaCocaina, anti.ResultadoCocaina)) : CheckBoxHtml(false) },
-                { "{{COC_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaCocaina, anti.ResultadoCocaina)) : CheckBoxHtml(false) },
-                { "{{BZO_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas)) : CheckBoxHtml(false) },
-                { "{{BZO_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas)) : CheckBoxHtml(false) },
-                { "{{AMP_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas)) : CheckBoxHtml(false) },
-                { "{{AMP_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaAnfetaminas, anti.ResultadoAnfetaminas)) : CheckBoxHtml(false) },
-                { "{{MET_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas)) : CheckBoxHtml(false) },
-                { "{{MET_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaMetanfetaminas, anti.ResultadoMetanfetaminas)) : CheckBoxHtml(false) },
-                { "{{THC_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaTHC, anti.ResultadoTHC)) : CheckBoxHtml(false) },
-                { "{{THC_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaTHC, anti.ResultadoTHC)) : CheckBoxHtml(false) },
-                { "{{ALC_NEG}}", anti != null ? CheckBoxHtml(ResultNeg(anti.AplicaAlcohol, anti.ResultadoAlcohol)) : CheckBoxHtml(false) },
-                { "{{ALC_POS}}", anti != null ? CheckBoxHtml(ResultPos(anti.AplicaAlcohol, anti.ResultadoAlcohol)) : CheckBoxHtml(false) },
+                // Filas Dinámicas
+                { "{{ROW_OPI}}", BuildRow("OPI (Opiaceos)",        anti.AplicaOpiaceos,        anti.ResultadoOpiaceos) },
+                { "{{ROW_COC}}", BuildRow("COC (Cocaina)",         anti.AplicaCocaina,         anti.ResultadoCocaina) },
+                { "{{ROW_BZO}}", BuildRow("BZO (Benzodiacepinas)", anti.AplicaBenzodiacepinas, anti.ResultadoBenzodiacepinas) },
+                { "{{ROW_AMP}}", BuildRow("AMP (Anfetaminas)",      anti.AplicaAnfetaminas,      anti.ResultadoAnfetaminas) },
+                { "{{ROW_MET}}", BuildRow("MET (Metanfetaminas)",   anti.AplicaMetanfetaminas,   anti.ResultadoMetanfetaminas) },
+                { "{{ROW_THC}}", BuildRow("THC (Marihuana)",       anti.AplicaTHC,       anti.ResultadoTHC) },
+                { "{{ROW_ALC}}", BuildRow("ALCOHOL",               anti.AplicaAlcohol,           anti.ResultadoAlcohol) },
             };
 
-            foreach (var kv in rep)
-                html = html.Replace(kv.Key, kv.Value);
-
+            foreach (var kv in rep) html = html.Replace(kv.Key, kv.Value);
             PaseHtml = html;
+        }
+
+        private string CalcularEdad(DateTime? fechaNac)
+        {
+            if (!fechaNac.HasValue) return "-";
+            int edad = DateTime.Today.Year - fechaNac.Value.Year;
+            if (fechaNac.Value.Date > DateTime.Today.AddYears(-edad)) edad--;
+            return edad.ToString();
+        }
+
+        private string GetSangreText(int? id)
+        {
+            switch (id) {
+                case 1: return "O+"; case 2: return "O-"; case 3: return "A+"; case 4: return "A-";
+                case 5: return "B+"; case 6: return "B-"; case 7: return "AB+"; case 8: return "AB-";
+                default: return "-";
+            }
         }
     }
 }

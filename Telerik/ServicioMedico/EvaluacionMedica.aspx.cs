@@ -317,6 +317,8 @@ namespace Telerik.ServicioMedico
                 using (var db = new ApplicationDbContext())
                 {
                     var data = db.EstadoCivil
+                        .GroupBy(ec => ec.descripcion)
+                        .Select(g => g.FirstOrDefault())
                         .OrderBy(ec => ec.descripcion)
                         .Select(ec => new CatalogoItem { Id = ec.pkEstadoCivil, Descripcion = ec.descripcion })
                         .ToList();
@@ -357,6 +359,8 @@ namespace Telerik.ServicioMedico
                 using (var db = new ApplicationDbContext())
                 {
                     var data = db.Profesion
+                        .GroupBy(p => p.descripcion)
+                        .Select(g => g.FirstOrDefault())
                         .OrderBy(p => p.descripcion)
                         .Select(p => new CatalogoItem { Id = p.pkProfesion, Descripcion = p.descripcion })
                         .ToList();
@@ -377,6 +381,8 @@ namespace Telerik.ServicioMedico
                 using (var db = new ApplicationDbContext())
                 {
                     var data = db.NivelEscolaridad
+                        .GroupBy(ne => ne.descripcion)
+                        .Select(g => g.FirstOrDefault())
                         .OrderBy(ne => ne.descripcion)
                         .Select(ne => new CatalogoItem { Id = ne.pkNivelEscolaridad, Descripcion = ne.descripcion })
                         .ToList();

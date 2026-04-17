@@ -48,7 +48,7 @@ function apiCall(opts) {
             if (typeof opts.onError === 'function') {
                 opts.onError(xhr, status, error, msg);
             } else {
-                alert(msg);
+                showNotification('error', 'Error de Sistema', msg);
             }
         }
     };
@@ -104,6 +104,65 @@ $(document).ready(function () {
     window.addEventListener('offline', updateConnectionStatus);
     if (!navigator.onLine) updateConnectionStatus();
 });
+
+// --- Helper de Notificaciones Modernas ---
+window.showNotification = function(type, title, body, callbackOrPkPrint) {
+    var $msgOverlay = $('#msgOverlay');
+    var $msgIcon = $('#msgIcon');
+    var $msgTitle = $('#msgTitle');
+    var $msgBody = $('#msgBody');
+    var $btnOk = $('#btnMsgOk');
+    var $btnPrint = $('#btnMsgPrint');
+    var $btnCancel = $('#btnMsgCancel');
+
+    // Reset buttons
+    $btnCancel.hide();
+    $btnPrint.hide();
+    $btnOk.text('Aceptar').off('click').on('click', cerrarMsg);
+
+    // Configurar icono y color según tipo
+    if (type === 'success') {
+        $msgIcon.html('<i class="fas fa-check-circle" style="color: #10b981;"></i>');
+        $msgTitle.css('color', '#059669');
+    } else if (type === 'error') {
+        $msgIcon.html('<i class="fas fa-times-circle" style="color: #ef4444;"></i>');
+        $msgTitle.css('color', '#dc2626');
+    } else if (type === 'warning' || type === 'confirm') {
+        $msgIcon.html('<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>');
+        $msgTitle.css('color', '#d97706');
+    } else {
+        $msgIcon.html('<i class="fas fa-info-circle" style="color: #3b82f6;"></i>');
+        $msgTitle.css('color', '#2563eb');
+    }
+
+    $msgTitle.text(title);
+    $msgBody.text(body);
+
+    // Lógica especial para confirmación
+    if (type === 'confirm' && typeof callbackOrPkPrint === 'function') {
+        $btnCancel.show();
+        $btnOk.text('Confirmar').off('click').on('click', function() {
+            cerrarMsg();
+            callbackOrPkPrint();
+        });
+    } 
+    // Lógica para impresión en éxito
+    else if (typeof callbackOrPkPrint === 'number' || (typeof callbackOrPkPrint === 'string' && !isNaN(callbackOrPkPrint))) {
+        $btnPrint.show().off('click').on('click', function() {
+            cerrarMsg();
+            mostrarModalPase(callbackOrPkPrint);
+        });
+        $btnOk.text('Cerrar');
+    }
+
+    $msgOverlay.css('display', 'flex').hide().fadeIn(300);
+};
+
+window.cerrarMsg = function() {
+    $('#msgOverlay').fadeOut(200, function() {
+        $(this).hide();
+    });
+};
 
 // --- Funciones Globales (Disponibles para onclick) ---
 
@@ -201,14 +260,8 @@ function renderPaginaMed(paginaDatos) {
             // Modalidad badge (Text only)
             var badgeMod = s.Modalidad === 'INGRESO' ? 'badge-ingreso' : 'badge-periodico';
             
-            // Indicadores de exámenes completados (Solo texto coloreado)
+            // Indicadores de exámenes completados - Removidos para limpiar la UI
             var examIndicators = '';
-            if (s.TieneEvaluacion) {
-                examIndicators += '<div class="status-badge badge-med" title="Evaluación Médica Completada"><i class="fas fa-heartbeat"></i> MÉDICO OK</div>';
-            }
-            if (s.TieneAntidoping) {
-                examIndicators += '<div class="status-badge badge-tox" title="Antidoping Completado"><i class="fas fa-vial"></i> TOX OK</div>';
-            }
 
             // Aptitud badge (solo si está completada)
             var aptitudHtml = '';
@@ -264,7 +317,7 @@ window.verDetalle = function(pkOrden) {
             var resp = r.d;
             if (!resp.success) { 
                 cerrarModal();
-                alert(resp.message || 'Error al cargar el detalle'); 
+                showNotification('error', 'No se pudo cargar', resp.message || 'Error al cargar el detalle'); 
                 return; 
             }
             var o = resp.orden;
@@ -313,14 +366,14 @@ window.verDetalle = function(pkOrden) {
         },
         onError: function(xhr, status, error, msg) {
             cerrarModal();
-            alert(msg + '\n\nSi el problema persiste, recargue la página (F5).');
+            showNotification('error', 'Error de Respuesta', msg + '\n\nSi el problema persiste, recargue la página (F5).');
         }
     });
 };
 
 window.imprimirPase = function() {
     if (!currentOrdenId) {
-        alert('Seleccione una solicitud primero.');
+        showNotification('warning', 'Atención', 'Seleccione una solicitud primero.');
         return;
     }
     mostrarModalPase(currentOrdenId);
@@ -368,7 +421,7 @@ window.imprimirPaseModal = function() {
             ventana.print();
         }, 500);
     } else {
-        alert('Permita ventanas emergentes para imprimir');
+        showNotification('warning', 'Bloqueador de Elementos Emergentes', 'Por favor, permita las ventanas emergentes en su navegador para poder imprimir el formato.');
     }
 };
 
@@ -376,27 +429,29 @@ window.cerrarModal = function() { $('.modal-overlay').removeClass('active'); };
 
 window.eliminarSolicitud = function() {
     if (!currentOrdenId) {
-        alert('Seleccione una solicitud primero.');
+        showNotification('warning', 'Atención', 'Seleccione una solicitud primero.');
         return;
     }
-    if (!confirm('¿Desea eliminar esta solicitud?')) return;
-
-    apiCall({
-        url: 'DashboardRecursosHumanosSM.aspx/Eliminar',
-        data: { pkOrdenMedico: currentOrdenId },
-        onSuccess: function (r) {
-            var resp = r.d;
-            if (resp && resp.success) {
-                cerrarModal();
-                aplicarFiltros(true);
-                alert(resp.message || 'Solicitud eliminada correctamente.');
-            } else {
-                alert((resp && resp.message) ? resp.message : 'No fue posible eliminar la solicitud.');
+    
+    // Cambio de confirm de navegador por modal personalizado
+    showNotification('confirm', 'Confirmar Eliminación', '¿Está seguro de que desea eliminar permanentemente esta solicitud? Esta acción no se puede deshacer.', function() {
+        apiCall({
+            url: 'DashboardRecursosHumanosSM.aspx/Eliminar',
+            data: { pkOrdenMedico: currentOrdenId },
+            onSuccess: function (r) {
+                var resp = r.d;
+                if (resp && resp.success) {
+                    cerrarModal();
+                    aplicarFiltros(true);
+                    showNotification('success', '¡Eliminado!', resp.message || 'Solicitud eliminada correctamente.');
+                } else {
+                    showNotification('error', 'Error', (resp && resp.message) ? resp.message : 'No fue posible eliminar la solicitud.');
+                }
+            },
+            onError: function(xhr, status, error, msg) {
+                showNotification('error', 'Error de Conexión', msg);
             }
-        },
-        onError: function(xhr, status, error, msg) {
-            alert(msg);
-        }
+        });
     });
 };
 
@@ -516,16 +571,16 @@ window.crearSolicitud = function() {
 
     if (currentModalidad === 'INGRESO') {
         if (!data.NombreCandidato || !data.ApellidoPaterno || !data.FkEmpresa) {
-            alert('Por favor complete los campos obligatorios del candidato.');
+            showNotification('warning', 'Campos Incompletos', 'Por favor complete los campos obligatorios del candidato (Nombres, Apellido Paterno y Empresa).');
             return;
         }
     } else {
         if (!data.NumeroEmpleado || !$('#infoEmpleadoEncontrado').is(':visible')) {
-            alert('Por favor busque y seleccione un empleado válido.');
+            showNotification('warning', 'Empleado No Seleccionado', 'Por favor busque y seleccione un empleado de la lista antes de continuar.');
             return;
         }
         if (!data.FkTipoServicio) {
-            alert('Seleccione el tipo de examen para empleado.');
+            showNotification('warning', 'Tipo de Examen', 'Debe seleccionar el tipo de examen que se realizará al empleado.');
             return;
         }
     }
@@ -539,15 +594,15 @@ window.crearSolicitud = function() {
                 cerrarNuevaSolicitud();
                 aplicarFiltros(true);
                 
-                // Nuevo flujo: Mensaje de éxito primero
-                alert('¡Solicitud creada exitosamente!');
-                
-                // Opción de imprimir después
-                if (confirm('¿Desea imprimir el pase médico ahora mismo?')) {
-                    mostrarModalPase(r.d.pkOrdenMedico);
-                }
+                // NOTIFICACIÓN DE ÉXITO PREMIUM CON OPCIÓN DE IMPRESIÓN
+                showNotification(
+                    'success', 
+                    '¡Éxito!', 
+                    'La solicitud ha sido creada correctamente en el sistema. ¿Desea imprimir el pase médico en este momento?', 
+                    r.d.pkOrdenMedico
+                );
             } else {
-                alert(r.d.message);
+                showNotification('error', 'Error al Crear', r.d.message);
             }
         }
     });
@@ -562,12 +617,23 @@ window.onCambioTamanoPagina = function() {
 function buildPaginacion(actual, total) {
     if (total <= 1) return '';
     var html = [];
-    html.push('<button ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPagina(' + (actual-1) + ')">&laquo;</button>');
-    for (var i = 1; i <= total; i++) {
-        html.push('<button class="' + (i === actual ? 'pag-active' : '') + '" onclick="irAPagina(' + i + ')">' + i + '</button>');
+    
+    // Ant
+    html.push('<button class="pag-btn" ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPagina(' + (actual - 1) + ')" title="Anterior"><i class="fas fa-chevron-left"></i></button>');
+
+    // Páginas
+    var start = Math.max(1, actual - 2);
+    var end = Math.min(total, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+
+    for (var i = start; i <= end; i++) {
+        html.push('<button class="pag-btn ' + (i === actual ? 'active' : '') + '" onclick="irAPagina(' + i + ')">' + i + '</button>');
     }
-    html.push('<button ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPagina(' + (actual+1) + ')">&raquo;</button>');
-    return html.join('');
+
+    // Sig
+    html.push('<button class="pag-btn" ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPagina(' + (actual + 1) + ')" title="Siguiente"><i class="fas fa-chevron-right"></i></button>');
+    
+    return '<div class="paginacion-wrapper">' + html.join('') + '</div>';
 }
 
 window.irAPagina = function(num) {

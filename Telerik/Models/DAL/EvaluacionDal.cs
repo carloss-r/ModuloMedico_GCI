@@ -5,673 +5,386 @@ using System.Data.Entity;
 using System.Linq;
 using Telerik.Models;
 using Telerik.Models.ViewModels;
+using System.Data.SqlClient;
+using System.Data;
+using System.Configuration;
 
 namespace Telerik.Models.DAL
 {
     public class EvaluacionDal
     {
-        /// <summary>
-        /// Guarda una evaluación médica completa usando Entity Framework.
-        /// Las vacunas se guardan en HabitosPersonales directamente (no tabla separada).
-        /// </summary>
         public static void GuardarEvaluacion(EvaluacionMedicaVm vm)
         {
-            using (var db = new ApplicationDbContext())
+            string connStr = ConfigurationManager.ConnectionStrings["GCI_ModuloMedico"].ConnectionString;
+            using (SqlConnection conn = new SqlConnection(connStr))
             {
-                using (var transaccion = db.Database.BeginTransaction())
+                conn.Open();
+                using (SqlTransaction trans = conn.BeginTransaction())
                 {
                     try
                     {
-                        // 1. Buscar si ya existe la evaluación para esta orden
-                        var eval = db.EvaluacionesClinicas.FirstOrDefault(e => e.fkOrdenMedico == vm.PkOrdenMedico);
-                        bool isNew = eval == null;
+                        string sqlCheck = "SELECT pkEvaluacion FROM EvaluacionesClinicas WHERE fkOrdenMedico = @id";
+                        SqlCommand cmd = new SqlCommand(sqlCheck, conn, trans);
+                        cmd.Parameters.AddWithValue("@id", vm.PkOrdenMedico);
+                        object evalIdObj = cmd.ExecuteScalar();
+                        int pkEval;
 
-                        if (isNew)
+                        string sqlEval;
+                        var p = new List<SqlParameter> {
+                            new SqlParameter("@id", vm.PkOrdenMedico),
+                            new SqlParameter("@peso", (object)vm.PesoKg ?? DBNull.Value),
+                            new SqlParameter("@alt", (object)vm.AlturaMetros ?? DBNull.Value),
+                            new SqlParameter("@imc", (object)vm.Imc ?? DBNull.Value),
+                            new SqlParameter("@sis", (object)vm.PresionSistolica ?? DBNull.Value),
+                            new SqlParameter("@dia", (object)vm.PresionDiastolica ?? DBNull.Value),
+                            new SqlParameter("@temp", (object)vm.Temperatura ?? DBNull.Value),
+                            new SqlParameter("@fc", (object)vm.FrecuenciaCardiaca ?? DBNull.Value),
+                            new SqlParameter("@fr", (object)vm.FrecuenciaRespiratoria ?? DBNull.Value),
+                            new SqlParameter("@glu", (object)vm.Glucosa ?? DBNull.Value),
+                            new SqlParameter("@oxi", (object)vm.Oximetria ?? DBNull.Value),
+                            new SqlParameter("@imcd", (object)vm.ImcDescripcion ?? (object)DBNull.Value),
+                            new SqlParameter("@aps", (object)vm.AparatosSistemas ?? (object)DBNull.Value),
+                            new SqlParameter("@apt", (object)vm.FkAptitudMedica ?? DBNull.Value),
+                            new SqlParameter("@obs", (object)vm.Observaciones ?? (object)DBNull.Value),
+                            new SqlParameter("@rec", (object)vm.Recomendaciones ?? (object)DBNull.Value),
+                            new SqlParameter("@sin", (object)vm.SintomasPaciente ?? (object)DBNull.Value),
+                            new SqlParameter("@nss", (object)vm.Nss ?? (object)DBNull.Value),
+                            new SqlParameter("@fn", (object)vm.FechaNacimiento ?? (object)DBNull.Value),
+                            new SqlParameter("@ln", (object)vm.LugarNacimiento ?? (object)DBNull.Value),
+                            new SqlParameter("@ec", (object)vm.EstadoCivil ?? (object)DBNull.Value),
+                            new SqlParameter("@md", (object)vm.ManoDominante ?? (object)DBNull.Value),
+                            new SqlParameter("@tel", (object)vm.Telefono ?? (object)DBNull.Value),
+                            new SqlParameter("@dom", (object)vm.Domicilio ?? (object)DBNull.Value),
+                            new SqlParameter("@esc", (object)vm.Escolaridad ?? (object)DBNull.Value),
+                            new SqlParameter("@pro", (object)vm.Profesion ?? (object)DBNull.Value),
+                            new SqlParameter("@ale", (object)vm.Alergias ?? (object)DBNull.Value),
+                            new SqlParameter("@ts", (object)vm.FkTipoSangre ?? DBNull.Value),
+                            new SqlParameter("@lug", (object)vm.LugarEvaluacion ?? (object)DBNull.Value)
+                        };
+
+                        if (evalIdObj == null)
                         {
-                            eval = new EvaluacionClinica { fkOrdenMedico = vm.PkOrdenMedico };
-                            db.EvaluacionesClinicas.Add(eval);
+                            sqlEval = @"INSERT INTO EvaluacionesClinicas (fkOrdenMedico, fechaEvaluacion, pesoKg, alturaMetros, imc, presionSistolica, presionDiastolica, temperatura, frecuenciaCardiaca, frecuenciaRespiratoria, glucosa, oximetria, imcDescripcion, aparatosSistemas, fkAptitudMedica, observaciones, recomendaciones, sintomasPaciente, nss, fechaNacimiento, lugarNacimiento, estadoCivil, manoDominante, telefono, domicilio, escolaridad, profesion, alergias, fkTipoSangre, lugarEvaluacion)
+                                        VALUES (@id, GETDATE(), @peso, @alt, @imc, @sis, @dia, @temp, @fc, @fr, @glu, @oxi, @imcd, @aps, @apt, @obs, @rec, @sin, @nss, @fn, @ln, @ec, @md, @tel, @dom, @esc, @pro, @ale, @ts, @lug);
+                                        SELECT SCOPE_IDENTITY();";
+                            cmd.CommandText = sqlEval;
+                            cmd.Parameters.Clear(); cmd.Parameters.AddRange(p.ToArray());
+                            pkEval = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+                        else
+                        {
+                            pkEval = (int)evalIdObj;
+                            sqlEval = @"UPDATE EvaluacionesClinicas SET pesoKg=@peso, alturaMetros=@alt, imc=@imc, presionSistolica=@sis, presionDiastolica=@dia, temperatura=@temp, frecuenciaCardiaca=@fc, frecuenciaRespiratoria=@fr, glucosa=@glu, oximetria=@oxi, imcDescripcion=@imcd, aparatosSistemas=@aps, fkAptitudMedica=@apt, observaciones=@obs, recomendaciones=@rec, sintomasPaciente=@sin, nss=@nss, fechaNacimiento=@fn, lugarNacimiento=@ln, estadoCivil=@ec, manoDominante=@md, telefono=@tel, domicilio=@dom, escolaridad=@esc, profesion=@pro, alergias=@ale, fkTipoSangre=@ts, lugarEvaluacion=@lug
+                                        WHERE pkEvaluacion = @pk;
+                                        DELETE FROM HistoriaMedica WHERE fkEvaluacion=@pk;
+                                        DELETE FROM AntecedentesLaborales WHERE fkEvaluacion=@pk;
+                                        DELETE FROM OrdenExamenFisico WHERE fkEvaluacion=@pk;
+                                        DELETE FROM HabitosPersonales WHERE fkEvaluacion=@pk;
+                                        DELETE FROM Vacunacion WHERE fkEvaluacion=@pk;
+                                        DELETE FROM EvaluacionColumna WHERE fkEvaluacion=@pk;
+                                        DELETE FROM DetallesGinecoObstetricos WHERE fkEvaluacion=@pk;
+                                        DELETE FROM DetallesGenitourinariosMasc WHERE fkEvaluacion=@pk;";
+                            cmd.CommandText = sqlEval;
+                            cmd.Parameters.Clear(); cmd.Parameters.AddRange(p.ToArray()); cmd.Parameters.AddWithValue("@pk", pkEval);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        eval.fechaEvaluacion        = DateTime.Now;
-                        eval.pesoKg                 = vm.PesoKg;
-                        eval.alturaMetros           = vm.AlturaMetros;
-                        eval.imc                    = vm.Imc;
-                        eval.presionSistolica       = vm.PresionSistolica;
-                        eval.presionDiastolica      = vm.PresionDiastolica;
-                        eval.temperatura            = vm.Temperatura;
-                        eval.frecuenciaCardiaca     = vm.FrecuenciaCardiaca;
-                        eval.frecuenciaRespiratoria = vm.FrecuenciaRespiratoria;
-                        eval.glucosa                = vm.Glucosa;
-                        eval.oximetria              = vm.Oximetria;
-                        eval.imcDescripcion         = vm.ImcDescripcion;
-                        eval.aparatosSistemas       = vm.AparatosSistemas + (vm.Glucosa.HasValue || vm.Oximetria.HasValue || !string.IsNullOrEmpty(vm.ImcDescripcion) ? $" [[STOWED-DATA: Glucosa:{vm.Glucosa}|Oxi:{vm.Oximetria}|IMCDesc:{vm.ImcDescripcion}]]" : "");
-                        eval.fkAptitudMedica        = vm.FkAptitudMedica;
-                        eval.observaciones          = vm.Observaciones;
-                        eval.recomendaciones        = vm.Recomendaciones;
-                        eval.sintomasPaciente       = vm.SintomasPaciente;
-                        eval.nss                    = vm.Nss;
-                        eval.fechaNacimiento        = vm.FechaNacimiento;
-                        eval.lugarNacimiento        = vm.LugarNacimiento;
-                        eval.estadoCivil            = vm.EstadoCivil;
-                        eval.manoDominante          = vm.ManoDominante;
-                        eval.telefono               = vm.Telefono;
-                        eval.domicilio              = vm.Domicilio;
-                        eval.escolaridad            = vm.Escolaridad;
-                        eval.profesion              = vm.Profesion;
-                        eval.alergias               = vm.Alergias;
-                        eval.fkTipoSangre           = vm.FkTipoSangre;
-                        eval.lugarEvaluacion        = vm.LugarEvaluacion;
-
-                        db.SaveChanges(); // Guardamos evaluación primero para tener pkEvaluacion (si es nueva) o actualizarla
-
-                        // Limpiar relaciones existentes si es edición
-                        if (!isNew)
-                        {
-                            var hists = db.HistoriasMedicas.Where(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            db.HistoriasMedicas.RemoveRange(hists);
-
-                            var labs = db.AntecedentesLaborales.Where(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            db.AntecedentesLaborales.RemoveRange(labs);
-
-                            var exfs = db.OrdenesExamenesFisicos.Where(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            db.OrdenesExamenesFisicos.RemoveRange(exfs);
-
-                            var hab = db.HabitosPersonales.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            if (hab != null) db.HabitosPersonales.Remove(hab);
-
-                            var vac = db.Vacunaciones.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            if (vac != null) db.Vacunaciones.Remove(vac);
-
-                            var col = db.EvaluacionesColumna.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            if (col != null) db.EvaluacionesColumna.Remove(col);
-
-                            var gin = db.DetallesGineco.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            if (gin != null) db.DetallesGineco.Remove(gin);
-
-                            var mas = db.DetallesMasculino.FirstOrDefault(x => x.fkEvaluacion == eval.pkEvaluacion);
-                            if (mas != null) db.DetallesMasculino.Remove(mas);
+                        if (vm.AgudezaVisual != null) {
+                            string snellenData = $"OD:{vm.AgudezaVisual.OdSinLentes}|OI:{vm.AgudezaVisual.OiSinLentes}|AO:{vm.AgudezaVisual.AoSinLentes}|ODC:{vm.AgudezaVisual.OdConLentes}|OIC:{vm.AgudezaVisual.OiConLentes}|AOC:{vm.AgudezaVisual.AoConLentes}|Usa:{vm.AgudezaVisual.UsaLentes}|Ref:{vm.AgudezaVisual.ReferenciaVisual}|Ishi:{vm.AgudezaVisual.Daltonismo}";
+                            cmd.CommandText = "INSERT INTO OrdenExamenFisico (fkEvaluacion, sistemaCuerpo, esNormal, hallazgos) VALUES (@pk, 'AGUDEZA_VISUAL', 0, @h)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@h", snellenData);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 9. Agudeza Visual
-                        if (vm.AgudezaVisual != null)
-                        {
-                            string snellenData = string.Format("OD:{0}|OI:{1}|AO:{2}|ODC:{3}|OIC:{4}|AOC:{5}|Usa:{6}|Ref:{7}|Ishi:{8}",
-                                vm.AgudezaVisual.OdSinLentes, vm.AgudezaVisual.OiSinLentes, vm.AgudezaVisual.AoSinLentes,
-                                vm.AgudezaVisual.OdConLentes, vm.AgudezaVisual.OiConLentes, vm.AgudezaVisual.AoConLentes,
-                                vm.AgudezaVisual.UsaLentes, vm.AgudezaVisual.ReferenciaVisual, vm.AgudezaVisual.Daltonismo);
-
-                            db.OrdenesExamenesFisicos.Add(new OrdenExamenFisico
-                            {
-                                fkEvaluacion  = eval.pkEvaluacion,
-                                sistemaCuerpo = "AGUDEZA_VISUAL",
-                                esNormal      = (vm.AgudezaVisual.OdSinLentes == "20/20" && vm.AgudezaVisual.OiSinLentes == "20/20"),
-                                hallazgos     = snellenData
-                            });
+                        if (vm.Habitos != null) {
+                            cmd.CommandText = "INSERT INTO HabitosPersonales (fkEvaluacion, fuma, anosFumando, cigarrosDiarios, esExFumador, bebeAlcohol, frecuenciaAlcohol, usaDrogas, tipoDrogas, haceDeporte, tipoDeporte, descripcionTiempoLibre) VALUES (@pk, @f, @af, @cd, @ef, @ba, @fa, @ud, @td, @hd, @dp, @tl)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@f", vm.Habitos.Fuma); cmd.Parameters.AddWithValue("@af", (object)vm.Habitos.AnosFumando ?? DBNull.Value); cmd.Parameters.AddWithValue("@cd", (object)vm.Habitos.CigarrosDiarios ?? DBNull.Value); cmd.Parameters.AddWithValue("@ef", vm.Habitos.EsExFumador); cmd.Parameters.AddWithValue("@ba", vm.Habitos.BebeAlcohol); cmd.Parameters.AddWithValue("@fa", (object)vm.Habitos.FrecuenciaAlcohol ?? DBNull.Value); cmd.Parameters.AddWithValue("@ud", vm.Habitos.UsaDrogas); cmd.Parameters.AddWithValue("@td", (object)vm.Habitos.TipoDrogas ?? DBNull.Value); cmd.Parameters.AddWithValue("@hd", vm.Habitos.HaceDeporte); cmd.Parameters.AddWithValue("@dp", (object)vm.Habitos.TipoDeporte ?? DBNull.Value); cmd.Parameters.AddWithValue("@tl", (object)vm.Habitos.DescripcionTiempoLibre ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 2. Hábitos Personales
-                        if (vm.Habitos != null)
-                        {
-                            db.HabitosPersonales.Add(new HabitoPersonal
-                            {
-                                fkEvaluacion           = eval.pkEvaluacion,
-                                fuma                   = vm.Habitos.Fuma,
-                                anosFumando            = vm.Habitos.AnosFumando,
-                                cigarrosDiarios        = vm.Habitos.CigarrosDiarios,
-                                esExFumador            = vm.Habitos.EsExFumador,
-                                bebeAlcohol            = vm.Habitos.BebeAlcohol,
-                                frecuenciaAlcohol      = vm.Habitos.FrecuenciaAlcohol,
-                                usaDrogas              = vm.Habitos.UsaDrogas,
-                                tipoDrogas             = vm.Habitos.TipoDrogas,
-                                haceDeporte            = vm.Habitos.HaceDeporte,
-                                tipoDeporte            = vm.Habitos.TipoDeporte,
-                                descripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre + (!string.IsNullOrEmpty(vm.Habitos.TipoDeporte) ? $" [[STOWED-DATA: TipoDeporte:{vm.Habitos.TipoDeporte}]]" : "")
-                            });
+                        if (vm.Vacunacion != null) {
+                            cmd.CommandText = "INSERT INTO Vacunacion (fkEvaluacion, tetanosDosis1, tetanosDosis2, tetanosDosis3, hepatitisDosis1, hepatitisDosis2, influenzaH1N1, observacionesVacunacion) VALUES (@pk, @t1, @t2, @t3, @h1, @h2, @i1, @obv)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@t1", vm.Vacunacion.TetanosDosis1); cmd.Parameters.AddWithValue("@t2", vm.Vacunacion.TetanosDosis2); cmd.Parameters.AddWithValue("@t3", vm.Vacunacion.TetanosDosis3); cmd.Parameters.AddWithValue("@h1", vm.Vacunacion.HepatitisDosis1); cmd.Parameters.AddWithValue("@h2", vm.Vacunacion.HepatitisDosis2); cmd.Parameters.AddWithValue("@i1", vm.Vacunacion.InfluenzaH1N1); cmd.Parameters.AddWithValue("@obv", (object)vm.Vacunacion.ObservacionesVacunacion ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 3. Vacunación
-                        if (vm.Vacunacion != null)
-                        {
-                            db.Vacunaciones.Add(new Vacunacion
-                            {
-                                fkEvaluacion            = eval.pkEvaluacion,
-                                tetanosDosis1           = vm.Vacunacion.TetanosDosis1,
-                                tetanosDosis2           = vm.Vacunacion.TetanosDosis2,
-                                tetanosDosis3           = vm.Vacunacion.TetanosDosis3,
-                                hepatitisDosis1         = vm.Vacunacion.HepatitisDosis1,
-                                hepatitisDosis2         = vm.Vacunacion.HepatitisDosis2,
-                                influenzaH1N1           = vm.Vacunacion.InfluenzaH1N1,
-                                observacionesVacunacion = vm.Vacunacion.ObservacionesVacunacion
-                            });
+                        if (vm.Antecedentes != null) foreach(var a in vm.Antecedentes) {
+                            cmd.CommandText = "INSERT INTO HistoriaMedica (fkEvaluacion, categoria, nombreCondicion, esPositivo, detalles) VALUES (@pk, @c, @n, @p, @d)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@c", a.Categoria); cmd.Parameters.AddWithValue("@n", a.NombreCondicion); cmd.Parameters.AddWithValue("@p", a.EsPositivo); cmd.Parameters.AddWithValue("@d", (object)a.Detalles ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
+                        }
+                        if (vm.AntecedentesLaborales != null) foreach(var l in vm.AntecedentesLaborales) {
+                            cmd.CommandText = "INSERT INTO AntecedentesLaborales (fkEvaluacion, empresa, puesto, tiempoLaborado, agentesExpuestos, accidentesPrevios) VALUES (@pk, @e, @p, @t, @a, @ap)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@e", l.Empresa); cmd.Parameters.AddWithValue("@p", l.Puesto); cmd.Parameters.AddWithValue("@t", l.TiempoLaborado); cmd.Parameters.AddWithValue("@a", l.AgentesExpuesto); cmd.Parameters.AddWithValue("@ap", l.AccidentesPrevios);
+                            cmd.ExecuteNonQuery();
+                        }
+                        if (vm.OrdenExamenFisico != null) foreach(var f in vm.OrdenExamenFisico) {
+                            cmd.CommandText = "INSERT INTO OrdenExamenFisico (fkEvaluacion, sistemaCuerpo, esNormal, hallazgos) VALUES (@pk, @sy, @n, @h)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@sy", f.SistemaCuerpo); cmd.Parameters.AddWithValue("@n", f.EsNormal); cmd.Parameters.AddWithValue("@h", (object)f.Hallazgos ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 3. Historia Médica
-                        if (vm.Antecedentes != null)
-                        {
-                            foreach (var ant in vm.Antecedentes)
-                            {
-                                db.HistoriasMedicas.Add(new HistoriaMedica
-                                {
-                                    fkEvaluacion    = eval.pkEvaluacion,
-                                    categoria       = ant.Categoria,
-                                    nombreCondicion = ant.NombreCondicion,
-                                    esPositivo      = ant.EsPositivo,
-                                    detalles        = ant.Detalles
-                                });
-                            }
+                        if (vm.Columna != null) {
+                            cmd.CommandText = "INSERT INTO EvaluacionColumna (fkEvaluacion, lordosisCervical, lordosisDorsal, lordosisLumbar, cifosisCervical, cifosisDorsal, cifosisLumbar, escoliosisDorsalDerecha, escoliosisDorsalIzquierda, escoliosisLumbarDerecha, escoliosisLumbarIzquierda, escoliosisDobleDerecha, escoliosisDobleIzquierda, observacionesColumna) VALUES (@pk, @lc, @ld, @ll, @cc, @cd, @cl, @edd, @edi, @eld, @eli, @edbd, @edbi, @obs)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@lc", (object)vm.Columna.LordosisCervical ?? DBNull.Value); cmd.Parameters.AddWithValue("@ld", (object)vm.Columna.LordosisDorsal ?? DBNull.Value); cmd.Parameters.AddWithValue("@ll", (object)vm.Columna.LordosisLumbar ?? DBNull.Value); cmd.Parameters.AddWithValue("@cc", (object)vm.Columna.CifosisCervical ?? DBNull.Value); cmd.Parameters.AddWithValue("@cd", (object)vm.Columna.CifosisDorsal ?? DBNull.Value); cmd.Parameters.AddWithValue("@cl", (object)vm.Columna.CifosisLumbar ?? DBNull.Value); cmd.Parameters.AddWithValue("@edd", vm.Columna.EscoliosisDorsalDerecha); cmd.Parameters.AddWithValue("@edi", vm.Columna.EscoliosisDorsalIzquierda); cmd.Parameters.AddWithValue("@eld", vm.Columna.EscoliosisLumbarDerecha); cmd.Parameters.AddWithValue("@eli", vm.Columna.EscoliosisLumbarIzquierda); cmd.Parameters.AddWithValue("@edbd", vm.Columna.EscoliosisDobleDerecha); cmd.Parameters.AddWithValue("@edbi", vm.Columna.EscoliosisDobleIzquierda); cmd.Parameters.AddWithValue("@obs", (object)vm.Columna.ObservacionesColumna ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 4. Antecedentes Laborales
-                        if (vm.AntecedentesLaborales != null)
-                        {
-                            foreach (var al in vm.AntecedentesLaborales)
-                            {
-                                db.AntecedentesLaborales.Add(new AntecedenteLaboral
-                                {
-                                    fkEvaluacion      = eval.pkEvaluacion,
-                                    empresa           = al.Empresa,
-                                    puesto            = al.Puesto,
-                                    tiempoLaborado    = al.TiempoLaborado,
-                                    agentesExpuestos  = al.AgentesExpuesto,
-                                    accidentesPrevios = al.AccidentesPrevios
-                                });
-                            }
+                        if (vm.DetalleFemenino != null) {
+                            cmd.CommandText = "INSERT INTO DetallesGinecoObstetricos (fkEvaluacion, edadMenarca, fechaUltimaMenstruacion, ciclos, gestas, partos, abortos, cesareas, metodoPlanificacion, fechaUltimoPapanicolau, edadesHijos) VALUES (@pk, @em, @fm, @ci, @ge, @pa, @ab, @ce, @mp, @fp, @eh)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@em", (object)vm.DetalleFemenino.EdadMenarca ?? DBNull.Value); cmd.Parameters.AddWithValue("@fm", (object)vm.DetalleFemenino.FechaUltimaMenstruacion ?? DBNull.Value); cmd.Parameters.AddWithValue("@ci", (object)vm.DetalleFemenino.Ciclos ?? DBNull.Value); cmd.Parameters.AddWithValue("@ge", (object)vm.DetalleFemenino.Gestas ?? DBNull.Value); cmd.Parameters.AddWithValue("@pa", (object)vm.DetalleFemenino.Partos ?? DBNull.Value); cmd.Parameters.AddWithValue("@ab", (object)vm.DetalleFemenino.Abortos ?? DBNull.Value); cmd.Parameters.AddWithValue("@ce", (object)vm.DetalleFemenino.Cesareas ?? DBNull.Value); cmd.Parameters.AddWithValue("@mp", (object)vm.DetalleFemenino.MetodoPlanificacion ?? DBNull.Value); cmd.Parameters.AddWithValue("@fp", (object)vm.DetalleFemenino.FechaUltimoPapanicolau ?? DBNull.Value); cmd.Parameters.AddWithValue("@eh", (object)vm.DetalleFemenino.NumeroHijosEdades ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
+                        } else if (vm.DetalleMasculino != null) {
+                            cmd.CommandText = "INSERT INTO DetallesGenitourinariosMasc (fkEvaluacion, prepucioRetractil, testiculosDescendidos, fimosis, criptorquidia, varicocele, hidrocele, hernia, psa, mpf) VALUES (@pk, @pr, @td, @fi, @cr, @va, @hi, @he, @psa, @mpf)";
+                            cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@pk", pkEval); cmd.Parameters.AddWithValue("@pr", vm.DetalleMasculino.PrepucioRetractil); cmd.Parameters.AddWithValue("@td", vm.DetalleMasculino.TesticulosDescendidos); cmd.Parameters.AddWithValue("@fi", vm.DetalleMasculino.Fimosis); cmd.Parameters.AddWithValue("@cr", vm.DetalleMasculino.Criptorquidia); cmd.Parameters.AddWithValue("@va", vm.DetalleMasculino.Varicocele); cmd.Parameters.AddWithValue("@hi", vm.DetalleMasculino.Hidrocele); cmd.Parameters.AddWithValue("@he", vm.DetalleMasculino.Hernia); cmd.Parameters.AddWithValue("@psa", (object)vm.DetalleMasculino.Psa ?? DBNull.Value); cmd.Parameters.AddWithValue("@mpf", (object)vm.DetalleMasculino.MetodoPlanificacion ?? DBNull.Value);
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 5. Examen Físico
-                        if (vm.OrdenExamenFisico != null)
-                        {
-                            foreach (var item in vm.OrdenExamenFisico)
-                            {
-                                db.OrdenesExamenesFisicos.Add(new OrdenExamenFisico
-                                {
-                                    fkEvaluacion  = eval.pkEvaluacion,
-                                    sistemaCuerpo = item.SistemaCuerpo,
-                                    esNormal      = item.EsNormal,
-                                    hallazgos     = item.Hallazgos
-                                });
-                            }
-                        }
-
-                        // 6. Columna Vertebral
-                        if (vm.Columna != null)
-                        {
-                            db.EvaluacionesColumna.Add(new EvaluacionColumna
-                            {
-                                fkEvaluacion              = eval.pkEvaluacion,
-                                lordosisCervical          = vm.Columna.LordosisCervical.HasValue ? (byte?)Convert.ToByte(vm.Columna.LordosisCervical.Value) : null,
-                                lordosisDorsal            = vm.Columna.LordosisDorsal.HasValue ? (byte?)Convert.ToByte(vm.Columna.LordosisDorsal.Value) : null,
-                                lordosisLumbar            = vm.Columna.LordosisLumbar.HasValue ? (byte?)Convert.ToByte(vm.Columna.LordosisLumbar.Value) : null,
-                                cifosisCervical           = vm.Columna.CifosisCervical.HasValue ? (byte?)Convert.ToByte(vm.Columna.CifosisCervical.Value) : null,
-                                cifosisDorsal             = vm.Columna.CifosisDorsal.HasValue ? (byte?)Convert.ToByte(vm.Columna.CifosisDorsal.Value) : null,
-                                cifosisLumbar             = vm.Columna.CifosisLumbar.HasValue ? (byte?)Convert.ToByte(vm.Columna.CifosisLumbar.Value) : null,
-                                escoliosisDorsalDerecha   = vm.Columna.EscoliosisDorsalDerecha,
-                                escoliosisDorsalIzquierda = vm.Columna.EscoliosisDorsalIzquierda,
-                                escoliosisLumbarDerecha   = vm.Columna.EscoliosisLumbarDerecha,
-                                escoliosisLumbarIzquierda = vm.Columna.EscoliosisLumbarIzquierda,
-                                escoliosisDobleDerecha    = vm.Columna.EscoliosisDobleDerecha,
-                                escoliosisDobleIzquierda  = vm.Columna.EscoliosisDobleIzquierda,
-                                observacionesColumna      = vm.Columna.ObservacionesColumna
-                            });
-                        }
-
-                        // 7. Detalle Ginecológico / Masculino
-                        if (vm.DetalleFemenino != null)
-                        {
-                            db.DetallesGineco.Add(new DetalleGineco
-                            {
-                                fkEvaluacion            = eval.pkEvaluacion,
-                                edadMenarca             = vm.DetalleFemenino.EdadMenarca,
-                                fechaUltimaMenstruacion = vm.DetalleFemenino.FechaUltimaMenstruacion,
-                                ciclos                  = vm.DetalleFemenino.Ciclos,
-                                gestas                  = vm.DetalleFemenino.Gestas,
-                                partos                  = vm.DetalleFemenino.Partos,
-                                abortos                 = vm.DetalleFemenino.Abortos,
-                                cesareas                = vm.DetalleFemenino.Cesareas,
-                                metodoPlanificacion     = vm.DetalleFemenino.MetodoPlanificacion,
-                                fechaUltimoPapanicolau  = vm.DetalleFemenino.FechaUltimoPapanicolau,
-                                edadesHijos             = vm.DetalleFemenino.NumeroHijosEdades
-                            });
-                        }
-                        else if (vm.DetalleMasculino != null)
-                        {
-                            db.DetallesMasculino.Add(new DetalleMasculino
-                            {
-                                fkEvaluacion          = eval.pkEvaluacion,
-                                prepucioRetractil     = vm.DetalleMasculino.PrepucioRetractil,
-                                testiculosDescendidos = vm.DetalleMasculino.TesticulosDescendidos,
-                                fimosis               = vm.DetalleMasculino.Fimosis,
-                                criptorquidia         = vm.DetalleMasculino.Criptorquidia,
-                                varicocele            = vm.DetalleMasculino.Varicocele,
-                                hidrocele             = vm.DetalleMasculino.Hidrocele,
-                                hernia                = vm.DetalleMasculino.Hernia,
-                                psa                   = vm.DetalleMasculino.Psa,
-                                mpf                   = vm.DetalleMasculino.MetodoPlanificacion
-                            });
-                        }
-
-                        // 8. Sincronizar datos del Candidato
-                        var o = db.OrdenesMedicas.Find(vm.PkOrdenMedico);
-                        if (o != null && o.fkCandidato.HasValue)
-                        {
-                            var cand = db.Candidatos.Find(o.fkCandidato.Value);
-                            if (cand != null)
-                            {
-                                cand.nss             = vm.Nss;
-                                cand.telefono        = vm.Telefono;
-                                cand.fechaNacimiento = vm.FechaNacimiento;
-                                cand.manoDominante   = vm.ManoDominante;
-                                cand.fkTipoSangre    = (vm.FkTipoSangre != null && vm.FkTipoSangre > 0) ? vm.FkTipoSangre : null;
-
-                                if (!string.IsNullOrEmpty(vm.EstadoCivil)) {
-                                    int ecVal;
-                                    if (int.TryParse(vm.EstadoCivil, out ecVal)) cand.fkEstadoCivil = ecVal;
+                        cmd.CommandText = "SELECT fkCandidato, fkEstatus FROM OrdenServicioMedico WHERE pkOrdenMedico = @id";
+                        cmd.Parameters.Clear(); cmd.Parameters.AddWithValue("@id", vm.PkOrdenMedico);
+                        using (var reader = cmd.ExecuteReader()) {
+                            if (reader.Read()) {
+                                int? fkCand = reader["fkCandidato"] != DBNull.Value ? (int?)reader["fkCandidato"] : null;
+                                int est = (int)reader["fkEstatus"];
+                                reader.Close();
+                                if (fkCand.HasValue) {
+                                    SqlCommand cmdC = new SqlCommand("UPDATE Candidatos SET nss=@nss, telefono=@tel, fechaNacimiento=@fn, manoDominante=@md, fkTipoSangre=@ts, fkSexo=@sex WHERE pkCandidato=@cid", conn, trans);
+                                    cmdC.Parameters.AddWithValue("@cid", fkCand.Value); cmdC.Parameters.AddWithValue("@nss", (object)vm.Nss ?? DBNull.Value); cmdC.Parameters.AddWithValue("@tel", (object)vm.Telefono ?? DBNull.Value); cmdC.Parameters.AddWithValue("@fn", (object)vm.FechaNacimiento ?? DBNull.Value); cmdC.Parameters.AddWithValue("@md", (object)vm.ManoDominante ?? DBNull.Value); cmdC.Parameters.AddWithValue("@ts", (object)vm.FkTipoSangre ?? DBNull.Value); cmdC.Parameters.AddWithValue("@sex", (object)vm.SexoCandidato ?? DBNull.Value);
+                                    cmdC.ExecuteNonQuery();
                                 }
-
-                                if (vm.FkPais.HasValue)      cand.fkPais      = vm.FkPais;
-                                if (vm.FkEstado.HasValue)    cand.fkEstado    = vm.FkEstado;
-                                if (vm.FkMunicipio.HasValue) cand.fkMunicipio = vm.FkMunicipio;
-                                if (vm.FkColonia.HasValue)   cand.fkColonia   = vm.FkColonia;
-                                if (vm.FkCP.HasValue)        cand.fkCP        = vm.FkCP;
-                                
-                                if (!string.IsNullOrEmpty(vm.Calle))       cand.calle       = vm.Calle;
-                                if (!string.IsNullOrEmpty(vm.NumExterior)) cand.numExterior = vm.NumExterior;
-                                if (!string.IsNullOrEmpty(vm.NumInterior)) cand.numInterior = vm.NumInterior;
-                                if (!string.IsNullOrEmpty(vm.SexoCandidato)) cand.fkSexo = vm.SexoCandidato;
+                                if (est == 1) {
+                                    SqlCommand cmdE = new SqlCommand("UPDATE OrdenServicioMedico SET fkEstatus = 2 WHERE pkOrdenMedico = @id", conn, trans);
+                                    cmdE.Parameters.AddWithValue("@id", vm.PkOrdenMedico); cmdE.ExecuteNonQuery();
+                                }
                             }
                         }
-
-                        if (o != null && o.fkEstatus == 1) o.fkEstatus = 2; // En Proceso
-
-                        db.SaveChanges();
-                        transaccion.Commit();
+                        trans.Commit();
                     }
-                    catch (Exception ex)
-                    {
-                        transaccion.Rollback();
-                        throw new Exception($"Error al guardar evaluación (Upsert): {ex.Message}", ex);
-                    }
+                    catch { trans.Rollback(); throw; }
                 }
             }
         }
 
-
-        /// <summary>
-        /// Obtiene todos los datos de una evaluación existente con Include (eager loading).
-        /// </summary>
         public static EvaluacionMedicaVm ObtenerPorOrden(int pkOrden)
         {
-            using (var db = new ApplicationDbContext())
-            {
-                var eval = db.EvaluacionesClinicas
-                    .Include(e => e.HistoriaMedica)
-                    .Include(e => e.AntecedentesLaborales)
-                    .Include(e => e.OrdenesExamenesFisicos)
-                    .FirstOrDefault(e => e.fkOrdenMedico == pkOrden);
+            string sqlEval = @"
+                SELECT e.*, 
+                       CASE 
+                         WHEN e.fkAptitudMedica = 1 THEN 'APTO'
+                         WHEN e.fkAptitudMedica = 2 THEN 'APTO CONDICIONADO'
+                         WHEN e.fkAptitudMedica = 3 THEN 'NO APTO'
+                         ELSE 'SIN CLASIFICAR'
+                       END as AptitudDesc
+                FROM EvaluacionesClinicas e
+                WHERE e.fkOrdenMedico = @id";
 
-                if (eval == null) return null;
+            var dtEval = SqlHelper.ExecuteDataTable(sqlEval, new SqlParameter("@id", pkOrden));
+            if (dtEval.Rows.Count == 0) return null;
 
-                // Cargar relaciones ignoradas en Entity Framework de forma manual
-                eval.Habitos = db.HabitosPersonales.FirstOrDefault(h => h.fkEvaluacion == eval.pkEvaluacion);
-                eval.Columna = db.EvaluacionesColumna.FirstOrDefault(c => c.fkEvaluacion == eval.pkEvaluacion);
-                eval.DetalleGineco = db.DetallesGineco.FirstOrDefault(d => d.fkEvaluacion == eval.pkEvaluacion);
-                eval.DetalleMasculino = db.DetallesMasculino.FirstOrDefault(d => d.fkEvaluacion == eval.pkEvaluacion);
+            DataRow r = dtEval.Rows[0];
+            int pkEval = Convert.ToInt32(r["pkEvaluacion"]);
 
-                var vm = new EvaluacionMedicaVm
-                {
-                    PkOrdenMedico          = pkOrden,
-                    PesoKg                 = eval.pesoKg,
-                    AlturaMetros           = eval.alturaMetros,
-                    Imc                    = eval.imc,
-                    PresionSistolica       = eval.presionSistolica,
-                    PresionDiastolica      = eval.presionDiastolica,
-                    Temperatura            = eval.temperatura,
-                    FrecuenciaCardiaca     = eval.frecuenciaCardiaca,
-                    FrecuenciaRespiratoria = eval.frecuenciaRespiratoria,
-                    Glucosa                = eval.glucosa,
-                    Oximetria              = eval.oximetria,
-                    ImcDescripcion         = eval.imcDescripcion,
-                    AparatosSistemas       = eval.aparatosSistemas,
-                    FkAptitudMedica        = eval.fkAptitudMedica,
-                    Observaciones          = eval.observaciones,
-                    Recomendaciones        = eval.recomendaciones,
-                    SintomasPaciente       = eval.sintomasPaciente,
-                    Nss                    = eval.nss,
-                    FechaNacimiento        = eval.fechaNacimiento,
-                    LugarNacimiento        = eval.lugarNacimiento,
-                    EstadoCivil            = eval.estadoCivil,
-                    ManoDominante          = eval.manoDominante,
-                    Telefono               = eval.telefono,
-                    Domicilio              = eval.domicilio,
-                    Escolaridad            = eval.escolaridad,
-                    Profesion              = eval.profesion,
-                    Alergias               = eval.alergias,
-                    FkTipoSangre           = eval.fkTipoSangre,
-                    LugarEvaluacion        = eval.lugarEvaluacion,
-                    AptitudMedicaDesc      = eval.fkAptitudMedica == 1 ? "APTO" : 
-                                             eval.fkAptitudMedica == 2 ? "APTO CONDICIONADO" : 
-                                             eval.fkAptitudMedica == 3 ? "NO APTO" : "PENDIENTE"
-                };
+            var vm = new EvaluacionMedicaVm {
+                PkOrdenMedico = pkOrden,
+                PesoKg = r["pesoKg"] != DBNull.Value ? (decimal?)r["pesoKg"] : null,
+                AlturaMetros = r["alturaMetros"] != DBNull.Value ? (decimal?)r["alturaMetros"] : null,
+                Imc = r["imc"] != DBNull.Value ? (decimal?)r["imc"] : null,
+                PresionSistolica = r["presionSistolica"] != DBNull.Value ? (int?)r["presionSistolica"] : null,
+                PresionDiastolica = r["presionDiastolica"] != DBNull.Value ? (int?)r["presionDiastolica"] : null,
+                Temperatura = r["temperatura"] != DBNull.Value ? (decimal?)r["temperatura"] : null,
+                FrecuenciaCardiaca = r["frecuenciaCardiaca"] != DBNull.Value ? (int?)r["frecuenciaCardiaca"] : null,
+                FrecuenciaRespiratoria = r["frecuenciaRespiratoria"] != DBNull.Value ? (int?)r["frecuenciaRespiratoria"] : null,
+                Glucosa = r["glucosa"] != DBNull.Value ? (decimal?)r["glucosa"] : null,
+                Oximetria = r["oximetria"] != DBNull.Value ? (int?)r["oximetria"] : null,
+                ImcDescripcion = r["imcDescripcion"]?.ToString(),
+                AparatosSistemas = r["aparatosSistemas"]?.ToString(),
+                FkAptitudMedica = r["fkAptitudMedica"] != DBNull.Value ? (int?)r["fkAptitudMedica"] : null,
+                AptitudMedicaDesc = r["AptitudDesc"]?.ToString(),
+                Observaciones = r["observaciones"]?.ToString(),
+                Recomendaciones = r["recomendaciones"]?.ToString(),
+                SintomasPaciente = r["sintomasPaciente"]?.ToString(),
+                Nss = r["nss"]?.ToString(),
+                FechaNacimiento = r["fechaNacimiento"] != DBNull.Value ? (DateTime?)r["fechaNacimiento"] : null,
+                LugarNacimiento = r["lugarNacimiento"]?.ToString(),
+                EstadoCivil = r["estadoCivil"]?.ToString(),
+                ManoDominante = r["manoDominante"]?.ToString(),
+                Telefono = r["telefono"]?.ToString(),
+                Domicilio = r["domicilio"]?.ToString(),
+                Escolaridad = r["escolaridad"]?.ToString(),
+                Profesion = r["profesion"]?.ToString(),
+                Alergias = r["alergias"]?.ToString(),
+                FkTipoSangre = r["fkTipoSangre"] != DBNull.Value ? (int?)r["fkTipoSangre"] : null,
+                LugarEvaluacion = r["lugarEvaluacion"]?.ToString()
+            };
 
-                // Unstow clinical data if present (fail-safe logic)
-                if (!string.IsNullOrEmpty(vm.AparatosSistemas) && vm.AparatosSistemas.Contains("[[STOWED-DATA:"))
-                {
-                    var match = System.Text.RegularExpressions.Regex.Match(vm.AparatosSistemas, @"\[\[STOWED-DATA: Glucosa:(.*?)\|Oxi:(.*?)\|IMCDesc:(.*?)\]\]");
-                    if (match.Success)
-                    {
-                        if (vm.Glucosa == null && !string.IsNullOrEmpty(match.Groups[1].Value))
-                        {
-                            decimal gValue;
-                            if (decimal.TryParse(match.Groups[1].Value, out gValue)) vm.Glucosa = gValue;
-                        }
-                        
-                        if (vm.Oximetria == null && !string.IsNullOrEmpty(match.Groups[2].Value))
-                        {
-                            int oValue;
-                            if (int.TryParse(match.Groups[2].Value, out oValue)) vm.Oximetria = oValue;
-                        }
-                        
-                        if (string.IsNullOrEmpty(vm.ImcDescripcion))
-                            vm.ImcDescripcion = match.Groups[3].Value;
-
-                        // Clean display text
-                        vm.AparatosSistemas = vm.AparatosSistemas.Replace(match.Value, "").Trim();
-                    }
-                }
-
-                if (eval.Habitos != null)
-                {
-                    vm.Habitos = new HabitosPersonalesVm
-                    {
-                        Fuma                   = eval.Habitos.fuma ?? false,
-                        AnosFumando            = eval.Habitos.anosFumando,
-                        CigarrosDiarios        = eval.Habitos.cigarrosDiarios,
-                        EsExFumador            = eval.Habitos.esExFumador ?? false,
-                        BebeAlcohol            = eval.Habitos.bebeAlcohol ?? false,
-                        FrecuenciaAlcohol      = eval.Habitos.frecuenciaAlcohol,
-                        UsaDrogas              = eval.Habitos.usaDrogas ?? false,
-                        TipoDrogas             = eval.Habitos.tipoDrogas,
-                        HaceDeporte            = eval.Habitos.haceDeporte ?? false,
-                        TipoDeporte            = eval.Habitos.tipoDeporte,
-                        DescripcionTiempoLibre = eval.Habitos.descripcionTiempoLibre
-                    };
-
-                    // Unstow Habit data
-                    if (!string.IsNullOrEmpty(vm.Habitos.DescripcionTiempoLibre) && vm.Habitos.DescripcionTiempoLibre.Contains("[[STOWED-DATA:"))
-                    {
-                        var match = System.Text.RegularExpressions.Regex.Match(vm.Habitos.DescripcionTiempoLibre, @"\[\[STOWED-DATA: TipoDeporte:(.*?)\]\]");
-                        if (match.Success)
-                        {
-                            vm.Habitos.TipoDeporte = match.Groups[1].Value;
-                            vm.Habitos.DescripcionTiempoLibre = vm.Habitos.DescripcionTiempoLibre.Replace(match.Value, "").Trim();
-                        }
-                    }
-                }
-
-                // Cargar Vacunación
-                var vac = db.Vacunaciones.FirstOrDefault(v => v.fkEvaluacion == eval.pkEvaluacion);
-                if (vac != null)
-                {
-                    vm.Vacunacion = new VacunacionVm
-                    {
-                        TetanosDosis1           = vac.tetanosDosis1 ?? false,
-                        TetanosDosis2           = vac.tetanosDosis2 ?? false,
-                        TetanosDosis3           = vac.tetanosDosis3 ?? false,
-                        HepatitisDosis1         = vac.hepatitisDosis1 ?? false,
-                        HepatitisDosis2         = vac.hepatitisDosis2 ?? false,
-                        InfluenzaH1N1           = vac.influenzaH1N1 ?? false,
-                        ObservacionesVacunacion = vac.observacionesVacunacion
-                    };
-                }
-
-                if (eval.Columna != null)
-                {
-                    vm.Columna = new EvaluacionColumnaVm
-                    {
-                        LordosisCervical           = eval.Columna.lordosisCervical,
-                        LordosisDorsal             = eval.Columna.lordosisDorsal,
-                        LordosisLumbar             = eval.Columna.lordosisLumbar,
-                        CifosisCervical            = eval.Columna.cifosisCervical,
-                        CifosisDorsal              = eval.Columna.cifosisDorsal,
-                        CifosisLumbar              = eval.Columna.cifosisLumbar,
-                        EscoliosisDorsalDerecha    = eval.Columna.escoliosisDorsalDerecha ?? false,
-                        EscoliosisDorsalIzquierda  = eval.Columna.escoliosisDorsalIzquierda ?? false,
-                        EscoliosisLumbarDerecha    = eval.Columna.escoliosisLumbarDerecha ?? false,
-                        EscoliosisLumbarIzquierda  = eval.Columna.escoliosisLumbarIzquierda ?? false,
-                        EscoliosisDobleDerecha     = eval.Columna.escoliosisDobleDerecha ?? false,
-                        EscoliosisDobleIzquierda   = eval.Columna.escoliosisDobleIzquierda ?? false,
-                        ObservacionesColumna       = eval.Columna.observacionesColumna
-                    };
-                }
-
-                if (eval.DetalleGineco != null)
-                {
-                    vm.DetalleFemenino = new DetalleGinecoVm
-                    {
-                        EdadMenarca             = eval.DetalleGineco.edadMenarca,
-                        FechaUltimaMenstruacion = eval.DetalleGineco.fechaUltimaMenstruacion,
-                        Ciclos                  = eval.DetalleGineco.ciclos,
-                        Gestas                  = eval.DetalleGineco.gestas,
-                        Partos                  = eval.DetalleGineco.partos,
-                        Abortos                 = eval.DetalleGineco.abortos,
-                        Cesareas                = eval.DetalleGineco.cesareas,
-                        Ivsa                    = eval.DetalleGineco.ivsa,
-                        MetodoPlanificacion     = eval.DetalleGineco.metodoPlanificacion,
-                        FechaUltimoPapanicolau  = eval.DetalleGineco.fechaUltimoPapanicolau,
-                        Ets                     = eval.DetalleGineco.ets,
-                        NumeroHijosEdades       = eval.DetalleGineco.edadesHijos
-                    };
-                }
-                else if (eval.DetalleMasculino != null)
-                {
-                    vm.DetalleMasculino = new DetalleGenitoMascVm
-                    {
-                        PrepucioRetractil     = eval.DetalleMasculino.prepucioRetractil ?? false,
-                        TesticulosDescendidos = eval.DetalleMasculino.testiculosDescendidos ?? false,
-                        Fimosis               = eval.DetalleMasculino.fimosis ?? false,
-                        Criptorquidia         = eval.DetalleMasculino.criptorquidia ?? false,
-                        Varicocele            = eval.DetalleMasculino.varicocele ?? false,
-                        Hidrocele             = eval.DetalleMasculino.hidrocele ?? false,
-                        Hernia                = eval.DetalleMasculino.hernia ?? false,
-                        Ivsa                  = eval.DetalleMasculino.ivsa,
-                        Psa                   = eval.DetalleMasculino.psa,
-                        MetodoPlanificacion   = eval.DetalleMasculino.mpf
-                    };
-                }
-
-                if (eval.HistoriaMedica != null)
-                {
-                    vm.Antecedentes = new List<HistoriaMedicaVm>();
-                    foreach (var h in eval.HistoriaMedica)
-                    {
-                        vm.Antecedentes.Add(new HistoriaMedicaVm
-                        {
-                            Categoria       = h.categoria,
-                            NombreCondicion = h.nombreCondicion,
-                            EsPositivo      = h.esPositivo ?? false,
-                            Detalles        = h.detalles
-                        });
-                    }
-                }
-
-                if (eval.AntecedentesLaborales != null)
-                {
-                    vm.AntecedentesLaborales = new List<AntecedenteLaboralVm>();
-                    foreach (var al in eval.AntecedentesLaborales)
-                    {
-                        vm.AntecedentesLaborales.Add(new AntecedenteLaboralVm
-                        {
-                            Empresa           = al.empresa,
-                            Puesto            = al.puesto,
-                            TiempoLaborado    = al.tiempoLaborado,
-                            AgentesExpuesto   = al.agentesExpuestos,
-                            AccidentesPrevios = al.accidentesPrevios
-                        });
-                    }
-                }
-
-                if (eval.OrdenesExamenesFisicos != null)
-                {
-                    vm.OrdenExamenFisico = new List<OrdenExamenFisicoVm>();
-                    foreach (var ef in eval.OrdenesExamenesFisicos)
-                    {
-                        if (ef.sistemaCuerpo == "AGUDEZA_VISUAL")
-                        {
-                            // Desfragmentar: OD:20/20|OI:20/20|AO:20/20|ODC:N/A|OIC:N/A|AOC:N/A|Usa:Si|Ref:Normal|Ishi:Normal
-                            var parts = ef.hallazgos.Split('|').Select(p => p.Split(':').LastOrDefault()).ToArray();
-                            if (parts.Length >= 9)
-                            {
-                                vm.AgudezaVisual = new AgudezaVisualVm
-                                {
-                                    OdSinLentes      = parts[0],
-                                    OiSinLentes      = parts[1],
-                                    AoSinLentes      = parts[2],
-                                    OdConLentes      = parts[3],
-                                    OiConLentes      = parts[4],
-                                    AoConLentes      = parts[5],
-                                    UsaLentes        = parts[6],
-                                    ReferenciaVisual = parts[7],
-                                    Daltonismo       = parts[8]
-                                };
-                            }
-                            continue;
-                        }
-
-                        vm.OrdenExamenFisico.Add(new OrdenExamenFisicoVm
-                        {
-                            SistemaCuerpo = ef.sistemaCuerpo,
-                            EsNormal      = ef.esNormal,
-                            Hallazgos     = ef.hallazgos
-                        });
-                    }
-                }
-
-                return vm;
+            var dtHabRes = SqlHelper.ExecuteDataTable("SELECT * FROM HabitosPersonales WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            if (dtHabRes.Rows.Count > 0) {
+                DataRow rh = dtHabRes.Rows[0];
+                vm.Habitos = new HabitosPersonalesVm { Fuma = rh["fuma"] != DBNull.Value && (bool)rh["fuma"], AnosFumando = rh["anosFumando"] != DBNull.Value ? (int?)rh["anosFumando"] : null, CigarrosDiarios = rh["cigarrosDiarios"] != DBNull.Value ? (int?)rh["cigarrosDiarios"] : null, EsExFumador = rh["esExFumador"] != DBNull.Value && (bool)rh["esExFumador"], BebeAlcohol = rh["bebeAlcohol"] != DBNull.Value && (bool)rh["bebeAlcohol"], FrecuenciaAlcohol = rh["frecuenciaAlcohol"]?.ToString(), UsaDrogas = rh["usaDrogas"] != DBNull.Value && (bool)rh["usaDrogas"], TipoDrogas = rh["tipoDrogas"]?.ToString(), HaceDeporte = rh["haceDeporte"] != DBNull.Value && (bool)rh["haceDeporte"], TipoDeporte = rh["tipoDeporte"]?.ToString(), DescripcionTiempoLibre = rh["descripcionTiempoLibre"]?.ToString() };
             }
+            var dtVac = SqlHelper.ExecuteDataTable("SELECT * FROM Vacunacion WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            if (dtVac.Rows.Count > 0) {
+                DataRow rv = dtVac.Rows[0];
+                vm.Vacunacion = new VacunacionVm { TetanosDosis1 = rv["tetanosDosis1"] != DBNull.Value && (bool)rv["tetanosDosis1"], TetanosDosis2 = rv["tetanosDosis2"] != DBNull.Value && (bool)rv["tetanosDosis2"], TetanosDosis3 = rv["tetanosDosis3"] != DBNull.Value && (bool)rv["tetanosDosis3"], HepatitisDosis1 = rv["hepatitisDosis1"] != DBNull.Value && (bool)rv["hepatitisDosis1"], HepatitisDosis2 = rv["hepatitisDosis2"] != DBNull.Value && (bool)rv["hepatitisDosis2"], InfluenzaH1N1 = rv["influenzaH1N1"] != DBNull.Value && (bool)rv["influenzaH1N1"], ObservacionesVacunacion = rv["observacionesVacunacion"]?.ToString() };
+            }
+            var dtAnt = SqlHelper.ExecuteDataTable("SELECT * FROM HistoriaMedica WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            vm.Antecedentes = new List<HistoriaMedicaVm>();
+            foreach (DataRow ra in dtAnt.Rows) vm.Antecedentes.Add(new HistoriaMedicaVm { Categoria = ra["categoria"]?.ToString(), NombreCondicion = ra["nombreCondicion"]?.ToString(), EsPositivo = ra["esPositivo"] != DBNull.Value && (bool)ra["esPositivo"], Detalles = ra["detalles"]?.ToString() });
+            var dtLab = SqlHelper.ExecuteDataTable("SELECT * FROM AntecedentesLaborales WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            vm.AntecedentesLaborales = new List<AntecedenteLaboralVm>();
+            foreach (DataRow rl in dtLab.Rows) vm.AntecedentesLaborales.Add(new AntecedenteLaboralVm { Empresa = rl["empresa"]?.ToString(), Puesto = rl["puesto"]?.ToString(), TiempoLaborado = rl["tiempoLaborado"]?.ToString(), AgentesExpuesto = rl["agentesExpuestos"]?.ToString(), AccidentesPrevios = rl["accidentesPrevios"]?.ToString() });
+            var dtExF = SqlHelper.ExecuteDataTable("SELECT * FROM OrdenExamenFisico WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            vm.OrdenExamenFisico = new List<OrdenExamenFisicoVm>();
+            foreach (DataRow re in dtExF.Rows) {
+                string sis = re["sistemaCuerpo"]?.ToString();
+                if (sis == "AGUDEZA_VISUAL") {
+                    var parts = re["hallazgos"]?.ToString().Split('|').Select(p => p.Split(':').LastOrDefault()).ToArray();
+                    if (parts != null && parts.Length >= 9) vm.AgudezaVisual = new AgudezaVisualVm { OdSinLentes = parts[0], OiSinLentes = parts[1], AoSinLentes = parts[2], OdConLentes = parts[3], OiConLentes = parts[4], AoConLentes = parts[5], UsaLentes = parts[6], ReferenciaVisual = parts[7], Daltonismo = parts[8] };
+                } else vm.OrdenExamenFisico.Add(new OrdenExamenFisicoVm { SistemaCuerpo = sis, EsNormal = re["esNormal"] != DBNull.Value && (bool)re["esNormal"], Hallazgos = re["hallazgos"]?.ToString() });
+            }
+            var dtCol = SqlHelper.ExecuteDataTable("SELECT * FROM EvaluacionColumna WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            if (dtCol.Rows.Count > 0) {
+                DataRow rc = dtCol.Rows[0];
+                vm.Columna = new EvaluacionColumnaVm { LordosisCervical = rc["lordosisCervical"] != DBNull.Value ? (int?)Convert.ToInt32(rc["lordosisCervical"]) : null, LordosisDorsal = rc["lordosisDorsal"] != DBNull.Value ? (int?)Convert.ToInt32(rc["lordosisDorsal"]) : null, LordosisLumbar = rc["lordosisLumbar"] != DBNull.Value ? (int?)Convert.ToInt32(rc["lordosisLumbar"]) : null, CifosisCervical = rc["cifosisCervical"] != DBNull.Value ? (int?)Convert.ToInt32(rc["cifosisCervical"]) : null, CifosisDorsal = rc["cifosisDorsal"] != DBNull.Value ? (int?)Convert.ToInt32(rc["cifosisDorsal"]) : null, CifosisLumbar = rc["cifosisLumbar"] != DBNull.Value ? (int?)Convert.ToInt32(rc["cifosisLumbar"]) : null, EscoliosisDorsalDerecha = rc["escoliosisDorsalDerecha"] != DBNull.Value && (bool)rc["escoliosisDorsalDerecha"], EscoliosisDorsalIzquierda = rc["escoliosisDorsalIzquierda"] != DBNull.Value && (bool)rc["escoliosisDorsalIzquierda"], EscoliosisLumbarDerecha = rc["escoliosisLumbarDerecha"] != DBNull.Value && (bool)rc["escoliosisLumbarDerecha"], EscoliosisLumbarIzquierda = rc["escoliosisLumbarIzquierda"] != DBNull.Value && (bool)rc["escoliosisLumbarIzquierda"], EscoliosisDobleDerecha = rc["escoliosisDobleDerecha"] != DBNull.Value && (bool)rc["escoliosisDobleDerecha"], EscoliosisDobleIzquierda = rc["escoliosisDobleIzquierda"] != DBNull.Value && (bool)rc["escoliosisDobleIzquierda"], ObservacionesColumna = rc["observacionesColumna"]?.ToString() };
+            }
+            var dtGin = SqlHelper.ExecuteDataTable("SELECT * FROM DetallesGinecoObstetricos WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+            if (dtGin.Rows.Count > 0) {
+                DataRow rg = dtGin.Rows[0];
+                vm.DetalleFemenino = new DetalleGinecoVm { 
+                    EdadMenarca = rg["edadMenarca"] != DBNull.Value ? (int?)Convert.ToInt32(rg["edadMenarca"]) : null, 
+                    FechaUltimaMenstruacion = rg["fechaUltimaMenstruacion"] != DBNull.Value ? (DateTime?)rg["fechaUltimaMenstruacion"] : null, 
+                    Ciclos = rg["ciclos"]?.ToString(), 
+                    Gestas = rg["gestas"] != DBNull.Value ? (int?)Convert.ToInt32(rg["gestas"]) : null, 
+                    Partos = rg["partos"] != DBNull.Value ? (int?)Convert.ToInt32(rg["partos"]) : null, 
+                    Abortos = rg["abortos"] != DBNull.Value ? (int?)Convert.ToInt32(rg["abortos"]) : null, 
+                    Cesareas = rg["cesareas"] != DBNull.Value ? (int?)Convert.ToInt32(rg["cesareas"]) : null, 
+                    MetodoPlanificacion = rg["metodoPlanificacion"]?.ToString(), 
+                    FechaUltimoPapanicolau = rg["fechaUltimoPapanicolau"] != DBNull.Value ? (DateTime?)rg["fechaUltimoPapanicolau"] : null,
+                    Ivsa = rg.Table.Columns.Contains("ivsa") && rg["ivsa"] != DBNull.Value ? (int?)Convert.ToInt32(rg["ivsa"]) : null,
+                    Ets = rg.Table.Columns.Contains("ets") ? rg["ets"]?.ToString() : null,
+                    NumeroHijosEdades = rg["edadesHijos"]?.ToString() 
+                };
+            } else {
+                var dtMas = SqlHelper.ExecuteDataTable("SELECT * FROM DetallesGenitourinariosMasc WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+                if (dtMas.Rows.Count > 0) {
+                    DataRow rm = dtMas.Rows[0];
+                    vm.DetalleMasculino = new DetalleGenitoMascVm { 
+                        PrepucioRetractil = rm["prepucioRetractil"] != DBNull.Value && (bool)rm["prepucioRetractil"], 
+                        TesticulosDescendidos = rm["testiculosDescendidos"] != DBNull.Value && (bool)rm["testiculosDescendidos"], 
+                        Fimosis = rm["fimosis"] != DBNull.Value && (bool)rm["fimosis"], 
+                        Criptorquidia = rm["criptorquidia"] != DBNull.Value && (bool)rm["criptorquidia"], 
+                        Varicocele = rm["varicocele"] != DBNull.Value && (bool)rm["varicocele"], 
+                        Hidrocele = rm["hidrocele"] != DBNull.Value && (bool)rm["hidrocele"], 
+                        Hernia = rm["hernia"] != DBNull.Value && (bool)rm["hernia"], 
+                        Psa = rm["psa"]?.ToString(), 
+                        MetodoPlanificacion = rm["mpf"]?.ToString(),
+                        Ivsa = rm.Table.Columns.Contains("ivsa") ? rm["ivsa"]?.ToString() : null
+                    };
+                }
+            }
+            return vm;
         }
 
-        /// <summary>
-        /// Busca la evaluación más reciente registrada para un Candidato o Empleado específico.
-        /// Esto permite implementar el "Expediente Clínico" heredando datos previos.
-        /// </summary>
         public static EvaluacionMedicaVm ObtenerUltimaEvaluacionPorPaciente(int? fkCandidato, int? fkEmpleado)
         {
             if (!fkCandidato.HasValue && !fkEmpleado.HasValue) return null;
-
-            using (var db = new ApplicationDbContext())
-            {
-                // Unimos Evaluaciones con Ordenes para filtrar por paciente
-                var query = db.EvaluacionesClinicas
-                    .Join(db.OrdenesMedicas,
-                          e => e.fkOrdenMedico,
-                          o => o.pkOrdenMedico,
-                          (e, o) => new { e, o });
-
-                if (fkEmpleado.HasValue && fkEmpleado.Value > 0)
-                {
-                    query = query.Where(x => x.o.fkEmpleado == fkEmpleado.Value);
-                }
-                else if (fkCandidato.HasValue && fkCandidato.Value > 0)
-                {
-                    query = query.Where(x => x.o.fkCandidato == fkCandidato.Value);
-                }
-                else
-                {
-                    return null;
-                }
-
-                // Obtenemos el pkEvaluacion más reciente
-                var ultimaOrdenConEval = query
-                    .OrderByDescending(x => x.e.fechaEvaluacion)
-                    .Select(x => x.e.fkOrdenMedico)
-                    .FirstOrDefault();
-
-                if (ultimaOrdenConEval == 0) return null;
-
-                // Reutilizamos el método existente detallado
-                return ObtenerPorOrden(ultimaOrdenConEval);
-            }
+            string where = fkEmpleado.HasValue ? "o.fkEmpleado = @pid" : "o.fkCandidato = @pid";
+            int pid = fkEmpleado ?? fkCandidato.Value;
+            string sql = $@"SELECT TOP 1 e.fkOrdenMedico FROM EvaluacionesClinicas e INNER JOIN OrdenServicioMedico o ON e.fkOrdenMedico = o.pkOrdenMedico WHERE {where} ORDER BY e.fechaEvaluacion DESC";
+            object res = SqlHelper.ExecuteScalar(sql, new SqlParameter("@pid", pid));
+            if (res == null) return null;
+            return ObtenerPorOrden(Convert.ToInt32(res));
         }
 
-        /// <summary>
-        /// Obtiene un listado compacto de TODAS las evaluaciones de un empleado,
-        /// ordenadas de más reciente a más antigua. Usado para el Expediente Clínico.
-        /// </summary>
         public static List<ResumenEvaluacionVm> ObtenerHistorialCompleto(int fkEmpleado)
         {
-            var resultado = new List<ResumenEvaluacionVm>();
-            if (fkEmpleado <= 0) return resultado;
+            string sql = @"
+                SELECT e.*, 
+                       CASE 
+                         WHEN e.fkAptitudMedica = 1 THEN 'APTO'
+                         WHEN e.fkAptitudMedica = 2 THEN 'APTO CONDICIONADO'
+                         WHEN e.fkAptitudMedica = 3 THEN 'NO APTO'
+                         ELSE 'SIN CLASIFICAR'
+                       END as AptitudDesc
+                FROM EvaluacionesClinicas e
+                INNER JOIN OrdenServicioMedico o ON e.fkOrdenMedico = o.pkOrdenMedico
+                WHERE o.fkEmpleado = @id
+                ORDER BY e.fechaEvaluacion DESC";
 
-            using (var db = new ApplicationDbContext())
-            {
-                // Catálogo de aptitudes para resolver descripción
-                var aptitudMap = new Dictionary<int, string>
-                {
-                    { 1, "APTO" }, { 2, "APTO CON RESTRICCIONES" }, { 3, "NO APTO" }, { 4, "PENDIENTE" }
-                };
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", fkEmpleado));
+            List<ResumenEvaluacionVm> lista = new List<ResumenEvaluacionVm>();
+            foreach (DataRow r in dt.Rows) {
+                int pkEval = (int)r["pkEvaluacion"];
+                
+                // 1. Antecedentes
+                var positivos = new List<string>();
+                var dtPos = SqlHelper.ExecuteDataTable("SELECT nombreCondicion FROM HistoriaMedica WHERE fkEvaluacion = @id AND esPositivo = 1", new SqlParameter("@id", pkEval));
+                foreach (DataRow rp in dtPos.Rows) positivos.Add(rp["nombreCondicion"].ToString());
 
-                // Unir evaluaciones con órdenes para filtrar por empleado
-                var evaluaciones = db.EvaluacionesClinicas
-                    .Join(db.OrdenesMedicas,
-                          e => e.fkOrdenMedico,
-                          o => o.pkOrdenMedico,
-                          (e, o) => new { e, o })
-                    .Where(x => x.o.fkEmpleado == fkEmpleado)
-                    .OrderByDescending(x => x.e.fechaEvaluacion)
-                    .ToList();
-
-                foreach (var item in evaluaciones)
-                {
-                    var e = item.e;
-
-                    // Extraer glucosa/oximetria/imcDesc del campo aparatosSistemas (STOWED-DATA)
-                    string glucosa = null, oximetria = null, imcDesc = null;
-                    if (!string.IsNullOrEmpty(e.aparatosSistemas) && e.aparatosSistemas.Contains("[[STOWED-DATA:"))
-                    {
-                        var m = System.Text.RegularExpressions.Regex.Match(
-                            e.aparatosSistemas, @"\[\[STOWED-DATA: Glucosa:(.*?)\|Oxi:(.*?)\|IMCDesc:(.*?)\]\]");
-                        if (m.Success)
-                        {
-                            glucosa   = m.Groups[1].Value.Trim();
-                            oximetria = m.Groups[2].Value.Trim();
-                            imcDesc   = m.Groups[3].Value.Trim();
-                        }
-                    }
-
-                    // Antecedentes positivos (solo el nombre, para mostrar como tags)
-                    var positivos = db.HistoriasMedicas
-                        .Where(h => h.fkEvaluacion == e.pkEvaluacion && h.esPositivo == true)
-                        .Select(h => h.nombreCondicion)
-                        .ToList();
-
-                    string aptitudDesc = "—";
-                    if (e.fkAptitudMedica.HasValue && aptitudMap.ContainsKey(e.fkAptitudMedica.Value))
-                        aptitudDesc = aptitudMap[e.fkAptitudMedica.Value];
-
-                    resultado.Add(new ResumenEvaluacionVm
-                    {
-                        PkEvaluacion      = e.pkEvaluacion,
-                        FechaEvaluacion   = e.fechaEvaluacion.HasValue
-                                              ? e.fechaEvaluacion.Value.ToString("dd/MM/yyyy")
-                                              : "Sin fecha",
-                        AptitudDesc       = aptitudDesc,
-                        FkAptitudMedica   = e.fkAptitudMedica,
-                        PesoKg            = e.pesoKg,
-                        AlturaMetros      = e.alturaMetros,
-                        Imc               = e.imc,
-                        ImcDescripcion    = imcDesc ?? "",
-                        PresionSistolica  = e.presionSistolica,
-                        PresionDiastolica = e.presionDiastolica,
-                        Glucosa           = glucosa ?? "",
-                        Oximetria         = oximetria ?? "",
-                        Observaciones     = e.observaciones,
-                        LugarEvaluacion   = e.lugarEvaluacion,
-                        AntecedentesPositivos = positivos
-                    });
+                // 2. Vacunas Resumen
+                string vacRes = "—";
+                var dtVac = SqlHelper.ExecuteDataTable("SELECT * FROM Vacunacion WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+                if (dtVac.Rows.Count > 0) {
+                    var rv = dtVac.Rows[0];
+                    var vs = new List<string>();
+                    if (rv["tetanosDosis1"] != DBNull.Value && (bool)rv["tetanosDosis1"]) vs.Add("Tétanos (D1)");
+                    if (rv["tetanosDosis2"] != DBNull.Value && (bool)rv["tetanosDosis2"]) vs.Add("Tétanos (D2)");
+                    if (rv["tetanosDosis3"] != DBNull.Value && (bool)rv["tetanosDosis3"]) vs.Add("Tétanos (D3)");
+                    if (rv["hepatitisDosis1"] != DBNull.Value && (bool)rv["hepatitisDosis1"]) vs.Add("HepB (D1)");
+                    if (rv["hepatitisDosis2"] != DBNull.Value && (bool)rv["hepatitisDosis2"]) vs.Add("HepB (D2)");
+                    if (rv["influenzaH1N1"] != DBNull.Value && (bool)rv["influenzaH1N1"]) vs.Add("H1N1");
+                    vacRes = vs.Count > 0 ? string.Join(", ", vs) : "Ninguna";
                 }
-            }
 
-            return resultado;
+                // 3. Visión y Sistemas
+                string visRes = "—";
+                var sisAnorm = new List<string>();
+                var dtExF = SqlHelper.ExecuteDataTable("SELECT * FROM OrdenExamenFisico WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+                foreach (DataRow re in dtExF.Rows) {
+                    string sis = re["sistemaCuerpo"]?.ToString();
+                    bool normal = re["esNormal"] != DBNull.Value && (bool)re["esNormal"];
+                    if (sis == "AGUDEZA_VISUAL") {
+                        var parts = re["hallazgos"]?.ToString().Split('|').Select(p => p.Split(':').LastOrDefault()).ToArray();
+                        if (parts != null && parts.Length >= 3) visRes = "OD:" + parts[0] + " OI:" + parts[1];
+                    } else if (!normal) {
+                        sisAnorm.Add(sis);
+                    }
+                }
+
+                // 4. Columna
+                string colRes = "Normal";
+                var dtCol = SqlHelper.ExecuteDataTable("SELECT * FROM EvaluacionColumna WHERE fkEvaluacion = @id", new SqlParameter("@id", pkEval));
+                if (dtCol.Rows.Count > 0) {
+                    var rc = dtCol.Rows[0];
+                    var cs = new List<string>();
+                    if (rc["escoliosisDorsalDerecha"] != DBNull.Value && (bool)rc["escoliosisDorsalDerecha"]) cs.Add("Escoliosis DD");
+                    if (rc["escoliosisDorsalIzquierda"] != DBNull.Value && (bool)rc["escoliosisDorsalIzquierda"]) cs.Add("Escoliosis DI");
+                    if (rc["escoliosisLumbarDerecha"] != DBNull.Value && (bool)rc["escoliosisLumbarDerecha"]) cs.Add("Escoliosis LD");
+                    if (rc["escoliosisLumbarIzquierda"] != DBNull.Value && (bool)rc["escoliosisLumbarIzquierda"]) cs.Add("Escoliosis LI");
+                    colRes = cs.Count > 0 ? string.Join(", ", cs) : "Alineada";
+                }
+
+                lista.Add(new ResumenEvaluacionVm { 
+                    PkEvaluacion = pkEval, 
+                    FechaEvaluacion = r["fechaEvaluacion"] != DBNull.Value ? Convert.ToDateTime(r["fechaEvaluacion"]).ToString("dd/MM/yyyy") : "—", 
+                    AptitudDesc = r["AptitudDesc"]?.ToString() ?? "—", 
+                    FkAptitudMedica = r["fkAptitudMedica"] != DBNull.Value ? (int?)r["fkAptitudMedica"] : null, 
+                    PesoKg = r["pesoKg"] != DBNull.Value ? (decimal?)r["pesoKg"] : null, 
+                    AlturaMetros = r["alturaMetros"] != DBNull.Value ? (decimal?)r["alturaMetros"] : null, 
+                    Imc = r["imc"] != DBNull.Value ? (decimal?)r["imc"] : null, 
+                    ImcDescripcion = r["imcDescripcion"]?.ToString(), 
+                    PresionSistolica = r["presionSistolica"] != DBNull.Value ? (int?)r["presionSistolica"] : null, 
+                    PresionDiastolica = r["presionDiastolica"] != DBNull.Value ? (int?)r["presionDiastolica"] : null, 
+                    Observaciones = r["observaciones"]?.ToString(), 
+                    LugarEvaluacion = r["lugarEvaluacion"]?.ToString(), 
+                    AntecedentesPositivos = positivos,
+                    VacunasResumen = vacRes,
+                    VisionResumen = visRes,
+                    SistemasAnormales = string.Join(", ", sisAnorm),
+                    ColumnaResumen = colRes
+                });
+            }
+            return lista;
         }
     }
 }

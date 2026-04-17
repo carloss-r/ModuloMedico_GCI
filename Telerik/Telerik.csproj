@@ -171,6 +171,7 @@
     <Compile Include="Models\ViewModels\PacienteInfoVm.cs" />
     <Compile Include="Models\DAL\EvaluacionDal.cs" />
     <Compile Include="Models\DAL\AntidopingDal.cs" />
+    <Compile Include="Models\DAL\SqlHelper.cs" />
     <Compile Include="Models\DAL\ConexionBd.cs" />
     <Compile Include="Services\MedicalService.cs" />
     <Compile Include="Global.asax.cs">
@@ -226,6 +227,9 @@
     <Content Include="ServicioMedico\js\DashboardServicioMedicoInbox.js" />
     <Content Include="ServicioMedico\js\EvaluacionMedica.js" />
     <Content Include="ServicioMedico\styles\DashboardServicioMedico.css" />
+    <Content Include="ServicioMedico\Formatos\Antidoping.html" />
+    <Content Include="ServicioMedico\Formatos\EvaluacionMedica.html" />
+    <Content Include="ServicioMedico\Formatos\PaseMedico.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

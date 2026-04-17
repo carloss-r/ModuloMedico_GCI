@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using Telerik.Models;
+using System.Data;
+using System.Data.SqlClient;
 using Telerik.Models.ViewModels;
 
 namespace Telerik.Models.DAL
@@ -9,108 +10,83 @@ namespace Telerik.Models.DAL
     {
         public static List<CatalogoItem> ObtenerTiposServicio()
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.TiposServicio
-                    .Select(t => new CatalogoItem { Id = t.pkTipoServicio, Descripcion = t.descripcion })
-                    .OrderBy(t => t.Descripcion)
-                    .ToList();
-            }
+            // [Table("TiposServicio")]
+            string sql = "SELECT pkTipoServicio as Id, descripcion as Descripcion FROM TiposServicio ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql);
+            return MapCatalogo(dt);
         }
 
         public static List<CatalogoItem> ObtenerEstatusOrdenes()
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.EstatusSolicitudes
-                    .Select(e => new CatalogoItem { Id = e.pkEstatus, Descripcion = e.descripcion })
-                    .OrderBy(e => e.Id)
-                    .ToList();
-            }
+            // [Table("EstatusSolicitud")]
+            string sql = "SELECT pkEstatus as Id, descripcion as Descripcion FROM EstatusSolicitud ORDER BY pkEstatus";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql);
+            return MapCatalogo(dt);
         }
 
         public static List<CatalogoItem> ObtenerProyectos()
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.Proyectos
-                    .Select(p => new CatalogoItem { Id = p.pkProyecto, Descripcion = p.descripcion })
-                    .OrderBy(p => p.Descripcion)
-                    .ToList();
-            }
+            // [Table("Proyectos")]
+            string sql = "SELECT pkProyecto as Id, descripcion as Descripcion FROM Proyectos ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql);
+            return MapCatalogo(dt);
         }
 
         public static List<CatalogoItem> ObtenerEmpresas()
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.Empresas
-                    .Select(e => new CatalogoItem { Id = e.pkEmpresa, Descripcion = e.nombre })
-                    .OrderBy(e => e.Descripcion)
-                    .ToList();
-            }
+            // [Table("Empresas")]
+            string sql = "SELECT pkEmpresa as Id, nombre as Descripcion FROM Empresas ORDER BY nombre";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql);
+            return MapCatalogo(dt);
         }
 
         public static List<CatalogoItem> ObtenerPuestos()
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.Puestos
-                    .Select(p => new CatalogoItem { Id = p.pkPuesto, Descripcion = p.descripcion })
-                    .OrderBy(p => p.Descripcion)
-                    .ToList();
-            }
+            // [Table("Puesto")]
+            string sql = "SELECT pkPuesto as Id, descripcion as Descripcion FROM Puesto ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql);
+            return MapCatalogo(dt);
         }
 
         public static List<CatalogoItem> ObtenerAreas()
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.Areas
-                    .Select(a => new CatalogoItem { Id = a.pkArea, Descripcion = a.descripcion })
-                    .OrderBy(a => a.Descripcion)
-                    .ToList();
-            }
+            // [Table("Areas")]
+            string sql = "SELECT pkArea as Id, descripcion as Descripcion FROM Areas ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql);
+            return MapCatalogo(dt);
         }
 
-        /// <summary>
-        /// Método de compatibilidad con el Controller actual.
-        /// Retorna TiposServicio y Empresas juntos via parámetros out.
-        /// </summary>
         public static void ObtenerCatalogosParaSolicitud(out List<CatalogoItem> tiposServicio, out List<CatalogoItem> empresas)
         {
             tiposServicio = ObtenerTiposServicio();
             empresas      = ObtenerEmpresas();
         }
 
-        /// <summary>
-        /// Proyectos filtrados por empresa, en LINQ puro.
-        /// </summary>
         public static List<CatalogoItem> ObtenerProyectosPorEmpresa(int fkEmpresa)
         {
-            using (var db = new ApplicationDbContext())
-            {
-                return db.Proyectos
-                    .Where(p => p.fkEmpresa == fkEmpresa)
-                    .Select(p => new CatalogoItem { Id = p.pkProyecto, Descripcion = p.descripcion })
-                    .OrderBy(p => p.Descripcion)
-                    .ToList();
-            }
+            string sql = "SELECT pkProyecto as Id, descripcion as Descripcion FROM Proyectos WHERE fkEmpresa = @id ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", fkEmpresa));
+            return MapCatalogo(dt);
         }
 
-        /// <summary>
-        /// Puestos filtrados por empresa, en LINQ puro.
-        /// </summary>
         public static List<CatalogoItem> ObtenerPuestosPorEmpresa(int fkEmpresa)
         {
-            using (var db = new ApplicationDbContext())
+            string sql = "SELECT pkPuesto as Id, descripcion as Descripcion FROM Puesto WHERE fkEmpresa = @id ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", fkEmpresa));
+            return MapCatalogo(dt);
+        }
+
+        private static List<CatalogoItem> MapCatalogo(DataTable dt)
+        {
+            List<CatalogoItem> list = new List<CatalogoItem>();
+            foreach (DataRow r in dt.Rows)
             {
-                return db.Puestos
-                    .Where(p => p.fkEmpresa == fkEmpresa)
-                    .Select(p => new CatalogoItem { Id = p.pkPuesto, Descripcion = p.descripcion })
-                    .OrderBy(p => p.Descripcion)
-                    .ToList();
+                list.Add(new CatalogoItem { 
+                    Id = (int)r["Id"], 
+                    Descripcion = r["Descripcion"].ToString() 
+                });
             }
+            return list;
         }
     }
 }

@@ -16,7 +16,7 @@
 
 body { 
     background-color: var(--gci-bg); 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; 
     color: var(--gci-text);
     margin: 0;
 }
@@ -193,19 +193,31 @@ body {
 .btn-gci-primary { background: var(--gci-primary); color: #fff; }
 .btn-gci-secondary { background: #fff; border-color: #ccc; color: #333; }
 .btn-gci-secondary:hover { background: #f8f8f8; }
+.btn-gci-danger { background: #fff; border-color: #ddd; color: #555; }
+.btn-gci-danger:hover { background: #fdf2f2; color: #cf3a3a; border-color: #f8c4c4; }
+.btn-gci-info { background: #fff; border-color: #ddd; color: #555; }
+.btn-gci-info:hover { background: #f0f7ff; color: #0284c7; border-color: #bae6fd; }
 
 /* Modals */
 .modal-overlay { 
     position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-    background: rgba(0,0,0,0.5); z-index: 3000; 
+    background: rgba(15, 23, 42, 0.65); 
+    backdrop-filter: blur(4px);
+    z-index: 3000; 
     display: none; align-items: center; justify-content: center; 
+    transition: all 0.3s ease;
 }
 .modal-overlay.active { display: flex; }
 .modal-box { 
-    background: #fff; border-radius: 8px; width: 680px; 
+    background: #fff; border-radius: 12px; width: 450px; 
+    max-width: 95%;
     display: flex; flex-direction: column; overflow: hidden;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.05);
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.modal-overlay.active .modal-box { transform: translateY(0); }
 .modal-header { 
     background: var(--gci-primary); color: #fff; padding: 15px 20px; 
     display: flex; align-items: center; justify-content: space-between;

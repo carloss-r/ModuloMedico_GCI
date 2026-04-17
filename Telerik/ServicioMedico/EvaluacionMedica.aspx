@@ -13,7 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-<form id="form1" runat="server">
+<form id="form1" runat="server" onkeydown="return event.keyCode != 13 || event.target.tagName == 'TEXTAREA';">
 
 
 <div id="gci-modulo-medico-container">
@@ -441,6 +441,18 @@
 <div class="step-panel" id="panel4">
     <h3 class="section-title">EXPLORACIÓN FISICA</h3>
 
+    <!-- Comparativa de Signos Vitales (Historial) -->
+    <div id="comparativaSignosContainer" style="display:none; margin-bottom:15px;">
+        <div style="background: #f8f9fa; border: 1px dashed #cbd5e0; border-radius: 8px; padding: 10px;">
+            <div style="font-size: 0.75rem; font-weight: 700; color: #4a5568; text-transform: uppercase; margin-bottom: 5px; display: flex; align-items: center;">
+                <i class="fas fa-history" style="margin-right: 5px; color: #3182ce;"></i> Expediente Cl&iacute;nico de Seguimiento
+            </div>
+            <div id="comparativaSignosTable" style="overflow-x: auto;">
+                <!-- JS populated -->
+            </div>
+        </div>
+    </div>
+
     <!-- Row 1: TA Sistólica + Diastólica | FC | FR | Peso | Estatura -->
     <div class="paper-row">
         <div class="form-group flex-1">
@@ -771,6 +783,18 @@
             <!-- PASO 6 — COLUMNA VERTEBRAL + DIAGNÓSTICO -->
             <!-- Paso 6: Columna Vertebral + Diagnóstico -->
 <div class="step-panel" id="panel6">
+    <!-- Historial de Columna y Sistemas (Se movió aquí por utilidad clínica) -->
+    <div id="comparativaColumnaContainer" style="display:none; margin-bottom:15px;">
+        <div style="background: #fdfdfd; border: 1px dashed #cbd5e0; border-radius: 8px; padding: 10px;">
+            <div style="font-size: 0.72rem; font-weight: 700; color: #4a5568; text-transform: uppercase; margin-bottom: 5px; display: flex; align-items: center;">
+                <i class="fas fa-history" style="margin-right: 5px; color: #e53e3e;"></i> Antecedentes de Columna y Sistemas
+            </div>
+            <div id="comparativaColumnaTable" style="overflow-x: auto;">
+                <!-- JS populated -->
+            </div>
+        </div>
+    </div>
+
     <h3 class="section-title">Columna Vertebral</h3>
     <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:0.9rem;">
         <thead>
@@ -965,7 +989,7 @@
             if (typeof continuarAntidoping === 'function') {
                 continuarAntidoping();
             } else {
-                console.error("Función continuarAntidoping no encontrada.");
+                console.error("Función continuar Antidoping no encontrada.");
             }
         }
     </script>
@@ -995,13 +1019,7 @@
         </div>
     </div>
 
-    <!-- Scripts del Módulo Médico -->
-    
-    
-    
-    
-    
-    
+    <!-- Scripts del Módulo Médico -->    
 </div>
 
 
@@ -1483,7 +1501,6 @@
     <div class="ad-page-header">
         <i class="fas fa-flask flask-icon"></i>
         <h1>Examen Antidoping</h1>
-        <div class="ad-patient-badge" id="badgeOrden">Orden #@idOrden</div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
@@ -1536,11 +1553,11 @@
         <button type="button" class="btn-ad btn-ad-cancel" onclick="cancelarAd()">
             <i class="fas fa-arrow-left"></i> Cancelar
         </button>
+        <button type="button" class="btn-ad btn-ad-print" id="btnImprimirAD" onclick="imprimirAntidoping()" style="display:none;">
+            <i class="fas fa-print"></i> Imprimir Formato
+        </button>
         <button type="button" class="btn-ad btn-ad-save" id="btnGuardarAd" onclick="guardarAd()">
             <i class="fas fa-save"></i> Guardar Antidoping
-        </button>
-        <button type="button" class="btn-ad btn-ad-print" id="btnImprimirAd" onclick="imprimirAntidoping()">
-            <i class="fas fa-print"></i> Imprimir Formato
         </button>
     </div>
 
@@ -1548,9 +1565,6 @@
 
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCRIPTS — todo autocontenido, sin dependencias externas
-     ════════════════════════════════════════════════════ -->
 <script>
     // ── Variables inyectadas desde servidor ────────────────
     var idOrden = <%= IdOrden %>;
@@ -1718,8 +1732,11 @@
             processData: false,
             success: function(resp) {
                 if (resp && resp.success) {
+                    $('#btnImprimirAD').fadeIn(300); // Mostrar botón de imprimir
+                    $('#btnGuardarAd').hide(); // Ocultar botón de guardar ya que se completó
+                    
                     showAdMsg('success', '¡Antidoping Guardado!',
-                        'El examen fue registrado correctamente.',
+                        'El examen fue registrado correctamente. Puede imprimir el formato ahora o regresar a la bandeja.',
                         function() { window.location.href = 'DashboardServicioMedico.aspx'; });
                 } else {
                     $('#btnGuardarAd').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Antidoping');
@@ -1732,6 +1749,11 @@
                     'No se pudo conectar con el servidor. (HTTP ' + xhr.status + ')');
             }
         });
+    }
+
+    function imprimirAntidoping() {
+        var url = 'ImpresionFormatos.aspx?id=' + idOrden + '&tipo=ANTIDOPING';
+        window.open(url, '_blank');
     }
 
     // ── Cancelar / sin antidoping ─────────────────────────
@@ -1768,6 +1790,17 @@
         if (_msgCallback) { var cb = _msgCallback; _msgCallback = null; cb(); }
     }
 </script>
+<%-- ═══ Loading Overlay ═══ --%>
+<div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); backdrop-filter:blur(3px); z-index:10000; flex-direction:column; align-items:center; justify-content:center;">
+    <div class="spinner-container" style="position:relative;">
+        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <i class="fas fa-hand-holding-medical" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#2980b9; font-size:1.5rem;"></i>
+    </div>
+    <div style="margin-top:15px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight:600; color:#2c3e50; text-transform:uppercase; letter-spacing:1px;">Procesando informaci&oacute;n...</div>
+</div>
+
 </form>
 <script src="./js/EvaluacionMedica.js"></script>
 </body>

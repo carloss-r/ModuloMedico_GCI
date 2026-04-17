@@ -1,5 +1,5 @@
 <%@ Page Language="C#" AutoEventWireup="true" CodeBehind="ImpresionFormatos.aspx.cs" Inherits="Telerik.ServicioMedico.ImpresionFormatos" %>
-<% if (TipoDoc == "PASE" || TipoDoc == "EXAMEN") { %>
+<% if (TipoDoc == "PASE" || TipoDoc == "EXAMEN" || TipoDoc == "ANTIDOPING") { %>
     <%= PaseHtml %>
 <% } else { %>
 <!DOCTYPE html>

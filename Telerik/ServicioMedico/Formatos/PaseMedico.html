@@ -1,222 +1,88 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pase de Servicio Médico - GCI</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      font-size: 11px;
-      background: #ccc;
-    }
-
-    .page {
-      width: 160mm;
-      min-height: 120mm;
-      background: white;
-      margin: 15mm auto;
-      border: 2px solid #000;
-    }
-
-    /* ── HEADER ── */
-    .header-table {
-      width: 100%;
-      border-collapse: collapse;
-      border-bottom: 2px solid #000;
-    }
-
-    .header-table td {
-      padding: 4px 6px;
-      vertical-align: middle;
-      border: 1px solid #000;
-    }
-
-    .header-logo {
-      width: 80px;
-      text-align: center;
-    }
-
-    .header-title {
-      text-align: center;
-      font-weight: bold;
-      font-size: 13px;
-      letter-spacing: 1px;
-    }
-
-    .header-hse {
-      width: 60px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 13px;
-      color: #2255aa;
-    }
-
-    /* ── DATA TABLE ── */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .data-table td {
-      border: 1px solid #000;
-      padding: 5px 8px;
-      font-size: 11px;
-      vertical-align: middle;
-    }
-
-    .data-table .label {
-      font-weight: bold;
-      background: #eeeeee;
-      width: 28%;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    /* ── RESULTADO ── */
-    .result-header {
-      background: #333333;
-      color: #ffffff;
-      text-align: center;
-      font-weight: bold;
-      font-size: 12px;
-      padding: 5px;
-      border: 1px solid #000;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    .result-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .result-table td {
-      border: 1px solid #000;
-      text-align: center;
-      padding: 12px 8px 8px;
-      font-size: 11px;
-      font-weight: bold;
-      width: 33.33%;
-    }
-
-    .result-mark {
-      display: block;
-      font-size: 22px;
-      color: #1a3c6e;
-      height: 26px;
-      line-height: 26px;
-    }
-
-    /* ── OBSERVACIONES ── */
-    .obs-row td {
-      height: 50px;
-      vertical-align: top;
-      padding: 5px 8px;
-      font-size: 11px;
-    }
-
-    /* ── FOOTER ── */
-    .form-footer {
-      border-top: 1px solid #000;
-      padding: 3px 6px;
-      font-size: 9px;
-      text-align: right;
-      color: #555;
-    }
-
-    @media print {
-      body {
-        background: white;
-      }
-      .page {
-        margin: 0;
-        border: 2px solid #000;
-        width: 100%;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; margin: 0; padding: 0; background-color: #fff; }
+        .print-content { width: 100%; max-width: 800px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+        td { border: 1px solid #000; padding: 8px 12px; font-size: 13px; vertical-align: middle; }
+        .header-cell { text-align: center; font-weight: bold; font-size: 18px; background-color: #f9f9f9; text-transform: uppercase; border-bottom: 2px solid #000; padding: 12px; }
+        .label-cell { font-weight: bold; background-color: #f2f2f2; width: 15%; }
+        .instruction-header { background-color: #444; color: #fff; text-align: center; font-weight: bold; padding: 10px; text-transform: uppercase; font-size: 14px; }
+        .instruction-subheader { text-align: center; font-size: 12px; border-bottom: none; padding: 5px; color: #666; border-left: 1px solid #000; border-right: 1px solid #000; }
+        .option-cell { width: 33.33%; text-align: center; padding: 15px 10px; font-weight: bold; border-top: none; }
+        .mark-box { font-size: 24px; color: #1a5276; display: block; margin-top: 5px; min-height: 30px; }
+        .fill-note { text-align: center; font-size: 10px; color: #888; background-color: #fafafa; padding: 4px; border-top: none; border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; }
+        .signature-table { border-top: none; }
+        .signature-space { height: 60px; border-bottom: 1px solid #000; }
+        .signature-label { text-align: center; font-size: 9px; font-weight: bold; vertical-align: top; padding-top: 8px; border-top: none; }
+        
+        @media print {
+            body { background: none; padding: 0; }
+            .print-content { max-width: 100%; margin: 0; }
+        }
+    </style>
 </head>
 <body>
+    <div class="print-content">
+        <table>
+            <tr><td colspan="4" class="header-cell">SERVICIO MEDICO</td></tr>
+            <tr>
+                <td class="label-cell">EMPRESA</td>
+                <td style="width:35%;">{{EMPRESA}}</td>
+                <td class="label-cell" style="width:15%;">FECHA:</td>
+                <td>{{FECHA}}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">PROYECTO</td>
+                <td colspan="3">{{PROYECTO}}</td>
+            </tr>
+            <tr>
+                <td colspan="4"><strong>POR ESTE CONDUCTO LE ENVIO AL SR.(A):</strong> {{NOMBRE}}</td>
+            </tr>
+            <tr>
+                <td colspan="4"><strong>CANDIDATO(A) A OCUPAR EL PUESTO DE:</strong> {{PUESTO}}</td>
+            </tr>
+        </table>
 
-  <div class="page">
+        <div style="border-left: 1px solid #000; border-right: 1px solid #000;">
+            <table>
+                <tr><td colspan="3" class="instruction-header">INSTRUCCIÓN AL AREA DE RECLUTAMIENTO Y SELECCIÓN</td></tr>
+                <tr><td colspan="3" class="instruction-subheader">El candidato es considerado como:</td></tr>
+                <tr>
+                    <td class="option-cell">APTO <span class="mark-box">{{RES_APTO}}</span></td>
+                    <td class="option-cell">APTO CONDICIONADO <span class="mark-box">{{RES_CONDICIONADO}}</span></td>
+                    <td class="option-cell">NO APTO <span class="mark-box">{{RES_NO_APTO}}</span></td>
+                </tr>
+            </table>
+            <div class="fill-note">RELLENAR O MARCAR LA CASILLA INDICADA</div>
+        </div>
 
-    <!-- HEADER -->
-    <table class="header-table">
-      <tr>
-        <td class="header-logo" style="height:44px; text-align:center; vertical-align:middle;">
-          <img src="/Content/Images/Logo_GCI.png" alt="GCI" style="max-height:40px; max-width:76px; width:auto; height:auto; display:block; margin:0 auto;" />
-        </td>
-        <td class="header-title">
-          <div>SERVICIO MÉDICO</div>
-          <div style="font-size:10px; font-weight:normal; margin-top:2px;">GRUPO CONSTRUCTOR INDUSTRIAL OIL &amp; GAS S.A. DE C.V.</div>
-        </td>
-        <td class="header-hse" style="height:44px; text-align:center; vertical-align:middle;">
-          <img src="/Content/Images/Logo_HSE.png" alt="HSE" style="max-height:38px; max-width:56px; width:auto; height:auto; display:block; margin:0 auto;" />
-        </td>
-      </tr>
-    </table>
+        <table>
+            <tr><td colspan="3" style="border-top: none; border-bottom: none; padding: 10px 12px;">Existe alguna indicación especial para el candidato:</td></tr>
+            <tr>
+                <td colspan="3" style="height: 80px; vertical-align: top; padding: 10px 15px; border-top: 1px solid #ccc;">{{RECOMENDACIONES}}</td>
+            </tr>
+        </table>
 
-    <!-- DATOS -->
-    <table class="data-table">
-      <tr>
-        <td class="label">EMPRESA</td>
-        <td>{{EMPRESA}}</td>
-        <td class="label" style="width:14%;">FECHA</td>
-        <td style="width:22%;">{{FECHA}}</td>
-      </tr>
-      <tr>
-        <td class="label">PROYECTO</td>
-        <td colspan="3">{{PROYECTO}}</td>
-      </tr>
-      <tr>
-        <td colspan="4" style="padding:5px 8px;">
-          <strong>CANDIDATO(A):</strong>&nbsp;{{NOMBRE}}
-        </td>
-      </tr>
-      <tr>
-        <td colspan="4" style="padding:5px 8px;">
-          <strong>PUESTO:</strong>&nbsp;{{PUESTO}}
-        </td>
-      </tr>
-    </table>
-
-    <!-- RESULTADO -->
-    <div class="result-header">RESULTADO</div>
-    <table class="result-table">
-      <tr>
-        <td>
-          APTO<br/>
-          <span class="result-mark">{{RES_APTO}}</span>
-        </td>
-        <td>
-          CONDICIONADO<br/>
-          <span class="result-mark">{{RES_CONDICIONADO}}</span>
-        </td>
-        <td>
-          NO APTO<br/>
-          <span class="result-mark">{{RES_NO_APTO}}</span>
-        </td>
-      </tr>
-    </table>
-
-    <!-- OBSERVACIONES -->
-    <table class="data-table">
-      <tr class="obs-row">
-        <td colspan="4">{{RECOMENDACIONES}}</td>
-      </tr>
-    </table>
-
-    <!-- FOOTER -->
-    <div class="form-footer">GCI-FOR-SYM-PASE REV. 0</div>
-
-  </div>
-
+        <table class="signature-table">
+            <tr>
+                <td class="signature-space" style="width: 33.33%;"></td>
+                <td class="signature-space" style="width: 33.33%;"></td>
+                <td class="signature-space" style="width: 33.33%;"></td>
+            </tr>
+            <tr>
+                <td class="signature-label">Nombre y firma<br>Reclutamiento</td>
+                <td class="signature-label">Vo. Bo. Nombre y firma<br>del médico</td>
+                <td class="signature-label">EN CASO DE SER CONDICIONADO (NOMBRE Y FIRMA DE QUIEN AUTORIZA)</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align: right; font-size: 8px; color: #999; border: none; padding-top: 10px;">
+                    GCI-FOR-SYM-PASE REV. 0
+                </td>
+            </tr>
+        </table>
+    </div>
 </body>
 </html>

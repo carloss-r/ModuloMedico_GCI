@@ -1,3 +1,6 @@
+$(document).ajaxStart(function () { $('#loadingOverlay').css('display', 'flex'); });
+$(document).ajaxStop(function () { $('#loadingOverlay').hide(); });
+
 function showError(msg) {
     $('#msgIcon').html('<i class="fas fa-times-circle" style="color: #e74c3c;"></i>');
     $('#msgTitle').text('Error');
@@ -10,7 +13,7 @@ function mapearAntecedentesHeredados(d) {
     if (!d) return;
 
     // Reiniciar solo sección de antecedentes para evitar residuos visuales
-    $('.chk-ant').each(function() {
+    $('.chk-ant').each(function () {
         var $row = $(this).closest('tr');
         $(this).prop('checked', false).trigger('change');
         $row.find('.ant-det').val('');
@@ -19,7 +22,7 @@ function mapearAntecedentesHeredados(d) {
     });
 
     if (d.Antecedentes && d.Antecedentes.length > 0) {
-        d.Antecedentes.forEach(function(a) {
+        d.Antecedentes.forEach(function (a) {
             var $chk = $('.chk-ant[data-name="' + a.NombreCondicion + '"]');
             if ($chk.length > 0) {
                 var $row = $chk.closest('tr');
@@ -54,7 +57,7 @@ function mapearAntecedentesHeredados(d) {
         $('#txtTiempoLibre').val(h.DescripcionTiempoLibre || '');
 
         // Resaltar sección de hábitos como heredada
-        $('.toggle-habito').each(function() {
+        $('.toggle-habito').each(function () {
             if ($(this).is(':checked')) {
                 $(this).closest('.form-group, tr, div').css({ 'background-color': '#fff9e6' });
             }
@@ -73,9 +76,9 @@ function showInfo(msg) {
 function showToast(msg, type) {
     var icon = 'fa-info-circle';
     var color = '#3498db';
-    if(type === 'success') { icon = 'fa-check-circle'; color = '#27ae60'; }
-    if(type === 'error') { icon = 'fa-times-circle'; color = '#e74c3c'; }
-    
+    if (type === 'success') { icon = 'fa-check-circle'; color = '#27ae60'; }
+    if (type === 'error') { icon = 'fa-times-circle'; color = '#e74c3c'; }
+
     var toastHtml = `
     <div id="medicalToast" style="position:fixed; top:20px; right:20px; z-index:9999; background:white; border-left:5px solid ${color}; padding:15px 20px; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:none; align-items:center; min-width:300px; max-width:450px;">
         <i class="fas ${icon}" style="color:${color}; font-size:1.5rem; margin-right:15px;"></i>
@@ -85,13 +88,13 @@ function showToast(msg, type) {
         </div>
         <button onclick="$(this).parent().fadeOut()" style="background:none; border:none; color:#ccc; cursor:pointer; font-size:1.2rem; margin-left:10px;">&times;</button>
     </div>`;
-    
+
     $('#medicalToast').remove();
     $('body').append(toastHtml);
     $('#medicalToast').fadeIn(300);
-    
+
     // Auto-hide after 8 seconds
-    setTimeout(function() {
+    setTimeout(function () {
         $('#medicalToast').fadeOut(500);
     }, 8000);
 }
@@ -100,9 +103,9 @@ function showSuccess(msg, callback) {
     $('#msgIcon').html('<i class="fas fa-check-circle" style="color: #27ae60;"></i>');
     $('#msgTitle').text('\u00c9xito');
     $('#msgBody').text(msg);
-    $('#btnMsgOk').css('background', '#27ae60').off('click').click(function() {
+    $('#btnMsgOk').css('background', '#27ae60').off('click').click(function () {
         $('#msgOverlay').hide();
-        if(callback) callback();
+        if (callback) callback();
     });
     $('#msgOverlay').css('display', 'flex');
 }
@@ -116,20 +119,20 @@ function showConfirm(msg, callback) {
 
 function handleConfirm(result) {
     $('#confirmOverlay').hide();
-    if(confirmCallback) confirmCallback(result);
+    if (confirmCallback) confirmCallback(result);
 }
 
 function calcImc() {
     var w = parseFloat($('#txtPeso').val());
     var h = parseFloat($('#txtEstatura').val());
-    if(w > 0 && h > 0) {
+    if (w > 0 && h > 0) {
         var imc = w / (h * h);
         $('#txtImc').val(imc.toFixed(1));
-        
+
         // Determinar ClasificaciÃ³n (Escala OMS)
         var desc = "";
         var color = "#2c3e50"; // Default
-        
+
         if (imc < 18.5) {
             desc = "Bajo peso";
             color = "#3498db"; // Azul
@@ -149,7 +152,7 @@ function calcImc() {
             desc = "Obesidad Grado III (M\u00f3rbida)";
             color = "#c0392b"; // Rojo Oscuro
         }
-        
+
         $('#txtImcDescripcion').val(desc.toUpperCase()).css('color', color);
     } else {
         $('#txtImc, #txtImcDescripcion').val('');
@@ -158,7 +161,7 @@ function calcImc() {
 
 function calcularEdad() {
     var fNacStr = $('#txtFechaNacimiento').val();
-    if(fNacStr) {
+    if (fNacStr) {
         var fNac = new Date(fNacStr);
         var hoy = new Date();
         var edad = hoy.getFullYear() - fNac.getFullYear();
@@ -187,11 +190,11 @@ function clearError($el) {
 
 function isOnlyLetters(val) { return /^[A-Za-z\u00C0-\u00FF\s-]+$/.test(val); }
 function isOnlyNumbers(val) { return /^\d+$/.test(val); }
-function isDecimal(val)     { return /^\d+(\.\d+)?$/.test(val); }
+function isDecimal(val) { return /^\d+(\.\d+)?$/.test(val); }
 
 function formatDateForInput(dateVal) {
     if (!dateVal) return "";
-    
+
     try {
         // Handle /Date(1234567890)/
         if (typeof dateVal === 'string' && dateVal.indexOf('/Date(') !== -1) {
@@ -205,12 +208,12 @@ function formatDateForInput(dateVal) {
                 return year + '-' + month + '-' + day;
             }
         }
-        
+
         // Handle ISO or yyyy-mm-ddT...
         if (typeof dateVal === 'string' && dateVal.indexOf('T') !== -1) {
             return dateVal.split('T')[0];
         }
-        
+
         // Handle dd/mm/yyyy or yyyy/mm/dd
         if (typeof dateVal === 'string' && dateVal.indexOf('/') !== -1) {
             var parts = dateVal.split('/');
@@ -240,16 +243,16 @@ function clearPanelErrors(panelId) {
 // Input mask and formatting logic
 function initInputFormatters() {
     // Numbers only
-    $(document).on('input', '.val-num', function() { 
-        this.value = this.value.replace(/[^0-9]/g, ''); 
+    $(document).on('input', '.val-num', function () {
+        this.value = this.value.replace(/[^0-9]/g, '');
     });
-    
+
     // Decimals
-    $(document).on('input', '.val-dec', function() { 
+    $(document).on('input', '.val-dec', function () {
         var start = this.selectionStart;
         var oldVal = this.value;
-        var newVal = oldVal.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1'); 
-        
+        var newVal = oldVal.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');
+
         if (oldVal !== newVal) {
             this.value = newVal;
             if (this.setSelectionRange) {
@@ -259,12 +262,24 @@ function initInputFormatters() {
         }
     });
 
-    // Text only (with spaces and accents)
-    $(document).on('input', '.val-text', function() { 
-        this.value = this.value.replace(/[^a-zA-Z\u00C0-\u017F\s.]/g, ''); 
+    // Bloquear tecla Enter para evitar recargas accidentales de página
+    $(document).on('keydown', function (e) {
+        if (e.keyCode === 13) {
+            var $target = $(e.target);
+            // Permitir Enter solo en textareas y botones
+            if (!$target.is('textarea') && !$target.is('button')) {
+                e.preventDefault();
+                return false;
+            }
+        }
     });
 
-    $(document).on('input', '.val-slash-num', function() {
+    // Text only (with spaces and accents)
+    $(document).on('input', '.val-text', function () {
+        this.value = this.value.replace(/[^a-zA-Z\u00C0-\u017F\s.]/g, '');
+    });
+
+    $(document).on('input', '.val-slash-num', function () {
         this.value = this.value.replace(/[^0-9/]/g, '');
     });
 }
@@ -272,13 +287,13 @@ function initInputFormatters() {
 // Handles patient data loading and initial form population
 
 var antecedentesHF = [
-    "HTA", "ENFERMEDAD CORONARIA", "ACV", "DIABETES", "TIROIDES", 
-    "ASMA", "ALERGIAS", "TBC", "ALCOHOL", "EPILEPSIA .", 
+    "HTA", "ENFERMEDAD CORONARIA", "ACV", "DIABETES", "TIROIDES",
+    "ASMA", "ALERGIAS", "TBC", "ALCOHOL", "EPILEPSIA .",
     "ENFERM. MENTALES", "MALFORM. CONG&Eacute;NITAS", "C&Aacute;NCER / TUMORALES", "V&Aacute;RICES"
 ];
 var antecedentesPP = [
-    "HIPERTENSI&Oacute;N", "QUIR&Uacute;RGICOS", "TRAUM&Aacute;TICOS", "AL&Eacute;RGICOS", "CONG&Eacute;NITOS", 
-    "METAB&Oacute;LICOS", "INFECTOCONTAGIOSOS", "TUMORALES", "ENF. RESPIRATORIAS", "MEDICAMENTOS", 
+    "HIPERTENSI&Oacute;N", "QUIR&Uacute;RGICOS", "TRAUM&Aacute;TICOS", "AL&Eacute;RGICOS", "CONG&Eacute;NITOS",
+    "METAB&Oacute;LICOS", "INFECTOCONTAGIOSOS", "TUMORALES", "ENF. RESPIRATORIAS", "MEDICAMENTOS",
     "TRANSFUSIONALES", "LITIASIS", "HACINAMIENTO", "SERVICIOS: AGUA", "SERVICIOS: DRENAJE", "OTROS ANTECEDENTES"
 ];
 
@@ -294,56 +309,56 @@ function initForms() {
     // Inicializar cascada de catÃ¡logos geogrÃ¡ficos
     cargarPaises();
     cargarEstadoNacimiento(1); // Cargar estados de MÃ©xico por defecto
-    
+
     // Cargar catálogos adicionales desde la base de datos
     cargarEstadoCivil();
     cargarTipoSangre();
     cargarProfesiones();
     cargarNivelEscolaridad();
-    
+
     // Mantener campo de profesión siempre habilitado
-    $('#ddlEscolaridad').on('change', function() {
+    $('#ddlEscolaridad').on('change', function () {
         mantenerProfesionHabilitada();
     });
-    
+
     // Inicializar campo de profesión
     mantenerProfesionHabilitada();
 
-    $('#ddlPais').on('change', function() {
+    $('#ddlPais').on('change', function () {
         var idPais = $(this).val();
         $('#ddlEstado').html('<option value="">-- Seleccione --</option>').val('');
         $('#ddlMunicipio').html('<option value="">-- Seleccione --</option>').val('');
         $('#ddlColonia').html('<option value="">-- Seleccione --</option>').val('');
         $('#txtCp').val('');
-        if(idPais) cargarEstados(idPais);
+        if (idPais) cargarEstados(idPais);
     });
 
-    $('#ddlEstado').on('change', function() {
+    $('#ddlEstado').on('change', function () {
         var idEstado = $(this).val();
         $('#ddlMunicipio').html('<option value="">-- Seleccione --</option>').val('');
         $('#ddlColonia').html('<option value="">-- Seleccione --</option>').val('');
         $('#txtCp').val('');
-        if(idEstado) cargarMunicipios(idEstado);
+        if (idEstado) cargarMunicipios(idEstado);
     });
 
-    $('#ddlMunicipio').on('change', function() {
+    $('#ddlMunicipio').on('change', function () {
         var idMunicipio = $(this).val();
         $('#ddlColonia').html('<option value="">-- Seleccione --</option>').val('');
         $('#txtCp').val('');
-        if(idMunicipio) cargarColonias(idMunicipio);
+        if (idMunicipio) cargarColonias(idMunicipio);
     });
 
-    $('#ddlColonia').on('change', function() {
+    $('#ddlColonia').on('change', function () {
         var $opt = $(this).find('option:selected');
         var cp = $opt.data('cp');
         var cpId = $opt.data('cp-id');
-        if(cp) $('#txtCp').val(cp);
-        if(cpId) $('#hdnFkCp').val(cpId);
+        if (cp) $('#txtCp').val(cp);
+        if (cpId) $('#hdnFkCp').val(cpId);
         else $('#hdnFkCp').val('');
     });
 
     var $tbHF = $('#tbAntecedentesHF');
-    antecedentesHF.forEach(function(item) {
+    antecedentesHF.forEach(function (item) {
         var row = `<tr>
             <td style="font-weight: 500;">${item}</td>
             <td style="text-align:center;"><input type="checkbox" class="chk-ant chk-hf" data-name="${item}" /></td>
@@ -353,7 +368,7 @@ function initForms() {
     });
 
     var $tbPP = $('#tbAntecedentesPP');
-    antecedentesPP.forEach(function(item) {
+    antecedentesPP.forEach(function (item) {
         var row = `<tr>
             <td style="font-weight: 500;">${item}</td>
             <td style="text-align:center;"><input type="checkbox" class="chk-ant chk-pp" data-name="${item}" /></td>
@@ -363,7 +378,7 @@ function initForms() {
     });
 
     var $tbEx = $('#tbExamenFisico');
-    examSystems.forEach(function(sys) {
+    examSystems.forEach(function (sys) {
         var row = `<tr>
             <td>${sys}</td>
             <td style="text-align:center;"><input type="checkbox" class="chk-norm" checked data-sys="${sys}" /></td>
@@ -373,17 +388,17 @@ function initForms() {
         $tbEx.append(row);
     });
 
-    $tbEx.on('change', '.chk-norm', function() {
-        if(this.checked) $(this).closest('tr').find('.chk-anorm').prop('checked', false);
+    $tbEx.on('change', '.chk-norm', function () {
+        if (this.checked) $(this).closest('tr').find('.chk-anorm').prop('checked', false);
     });
-    $tbEx.on('change', '.chk-anorm', function() {
-        if(this.checked) $(this).closest('tr').find('.chk-norm').prop('checked', false);
+    $tbEx.on('change', '.chk-anorm', function () {
+        if (this.checked) $(this).closest('tr').find('.chk-norm').prop('checked', false);
     });
-    
+
     // Toggle handling for HÃ¡bito checkboxes
-    $('.toggle-habito').on('change', function() {
+    $('.toggle-habito').on('change', function () {
         var targetSection = $(this).data('target');
-        if(this.checked) {
+        if (this.checked) {
             $(targetSection).show();
         } else {
             $(targetSection).hide();
@@ -403,7 +418,7 @@ function addLaboralRow() {
     var row = `<tr>
         <td><input type="text" class="form-control lab-emp" placeholder="Empresa" /></td>
         <td><input type="text" class="form-control lab-pue" placeholder="Puesto" /></td>
-        <td><input type="text" class="form-control lab-tie" placeholder="Ej. 1 AÃ±o" /></td>
+        <td><input type="text" class="form-control lab-tie" placeholder="Ej. 1 Año" /></td>
         <td><input type="text" class="form-control lab-age" placeholder="Polvo, ruido, etc." /></td>
         <td><input type="text" class="form-control lab-acc" placeholder="Ninguno" /></td>
         <td><button type="button" class="btn-danger" style="padding: 2px 6px; font-size: 0.8rem;" onclick="$(this).closest('tr').remove(); return false;"><i class="fas fa-trash"></i></button></td>
@@ -411,278 +426,356 @@ function addLaboralRow() {
     $('#tbAntecedentesLaborales').append(row);
 }
 
+
+// --- Lógica de Persistencia (Auto-guardado) ---
+function setupPersistencia() {
+    $(document).on('change input', 'input, select, textarea', function () {
+        if (this.id && !$(this).hasClass('no-persist')) {
+            guardarBorrador();
+        }
+    });
+}
+
+function guardarBorrador() {
+    if (!idOrden) return;
+    var data = {};
+    $('input, select, textarea').each(function () {
+        if (this.id && !$(this).hasClass('no-persist')) {
+            if (this.type === 'checkbox' || this.type === 'radio') {
+                data[this.id] = this.checked;
+            } else {
+                var val = $(this).val();
+                if (val && val !== "") data[this.id] = val;
+            }
+        }
+    });
+
+    // Guardar estado de la interfaz (Paso y Sección)
+    data._step = typeof currentStep !== 'undefined' ? currentStep : 1;
+    data._section = ($('#secAntidoping').is(':visible')) ? 'ANTIDOPING' : 'EXAMEN';
+
+    localStorage.setItem('GCI_DRAFT_' + idOrden, JSON.stringify(data));
+}
+
+function recuperarBorrador() {
+    if (!idOrden) return;
+    var saved = localStorage.getItem('GCI_DRAFT_' + idOrden);
+    if (saved) {
+        var data = JSON.parse(saved);
+        // Esperar un momento a que los catálogos se carguen via AJAX
+        setTimeout(function () {
+            Object.keys(data).forEach(function (id) {
+                var $el = $('#' + id);
+                if ($el.length) {
+                    if ($el.attr('type') === 'checkbox' || $el.attr('type') === 'radio') {
+                        $el.prop('checked', data[id]).trigger('change');
+                    } else {
+                        $el.val(data[id]).trigger('change');
+                    }
+                }
+            });
+            showToast("Se ha restaurado el progreso de la evaluación.", "info");
+
+            // Restaurar navegación (Paso y Sección)
+            if (data._section === 'ANTIDOPING') {
+                if ($('#mainWizard').length) $('#mainWizard').hide();
+                $('#secAntidoping').show().css('visibility', 'visible');
+            } else if (typeof data._step !== 'undefined') {
+                goToStep(data._step);
+            }
+        }, 1500);
+    }
+}
+
+function limpiarBorrador() {
+    if (idOrden) localStorage.removeItem('GCI_DRAFT_' + idOrden);
+}
+
 function loadPatientData(idOrden) {
-    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerDatosPaciente', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idOrden: idOrden }), success: function(r) { var resp = r.d;
-        if(resp.success) {
-            var p = resp.paciente;
-            currentTipo = p.Tipo;
+    recuperarBorrador();
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerDatosPaciente', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idOrden: idOrden }), success: function (r) {
+            var resp = r.d;
+            if (resp.success) {
+                var p = resp.paciente;
+                currentTipo = p.Tipo;
 
-            // --- POBLAR BANNER ---
-            $('#pbNombre').text('SERV. MÉDICO — EXAMEN MÉDICO');
-            $('#pbEmpresa').text('');
-            $('#pbPuesto').text('');
-            $('#pbTipoServicio').text('');
+                // --- POBLAR BANNER ---
+                $('#pbNombre').text('SERV. MÉDICO — EXAMEN MÉDICO');
+                $('#pbEmpresa').text('');
+                $('#pbPuesto').text('');
+                $('#pbTipoServicio').text('');
 
-            if (p.Tipo === 'EMPLEADO') {
-                $('#pbTipo').text('Empleado').removeClass('pb-badge-candidato');
-                $('#pbNumEmpSep, #pbNumEmp').show();
-                $('#pbNumEmp').text('No. Emp: ' + (p.NumeroEmpleado || '—'));
-            } else {
-                $('#pbTipo').text('Candidato').addClass('pb-badge-candidato');
-            }
+                if (p.Tipo === 'EMPLEADO') {
+                    $('#pbTipo').text('Empleado').removeClass('pb-badge-candidato');
+                    $('#pbNumEmpSep, #pbNumEmp').show();
+                    $('#pbNumEmp').text('No. Emp: ' + (p.NumeroEmpleado || '—'));
+                } else {
+                    $('#pbTipo').text('Candidato').addClass('pb-badge-candidato');
+                }
 
-            // --- ACTUALIZAR CONSENTIMIENTO CON NOMBRE REAL DE EMPRESA ---
-            var empresa = p.Empresa || 'la Empresa';
-            if (currentTipoServicio == 3) {
-                $('#consentTitle').text('Consentimiento Informado — Examen Toxicológico');
-                $('#consentBodyText').html('<p>La empresa <strong>' + empresa + '</strong> informa que se realizará una prueba de detección de consumo de drogas y alcohol, conforme al reglamento interno vigente.</p><p>Los resultados son <strong>confidenciales</strong> y serán utilizados únicamente con fines laborales y de seguridad.</p>');
-            } else {
-                $('#consentTitle').text('Consentimiento Informado — Examen Médico');
-                $('#consentBodyText').html('<p>Por este medio otorgo mi consentimiento a la empresa <strong>' + empresa + '</strong> para la realización de una evaluación médica integral.</p><p>Entiendo que los datos recabados son para uso exclusivo del expediente clínico laboral y serán manejados con estricta confidencialidad.</p><p>Manifiesto que la información proporcionada sobre mis antecedentes es verídica.</p>');
-            }
-            // No abrir consentimiento aquí: solo debe mostrarse cuando se inicie Antidoping.
+                // --- ACTUALIZAR CONSENTIMIENTO CON NOMBRE REAL DE EMPRESA ---
+                var empresa = p.Empresa || 'la Empresa';
+                if (currentTipoServicio == 3) {
+                    $('#consentTitle').text('Consentimiento Informado — Examen Toxicológico');
+                    $('#consentBodyText').html('<p>La empresa <strong>' + empresa + '</strong> informa que se realizará una prueba de detección de consumo de drogas y alcohol, conforme al reglamento interno vigente.</p><p>Los resultados son <strong>confidenciales</strong> y serán utilizados únicamente con fines laborales y de seguridad.</p>');
+                } else {
+                    $('#consentTitle').text('Consentimiento Informado — Examen Médico');
+                    $('#consentBodyText').html('<p>Por este medio otorgo mi consentimiento a la empresa <strong>' + empresa + '</strong> para la realización de una evaluación médica integral.</p><p>Entiendo que los datos recabados son para uso exclusivo del expediente clínico laboral y serán manejados con estricta confidencialidad.</p><p>Manifiesto que la información proporcionada sobre mis antecedentes es verídica.</p>');
+                }
+                // No abrir consentimiento aquí: solo debe mostrarse cuando se inicie Antidoping.
 
-            // --- PASO 0 PARA EMPLEADOS ---
-            if (resp.esEmpleado) {
-                $('#step0').show();
-                $('#panel0').show();
-                // Ir al paso 0 primero para que el médico vea el historial
-                goToStep(0);
-                // Cargar historial
-                cargarHistorialEmpleado(idOrden);
-            }
+                // --- PASO 0 PARA EMPLEADOS ---
+                if (resp.esEmpleado) {
+                    $('#step0').show();
+                    $('#panel0').show();
+                    // Ir al paso 0 primero para que el médico vea el historial
+                    goToStep(0);
+                    // Cargar historial
+                    cargarHistorialEmpleado(idOrden);
+                }
 
-            // --- LLENAR CAMPOS DEL FORMULARIO ---
-            $('#txtNombre').val(p.Nombre || '');
-            $('#txtApellidoPaterno').val(p.ApellidoPaterno || '');
-            $('#txtApellidoMaterno').val(p.ApellidoMaterno || '');
-            $('#txtEdad').val(p.Edad);
-            $('#txtPuesto').val(p.Puesto);
-            $('#txtArea').val(p.Area);
-            $('#txtEmpresa').val(p.Empresa || '');
-           
-            if(p.Nss) $('#txtNss').val(p.Nss);
-            if(p.Escolaridad) {
-                // Esperar a que el catálogo esté cargado para seleccionar el valor
-                var waitEscolaridad = setInterval(function(){
-                    if($('#ddlEscolaridad option').length > 1) {
-                        clearInterval(waitEscolaridad);
-                        var esc = p.Escolaridad.toUpperCase().trim();
-                        // Normalización para el dropdown
-                        if(esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
-                        if(esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
-                        
-                        // Intentar seleccionar por texto o valor
-                        var found = false;
-                        $('#ddlEscolaridad option').each(function() {
-                            if($(this).text().toUpperCase() === esc || $(this).val().toString().toUpperCase() === esc) {
-                                $(this).prop('selected', true);
-                                found = true;
-                                return false;
-                            }
-                        });
-                        
-                        if(!found) {
-                            // Si no encuentra exacto, busca coincidencia parcial
-                            $('#ddlEscolaridad option').filter(function() {
-                                return $(this).text().toUpperCase().indexOf(esc) >= 0 || esc.indexOf($(this).text().toUpperCase()) >= 0;
-                            }).prop('selected', true);
-                        }
-                    }
-                }, 100);
-            }
-            
-            if(p.FechaNacimiento) {
-                var formattedDate = formatDateForInput(p.FechaNacimiento);
-                $('#txtFechaNacimiento').val(formattedDate).trigger('change');
-            }
-            if(p.LugarNacimiento) {
-                var ln = p.LugarNacimiento.toUpperCase();
-                var foundLn = false;
-                $('#ddlEstadoNacimiento option').each(function() {
-                    if($(this).text().toUpperCase() === ln || $(this).val().toUpperCase() === ln) {
-                        $(this).prop('selected', true);
-                        foundLn = true;
-                        return false;
-                    }
-                });
-                if(!foundLn) $('#ddlEstadoNacimiento').val(p.LugarNacimiento);
-            }
-            if(p.Telefono) $('#txtTelefono').val(p.Telefono);
-            if(p.Direccion) $('#txtDomicilio').val(p.Direccion);
-            if(p.EstadoCivil) {
-                // Esperar a que el catálogo esté cargado para seleccionar el valor
-                var waitEstadoCivil = setInterval(function(){
-                    if($('#ddlEstadoCivil option').length > 1) {
-                        clearInterval(waitEstadoCivil);
-                        $('#ddlEstadoCivil option').filter(function() {
-                            return $(this).text().toUpperCase().indexOf(p.EstadoCivil.toUpperCase()) >= 0 || 
-                                   $(this).val().toString().toUpperCase() === p.EstadoCivil.toUpperCase() ||
-                                   $(this).text().toUpperCase() === p.EstadoCivil.toUpperCase();
-                        }).prop('selected', true);
-                    }
-                }, 100);
-            }
-            
-            if(p.ManoDominante) {
-                // Esperar a que el catálogo esté cargado para seleccionar el valor
-                var waitManoDominante = setInterval(function(){
-                    if($('#ddlManoDominante option').length > 0) {
-                        clearInterval(waitManoDominante);
-                        $('#ddlManoDominante option').filter(function() {
-                            return $(this).text().toUpperCase().indexOf(p.ManoDominante.toUpperCase()) >= 0 || 
-                                   $(this).val().toString().toUpperCase() === p.ManoDominante.toUpperCase() ||
-                                   $(this).text().toUpperCase() === p.ManoDominante.toUpperCase();
-                        }).prop('selected', true);
-                    }
-                }, 100);
-            }
-            
-            if(p.TipoSangre) {
-                // Esperar a que el catálogo esté cargado para seleccionar el valor
-                var waitTipoSangre = setInterval(function(){
-                    if($('#ddlTipoSangre option').length > 1) {
-                        clearInterval(waitTipoSangre);
-                        var valor = p.FkTipoSangre || '';
-                        if (valor) {
-                            $('#ddlTipoSangre').val(valor);
-                        }
-                        if (!$('#ddlTipoSangre').val() && p.TipoSangre) {
-                            var ts = p.TipoSangre.toUpperCase();
-                            $('#ddlTipoSangre option').each(function() {
-                                if ($(this).text().toUpperCase() === ts) {
-                                    $('#ddlTipoSangre').val($(this).val());
+                // --- LLENAR CAMPOS DEL FORMULARIO ---
+                $('#txtNombre').val(p.Nombre || '');
+                $('#txtApellidoPaterno').val(p.ApellidoPaterno || '');
+                $('#txtApellidoMaterno').val(p.ApellidoMaterno || '');
+                $('#txtEdad').val(p.Edad);
+                $('#txtPuesto').val(p.Puesto);
+                $('#txtArea').val(p.Area);
+                $('#txtEmpresa').val(p.Empresa || '');
+
+                if (p.Nss) $('#txtNss').val(p.Nss);
+                if (p.Escolaridad) {
+                    // Esperar a que el catálogo esté cargado para seleccionar el valor
+                    var waitEscolaridad = setInterval(function () {
+                        if ($('#ddlEscolaridad option').length > 1) {
+                            clearInterval(waitEscolaridad);
+                            var esc = p.Escolaridad.toUpperCase().trim();
+                            // Normalización para el dropdown
+                            if (esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
+                            if (esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
+
+                            // Intentar seleccionar por texto o valor
+                            var found = false;
+                            $('#ddlEscolaridad option').each(function () {
+                                if ($(this).text().toUpperCase() === esc || $(this).val().toString().toUpperCase() === esc) {
+                                    $(this).prop('selected', true);
+                                    found = true;
                                     return false;
                                 }
                             });
-                        }
-                    }
-                }, 100);
-            }
-            
-            if(p.Profesion) {
-                $('#txtProfesion').val(p.Profesion);
-            }
-            
-            if(p.LugarEvaluacion) {
-                $('#txtLugarEvaluacion').val(p.LugarEvaluacion);
-            }
-            
-            // Precargar datos demográficos que ya están correctos
-            if(p.Tipo === 'CANDIDATO') {
-                $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
-                $('#txtEscolaridad').prop('readonly', false);
-                // Domicilio habilitado
-                $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
-                $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
-                $('#ddlSexo').prop('disabled', false);
-                $('#secLaborales').show();
-            } else {
-                // EMPLEADO: Datos generales precargados y readonly (ya están correctos en BD)
-                $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno').prop('readonly', true).css('background-color', '#f8f9fa');
-                $('#txtPuesto, #txtArea, #txtEmpresa').prop('readonly', true).css('background-color', '#f8f9fa');
-                $('#txtEdad').prop('readonly', true).css('background-color', '#f8f9fa');
-                $('#txtNss').prop('readonly', true).css('background-color', '#f8f9fa');
-                
-                // Datos demográficos básicos precargados (no cambiar en evaluación médica)
-                $('#txtFechaNacimiento').prop('readonly', true).css('background-color', '#f8f9fa');
-                $('#ddlEstadoCivil').prop('disabled', true).css('background-color', '#f8f9fa');
-                $('#ddlManoDominante').prop('disabled', true).css('background-color', '#f8f9fa');
-                $('#txtTelefono').prop('readonly', true).css('background-color', '#f8f9fa');
-                
-                // Escolaridad y profesión - mantener habilitados (pueden actualizar)
-                $('#ddlEscolaridad').prop('disabled', false);
-                $('#txtProfesion').prop('disabled', false);
-                
-                // Domicilio - mantener habilitado para actualización
-                $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
-                $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
-                
-                // Datos clínicos previos - precargar pero permitir actualización
-                $('#ddlTipoSangre').prop('disabled', false);
-                
-                $('#secLaborales').show();
-            }
 
-            // Pre-cargar datos geogrÃ¡ficos del empleado/candidato
-            if(p.FkPais) {
-                // Esperar a que los paÃ­ses estÃ©n cargados, luego seleccionar y cargar cascada
-                var waitPais = setInterval(function(){
-                    if($('#ddlPais option').length > 1) {
-                        clearInterval(waitPais);
-                        $('#ddlPais').val(p.FkPais);
-                        // Cargar Estados y seleccionar
-                        $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerEstados', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idPais: p.FkPais }), success: function(r) { var resp2 = r.d;
-                            if(resp2.success && resp2.data) {
-                                var opts = '<option value="">-- Seleccione --</option>';
-                                resp2.data.forEach(function(item) {
-                                    opts += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                            if (!found) {
+                                // Si no encuentra exacto, busca coincidencia parcial
+                                $('#ddlEscolaridad option').filter(function () {
+                                    return $(this).text().toUpperCase().indexOf(esc) >= 0 || esc.indexOf($(this).text().toUpperCase()) >= 0;
+                                }).prop('selected', true);
+                            }
+                        }
+                    }, 100);
+                }
+
+                if (p.FechaNacimiento) {
+                    var formattedDate = formatDateForInput(p.FechaNacimiento);
+                    $('#txtFechaNacimiento').val(formattedDate).trigger('change');
+                }
+                if (p.LugarNacimiento) {
+                    var ln = p.LugarNacimiento.toUpperCase();
+                    var foundLn = false;
+                    $('#ddlEstadoNacimiento option').each(function () {
+                        if ($(this).text().toUpperCase() === ln || $(this).val().toUpperCase() === ln) {
+                            $(this).prop('selected', true);
+                            foundLn = true;
+                            return false;
+                        }
+                    });
+                    if (!foundLn) $('#ddlEstadoNacimiento').val(p.LugarNacimiento);
+                }
+                if (p.Telefono) $('#txtTelefono').val(p.Telefono);
+                if (p.Direccion) $('#txtDomicilio').val(p.Direccion);
+                if (p.EstadoCivil) {
+                    // Esperar a que el catálogo esté cargado para seleccionar el valor
+                    var waitEstadoCivil = setInterval(function () {
+                        if ($('#ddlEstadoCivil option').length > 1) {
+                            clearInterval(waitEstadoCivil);
+                            $('#ddlEstadoCivil option').filter(function () {
+                                return $(this).text().toUpperCase().indexOf(p.EstadoCivil.toUpperCase()) >= 0 ||
+                                    $(this).val().toString().toUpperCase() === p.EstadoCivil.toUpperCase() ||
+                                    $(this).text().toUpperCase() === p.EstadoCivil.toUpperCase();
+                            }).prop('selected', true);
+                        }
+                    }, 100);
+                }
+
+                if (p.ManoDominante) {
+                    // Esperar a que el catálogo esté cargado para seleccionar el valor
+                    var waitManoDominante = setInterval(function () {
+                        if ($('#ddlManoDominante option').length > 0) {
+                            clearInterval(waitManoDominante);
+                            $('#ddlManoDominante option').filter(function () {
+                                return $(this).text().toUpperCase().indexOf(p.ManoDominante.toUpperCase()) >= 0 ||
+                                    $(this).val().toString().toUpperCase() === p.ManoDominante.toUpperCase() ||
+                                    $(this).text().toUpperCase() === p.ManoDominante.toUpperCase();
+                            }).prop('selected', true);
+                        }
+                    }, 100);
+                }
+
+                if (p.TipoSangre) {
+                    // Esperar a que el catálogo esté cargado para seleccionar el valor
+                    var waitTipoSangre = setInterval(function () {
+                        if ($('#ddlTipoSangre option').length > 1) {
+                            clearInterval(waitTipoSangre);
+                            var valor = p.FkTipoSangre || '';
+                            if (valor) {
+                                $('#ddlTipoSangre').val(valor);
+                            }
+                            if (!$('#ddlTipoSangre').val() && p.TipoSangre) {
+                                var ts = p.TipoSangre.toUpperCase();
+                                $('#ddlTipoSangre option').each(function () {
+                                    if ($(this).text().toUpperCase() === ts) {
+                                        $('#ddlTipoSangre').val($(this).val());
+                                        return false;
+                                    }
                                 });
-                                $('#ddlEstado').html(opts);
-                                if(p.FkEstado) {
-                                    $('#ddlEstado').val(p.FkEstado);
-                                    // Cargar Municipios
-                                    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerMunicipios', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idEstado: p.FkEstado }), success: function(r) { var resp3 = r.d;
-                                        if(resp3.success && resp3.data) {
-                                            var opts2 = '<option value="">-- Seleccione --</option>';
-                                            resp3.data.forEach(function(item) {
-                                                opts2 += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
-                                            });
-                                            $('#ddlMunicipio').html(opts2);
-                                            if(p.FkMunicipio) {
-                                                $('#ddlMunicipio').val(p.FkMunicipio);
-                                                // Cargar Colonias
-                                                $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerColonias', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idMunicipio: p.FkMunicipio }), success: function(r) { var resp4 = r.d;
-                                                    if(resp4.success && resp4.data) {
-                                                        var opts3 = '<option value="">-- Seleccione --</option>';
-                                                        resp4.data.forEach(function(item) {
-                                                            opts3 += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                            }
+                        }
+                    }, 100);
+                }
+
+                if (p.Profesion) {
+                    $('#txtProfesion').val(p.Profesion);
+                }
+
+                if (p.LugarEvaluacion) {
+                    $('#txtLugarEvaluacion').val(p.LugarEvaluacion);
+                }
+
+                // Precargar datos demográficos que ya están correctos
+                if (p.Tipo === 'CANDIDATO') {
+                    $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
+                    $('#txtEscolaridad').prop('readonly', false);
+                    // Domicilio habilitado
+                    $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
+                    $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
+                    $('#ddlSexo').prop('disabled', false);
+                    $('#secLaborales').show();
+                } else {
+                    // EMPLEADO: Datos generales precargados y readonly (ya están correctos en BD)
+                    $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno').prop('readonly', true).css('background-color', '#f8f9fa');
+                    $('#txtPuesto, #txtArea, #txtEmpresa').prop('readonly', true).css('background-color', '#f8f9fa');
+                    $('#txtEdad').prop('readonly', true).css('background-color', '#f8f9fa');
+                    $('#txtNss').prop('readonly', true).css('background-color', '#f8f9fa');
+
+                    // Datos demográficos básicos precargados (no cambiar en evaluación médica)
+                    $('#txtFechaNacimiento').prop('readonly', true).css('background-color', '#f8f9fa');
+                    $('#ddlEstadoCivil').prop('disabled', true).css('background-color', '#f8f9fa');
+                    $('#ddlManoDominante').prop('disabled', true).css('background-color', '#f8f9fa');
+                    $('#txtTelefono').prop('readonly', true).css('background-color', '#f8f9fa');
+
+                    // Escolaridad y profesión - mantener habilitados (pueden actualizar)
+                    $('#ddlEscolaridad').prop('disabled', false);
+                    $('#txtProfesion').prop('disabled', false);
+
+                    // Domicilio - mantener habilitado para actualización
+                    $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
+                    $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
+
+                    // Datos clínicos previos - precargar pero permitir actualización
+                    $('#ddlTipoSangre').prop('disabled', false);
+
+                    $('#secLaborales').show();
+                }
+
+                // Pre-cargar datos geogrÃ¡ficos del empleado/candidato
+                if (p.FkPais) {
+                    // Esperar a que los paÃ­ses estÃ©n cargados, luego seleccionar y cargar cascada
+                    var waitPais = setInterval(function () {
+                        if ($('#ddlPais option').length > 1) {
+                            clearInterval(waitPais);
+                            $('#ddlPais').val(p.FkPais);
+                            // Cargar Estados y seleccionar
+                            $.ajax({
+                                url: 'EvaluacionMedica.aspx/ObtenerEstados', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idPais: p.FkPais }), success: function (r) {
+                                    var resp2 = r.d;
+                                    if (resp2.success && resp2.data) {
+                                        var opts = '<option value="">-- Seleccione --</option>';
+                                        resp2.data.forEach(function (item) {
+                                            opts += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                                        });
+                                        $('#ddlEstado').html(opts);
+                                        if (p.FkEstado) {
+                                            $('#ddlEstado').val(p.FkEstado);
+                                            // Cargar Municipios
+                                            $.ajax({
+                                                url: 'EvaluacionMedica.aspx/ObtenerMunicipios', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idEstado: p.FkEstado }), success: function (r) {
+                                                    var resp3 = r.d;
+                                                    if (resp3.success && resp3.data) {
+                                                        var opts2 = '<option value="">-- Seleccione --</option>';
+                                                        resp3.data.forEach(function (item) {
+                                                            opts2 += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
                                                         });
-                                                        $('#ddlColonia').html(opts3);
-                                                        if(p.FkColonia) {
-                                                            $('#ddlColonia').val(p.FkColonia);
+                                                        $('#ddlMunicipio').html(opts2);
+                                                        if (p.FkMunicipio) {
+                                                            $('#ddlMunicipio').val(p.FkMunicipio);
+                                                            // Cargar Colonias
+                                                            $.ajax({
+                                                                url: 'EvaluacionMedica.aspx/ObtenerColonias', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idMunicipio: p.FkMunicipio }), success: function (r) {
+                                                                    var resp4 = r.d;
+                                                                    if (resp4.success && resp4.data) {
+                                                                        var opts3 = '<option value="">-- Seleccione --</option>';
+                                                                        resp4.data.forEach(function (item) {
+                                                                            opts3 += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                                                                        });
+                                                                        $('#ddlColonia').html(opts3);
+                                                                        if (p.FkColonia) {
+                                                                            $('#ddlColonia').val(p.FkColonia);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
                                                         }
                                                     }
-                                                }});
-                                            }
+                                                }
+                                            });
                                         }
-                                    }});
+                                    }
                                 }
-                            }
-                        }});
-                    }
-                }, 200);
-            }
+                            });
+                        }
+                    }, 200);
+                }
 
-            // Pre-llenar campos de direcciÃ³n
-            if(p.Calle) $('#txtCalle').val(p.Calle);
-            if(p.NumExterior) $('#txtNumExt').val(p.NumExterior);
-            if(p.NumInterior) $('#txtNumInt').val(p.NumInterior);
-            if(p.FkCP) $('#hdnFkCp').val(p.FkCP);
-            if(p.CPDesc) $('#txtCp').val(p.CPDesc);
+                // Pre-llenar campos de direcciÃ³n
+                if (p.Calle) $('#txtCalle').val(p.Calle);
+                if (p.NumExterior) $('#txtNumExt').val(p.NumExterior);
+                if (p.NumInterior) $('#txtNumInt').val(p.NumInterior);
+                if (p.FkCP) $('#hdnFkCp').val(p.FkCP);
+                if (p.CPDesc) $('#txtCp').val(p.CPDesc);
 
-            if(p.Sexo && p.Sexo.trim() !== "") {
-                $('#ddlSexo').val(p.Sexo).prop('disabled', true);
-                setSexoDisplay(p.Sexo);
+                if (p.Sexo && p.Sexo.trim() !== "") {
+                    $('#ddlSexo').val(p.Sexo).prop('disabled', true);
+                    setSexoDisplay(p.Sexo);
+                } else {
+                    $('#ddlSexo').prop('disabled', false).val("");
+                    setSexoDisplay("");
+                }
+
+                // Lógica de Expediente Clínico (Mostrar resumen rápido)
+
+                if (resp.evaluacionActual) {
+                    mapearEvaluacionAlFormulario(resp.evaluacionActual);
+                } else if (resp.evaluacionPrevia) {
+                    mapearAntecedentesHeredados(resp.evaluacionPrevia);
+                    mostrarResumenExpediente(resp.evaluacionPrevia);
+                    showToast("ANTECEDENTES HEREDADOS: Se cargaron antecedentes previos para seguimiento clínico.", "info");
+                }
+
             } else {
-                $('#ddlSexo').prop('disabled', false).val("");
-                setSexoDisplay(""); 
+                showError(resp.message);
             }
-
-            // Lógica de Expediente Clínico (Mostrar resumen rápido)
-            
-            if(resp.evaluacionActual) {
-                mapearEvaluacionAlFormulario(resp.evaluacionActual);
-            } else if(resp.evaluacionPrevia) {
-                mapearAntecedentesHeredados(resp.evaluacionPrevia);
-                mostrarResumenExpediente(resp.evaluacionPrevia);
-                showToast("ANTECEDENTES HEREDADOS: Se cargaron antecedentes previos para seguimiento clínico.", "info");
-            }
-
-        } else {
-            showError(resp.message);
         }
-    }});
+    });
 }
 
 
@@ -690,10 +783,11 @@ function loadPatientData(idOrden) {
 // ------ CATALOGOS GEOGRAFICOS ------
 function cargarPaises() {
     $.ajax({
-        url: 'EvaluacionMedica.aspx/ObtenerPaises', type: 'POST', contentType: 'application/json', success: function(r) { var resp = r.d;
-            if(resp.success && resp.data && resp.data.length > 0) {
+        url: 'EvaluacionMedica.aspx/ObtenerPaises', type: 'POST', contentType: 'application/json', success: function (r) {
+            var resp = r.d;
+            if (resp.success && resp.data && resp.data.length > 0) {
                 var options = '<option value="">-- Seleccione --</option>';
-                resp.data.forEach(function(item) {
+                resp.data.forEach(function (item) {
                     options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
                 });
                 $('#ddlPais').html(options);
@@ -704,7 +798,7 @@ function cargarPaises() {
                 console.error('ObtenerPaises - respuesta no exitosa:', resp);
             }
         },
-        error: function(xhr, status, err) {
+        error: function (xhr, status, err) {
             var detail = xhr.responseText ? xhr.responseText.substring(0, 300) : err;
             $('#divGeoError').text('\u274c Error HTTP al cargar PaÃ­ses (' + xhr.status + '): ' + detail).show();
             console.error('ObtenerPaises - error HTTP:', xhr.status, err, xhr.responseText);
@@ -713,77 +807,87 @@ function cargarPaises() {
 }
 
 function cargarEstados(idPais) {
-    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerEstados', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idPais: idPais }), success: function(r) { var resp = r.d;
-        if(resp.success && resp.data) {
-            var options = '<option value="">-- Seleccione --</option>';
-            resp.data.forEach(function(item) {
-                options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
-            });
-            $('#ddlEstado').html(options);
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerEstados', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idPais: idPais }), success: function (r) {
+            var resp = r.d;
+            if (resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function (item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlEstado').html(options);
+            }
         }
-    }});
+    });
 }
 
 function cargarEstadoNacimiento(idPais) {
-    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerEstados', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idPais: idPais }), success: function(r) { var resp = r.d;
-        if(resp.success && resp.data) {
-            var options = '<option value="">-- Seleccione --</option>';
-            resp.data.forEach(function(item) {
-                options += '<option value="' + item.Descripcion + '">' + item.Descripcion + '</option>';
-            });
-            $('#ddlEstadoNacimiento').html(options);
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerEstados', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idPais: idPais }), success: function (r) {
+            var resp = r.d;
+            if (resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function (item) {
+                    options += '<option value="' + item.Descripcion + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlEstadoNacimiento').html(options);
+            }
         }
-    }});
+    });
 }
 
 function cargarMunicipios(idEstado) {
-    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerMunicipios', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idEstado: idEstado }), success: function(r) { var resp = r.d;
-        if(resp.success && resp.data) {
-            var options = '<option value="">-- Seleccione --</option>';
-            resp.data.forEach(function(item) {
-                options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
-            });
-            $('#ddlMunicipio').html(options);
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerMunicipios', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idEstado: idEstado }), success: function (r) {
+            var resp = r.d;
+            if (resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function (item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlMunicipio').html(options);
+            }
         }
-    }});
+    });
 }
 
 // ------ CATALOGOS ADICIONALES ------
 
 function cargarEstadoCivil() {
-    $.ajax({ 
-        url: 'EvaluacionMedica.aspx/ObtenerEstadoCivil', 
-        type: 'POST', 
-        contentType: 'application/json', 
-        success: function(r) { 
+    console.log('Cargando catálogo: Estado Civil');
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerEstadoCivil',
+        type: 'POST',
+        contentType: 'application/json',
+        success: function (r) {
             var resp = r.d;
-            if(resp && resp.success && resp.data) {
+            if (resp && resp.success && resp.data) {
                 var options = '<option value="">-- Seleccione --</option>';
-                resp.data.forEach(function(item) {
+                resp.data.forEach(function (item) {
                     options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
                 });
                 $('#ddlEstadoCivil').html(options);
+                console.log('Catálogo Estado Civil cargado:', resp.data.length, 'ítems');
             } else {
                 console.error('Error al cargar Estado Civil:', resp ? resp.message : 'Respuesta inválida');
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Error AJAX en cargarEstadoCivil:', error);
-            console.error('Respuesta servidor:', xhr.responseText);
         }
     });
 }
 
 function cargarTipoSangre() {
-    $.ajax({ 
-        url: 'EvaluacionMedica.aspx/ObtenerTipoSangre', 
-        type: 'POST', 
-        contentType: 'application/json', 
-        success: function(r) { 
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerTipoSangre',
+        type: 'POST',
+        contentType: 'application/json',
+        success: function (r) {
             var resp = r.d;
-            if(resp && resp.success && resp.data) {
+            if (resp && resp.success && resp.data) {
                 var options = '<option value="">-- Seleccione --</option>';
-                resp.data.forEach(function(item) {
+                resp.data.forEach(function (item) {
                     options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
                 });
                 $('#ddlTipoSangre').html(options);
@@ -791,7 +895,7 @@ function cargarTipoSangre() {
                 console.error('Error al cargar Tipo de Sangre:', resp ? resp.message : 'Respuesta inválida');
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Error AJAX en cargarTipoSangre:', error);
             console.error('Respuesta servidor:', xhr.responseText);
         }
@@ -799,43 +903,47 @@ function cargarTipoSangre() {
 }
 
 function cargarProfesiones() {
-    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerProfesiones', type: 'POST', contentType: 'application/json', success: function(r) { var resp = r.d;
-        if(resp.success && resp.data) {
-            var options = '<option value="">-- Seleccione --</option>';
-            resp.data.forEach(function(item) {
-                options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
-            });
-            $('#ddlProfesion').html(options);
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerProfesiones', type: 'POST', contentType: 'application/json', success: function (r) {
+            var resp = r.d;
+            if (resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function (item) {
+                    options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlProfesion').html(options);
+            }
         }
-    }});
+    });
 }
 
 function cargarNivelEscolaridad() {
-    $.ajax({ 
-        url: 'EvaluacionMedica.aspx/ObtenerNivelEscolaridad', 
-        type: 'POST', 
-        contentType: 'application/json', 
-        success: function(r) { 
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerNivelEscolaridad',
+        type: 'POST',
+        contentType: 'application/json',
+        success: function (r) {
             var resp = r.d;
-            if(resp && resp.success && resp.data) {
+            if (resp && resp.success && resp.data) {
                 var options = '<option value="">-- Seleccione --</option>';
-                resp.data.forEach(function(item) {
+                resp.data.forEach(function (item) {
                     options += '<option value="' + item.Id + '">' + item.Descripcion + '</option>';
                 });
-                // Agregar opciones dinámicas al final sin sobrescribir opciones existentes
-                $('#ddlEscolaridad').append(options);
-                
+
+                // CORRECCIÓN: Se cambió .append por .html para evitar duplicar el "-- Seleccione --" 
+                // y los elementos si se llama la función múltiples veces.
+                $('#ddlEscolaridad').html(options);
+
                 // Mantener campo de profesión habilitado después de cargar
-                setTimeout(function() {
+                setTimeout(function () {
                     mantenerProfesionHabilitada();
                 }, 100);
             } else {
                 console.error('Error al cargar Nivel Escolaridad:', resp ? resp.message : 'Respuesta inválida');
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Error AJAX en cargarNivelEscolaridad:', error);
-            console.error('Respuesta servidor:', xhr.responseText);
         }
     });
 }
@@ -843,7 +951,7 @@ function cargarNivelEscolaridad() {
 // Función para mantener el campo de profesión siempre habilitado
 function mantenerProfesionHabilitada() {
     var $campoProfesion = $('#txtProfesion');
-    
+
     // Siempre mantener el campo habilitado
     $campoProfesion.prop('disabled', false);
     $campoProfesion.removeClass('disabled');
@@ -855,7 +963,7 @@ function toggleGlucosaField() {
     var $chkAplica = $('#chkGlucosaAplica');
     var $container = $('#glucosaFieldContainer');
     var $txtGlucosa = $('#txtGlucosa');
-    
+
     if ($chkAplica.is(':checked')) {
         // Mostrar campo y habilitarlo
         $container.show();
@@ -869,15 +977,18 @@ function toggleGlucosaField() {
 }
 
 function cargarColonias(idMunicipio) {
-    $.ajax({ url: 'EvaluacionMedica.aspx/ObtenerColonias', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idMunicipio: idMunicipio }), success: function(r) { var resp = r.d;
-        if(resp.success && resp.data) {
-            var options = '<option value="">-- Seleccione --</option>';
-            resp.data.forEach(function(item) {
-                options += '<option value="' + item.Id + '" data-cp="' + item.CodigoPostal + '" data-cp-id="' + item.pkCP + '">' + item.Descripcion + '</option>';
-            });
-            $('#ddlColonia').html(options);
+    $.ajax({
+        url: 'EvaluacionMedica.aspx/ObtenerColonias', type: 'POST', contentType: 'application/json', data: JSON.stringify({ idMunicipio: idMunicipio }), success: function (r) {
+            var resp = r.d;
+            if (resp.success && resp.data) {
+                var options = '<option value="">-- Seleccione --</option>';
+                resp.data.forEach(function (item) {
+                    options += '<option value="' + item.Id + '" data-cp="' + item.CodigoPostal + '" data-cp-id="' + item.pkCP + '">' + item.Descripcion + '</option>';
+                });
+                $('#ddlColonia').html(options);
+            }
         }
-    }});
+    });
 }
 
 // Función para mostrar resumen ultra rápido del expediente clínico
@@ -885,7 +996,7 @@ function mostrarResumenExpediente(evaluacion) {
     if (!evaluacion) {
         return;
     }
-    
+
     // Resumen priorizando antecedentes - datos más importantes primero
     var resumenHtml = `
         <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 12px; margin: 10px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -931,7 +1042,7 @@ function mostrarResumenExpediente(evaluacion) {
             </div>
         </div>
     `;
-    
+
     // Insertar el resumen después del banner del paciente
     $('#paperBanner').after(resumenHtml);
 }
@@ -968,13 +1079,16 @@ function goToStep(step) {
 
     $('.step-panel').removeClass('active').hide();
     $('#panel' + step).addClass('active').show();
-    
+
     $('.wizard-step').removeClass('active');
     $('#step' + step).addClass('active');
 
     currentStep = step;
     updateButtons();
     window.scrollTo(0, 0);
+
+    // Persistir el paso actual
+    if (typeof guardarBorrador === 'function') guardarBorrador();
 }
 
 function nextStep() {
@@ -986,12 +1100,12 @@ function nextStep() {
     if (!validateStep(currentStep)) {
         showError('Por favor revise los campos marcados en rojo.');
         return;
-    } 
-    if(currentStep < totalSteps) goToStep(currentStep + 1);
+    }
+    if (currentStep < totalSteps) goToStep(currentStep + 1);
 }
 
 function prevStep() {
-    if(currentStep > 1) goToStep(currentStep - 1);
+    if (currentStep > 1) goToStep(currentStep - 1);
     else if (currentStep === 1 && $('#step0').is(':visible')) goToStep(0); // Volver al expediente si aplica
 }
 
@@ -1004,7 +1118,7 @@ function updateButtons() {
     }
     $('#btnNext').html('Siguiente <i class="fas fa-arrow-right"></i>');
     $('#btnPrev').css('visibility', currentStep <= 1 ? 'hidden' : 'visible');
-    if(currentStep === totalSteps) {
+    if (currentStep === totalSteps) {
         $('#btnNext').hide();
         $('#btnFinish').show();
     } else {
@@ -1023,7 +1137,7 @@ function setSexoDisplay(sexo) {
 
     $('#msgSexoPendiente').hide();
     var s = sexo.toString().toUpperCase().trim();
-    
+
     if (s === 'F' || s.indexOf('FEM') === 0 || s === 'MUJER' || s === '2') {
         currentSexo = 'F';
         $('#secGineco, #formFem').show();
@@ -1099,20 +1213,20 @@ function validateStep(step) {
 
     if (step === 4) {
         var vitals = [
-            { id: '#txtSistolica',       label: 'Sist\u00f3lica' },
-            { id: '#txtDiastolica',      label: 'Diast\u00f3lica' },
-            { id: '#txtFrecCardiaca',    label: 'FC' },
-            { id: '#txtFrecRespiratoria',label: 'FR' },
-            { id: '#txtPeso',            label: 'Peso' },
-            { id: '#txtEstatura',        label: 'Estatura' },
-            { id: '#txtTemperatura',     label: 'Temperatura' },
-            { id: '#txtOximetria',       label: 'Oximetr\u00eda' }
+            { id: '#txtSistolica', label: 'Sist\u00f3lica' },
+            { id: '#txtDiastolica', label: 'Diast\u00f3lica' },
+            { id: '#txtFrecCardiaca', label: 'FC' },
+            { id: '#txtFrecRespiratoria', label: 'FR' },
+            { id: '#txtPeso', label: 'Peso' },
+            { id: '#txtEstatura', label: 'Estatura' },
+            { id: '#txtTemperatura', label: 'Temperatura' },
+            { id: '#txtOximetria', label: 'Oximetr\u00eda' }
         ];
-        
-        vitals.forEach(function(v) {
+
+        vitals.forEach(function (v) {
             checkReq($(v.id), v.label + ' obligatorio');
         });
-        
+
         // Glucosa solo obligatoria si el checkbox "Aplica" est\u00e1 marcado
         if ($('#chkGlucosaAplica').is(':checked')) {
             checkReq($('#txtGlucosa'), 'Glucosa obligatorio');
@@ -1156,7 +1270,7 @@ function validateStep(step) {
 // Handles collecting data from the UI and saving to the server
 
 function saveExam() {
-    if(!$('#ddlAptitud').val()) {
+    if (!$('#ddlAptitud').val()) {
         showError("Debe seleccionar una Aptitud Médica.");
         return;
     }
@@ -1166,7 +1280,7 @@ function saveExam() {
         return;
     }
 
-    cambiosSinGuardar = false; 
+    cambiosSinGuardar = false;
 
     function toIntOrNull(v) {
         if (v === null || v === undefined) return null;
@@ -1208,19 +1322,19 @@ function saveExam() {
         Glucosa: toDecimalOrNull($('#txtGlucosa').val()),
         Oximetria: toIntOrNull($('#txtOximetria').val()),
         ImcDescripcion: $('#txtImcDescripcion').val(),
-        AparatosSistemas: $('#txtAparatosSistemas').val(), 
+        AparatosSistemas: $('#txtAparatosSistemas').val(),
         FkAptitudMedica: toIntOrNull($('#ddlAptitud').val()),
         Observaciones: $('#txtDiagnostico').val(), // Maps to Observaciones in View Model
         Recomendaciones: $('#txtRecomendaciones').val(),
         SintomasPaciente: $('#txtSintomas').val(),
-        
+
         Nss: $('#txtNss').val(),
         FechaNacimiento: $('#txtFechaNacimiento').val() || null,
         LugarNacimiento: $('#ddlEstadoNacimiento').val(),
         EstadoCivil: $('#ddlEstadoCivil').val(),
         ManoDominante: $('#ddlManoDominante').val(),
         Telefono: $('#txtTelefono').val(),
-        Domicilio: (function() {
+        Domicilio: (function () {
             var parts = [];
             if ($('#txtCalle').val()) parts.push($('#txtCalle').val());
             if ($('#txtNumExt').val()) parts.push('#' + $('#txtNumExt').val());
@@ -1230,7 +1344,7 @@ function saveExam() {
             if ($('#ddlEstado option:selected').val()) parts.push($('#ddlEstado option:selected').text());
             return parts.length > 0 ? parts.join(', ') : ($('#txtDomicilio').val() || '');
         })(),
-        
+
         // Catálogos Geográficos
         FkPais: $('#ddlPais').val() ? parseInt($('#ddlPais').val()) : null,
         FkEstado: $('#ddlEstado').val() ? parseInt($('#ddlEstado').val()) : null,
@@ -1246,7 +1360,7 @@ function saveExam() {
         Alergias: $('#txtAlergias').val(),
         FkTipoSangre: $('#ddlTipoSangre').val(),
         LugarEvaluacion: $('#txtLugarEvaluacion').val(),
-        
+
         NombreCandidato: currentTipo === 'CANDIDATO' ? $('#txtNombre').val() : null,
         ApellidoPaternoCandidato: currentTipo === 'CANDIDATO' ? $('#txtApellidoPaterno').val() : null,
         ApellidoMaternoCandidato: currentTipo === 'CANDIDATO' ? $('#txtApellidoMaterno').val() : null,
@@ -1254,7 +1368,7 @@ function saveExam() {
         AreaCandidato: currentTipo === 'CANDIDATO' ? $('#txtArea').val() : null,
         EmpresaCandidato: currentTipo === 'CANDIDATO' ? $('#txtEmpresa').val() : null,
         SexoCandidato: currentTipo === 'CANDIDATO' ? $('#ddlSexo').val() : null,
-        
+
         Habitos: {
             Fuma: $('#chkFuma').is(':checked'),
             AnosFumando: toIntOrNull($('#txtAnosFuma').val()),
@@ -1278,7 +1392,7 @@ function saveExam() {
             InfluenzaH1N1: $('#chkH1N1').is(':checked'),
             ObservacionesVacunacion: $('#txtObsVacunas').val()
         },
-        
+
         AgudezaVisual: {
             OdSinLentes: $('#ddlOdSinLentes').val(),
             OiSinLentes: $('#ddlOiSinLentes').val(),
@@ -1290,43 +1404,43 @@ function saveExam() {
             ReferenciaVisual: $('#ddlReferenciaVisual').val(),
             Daltonismo: $('#ddlDaltonismo').val()
         },
-        
+
         Antecedentes: [],
         AntecedentesLaborales: [],
         OrdenExamenFisico: [],
-        
+
         Columna: {
             LordosisCervical: toIntOrNull($('#ddlLordosisCervical').val()),
-            LordosisDorsal:   toIntOrNull($('#ddlLordosisDorsal').val()),
-            LordosisLumbar:   toIntOrNull($('#ddlLordosisLumbar').val()),
-            CifosisCervical:  toIntOrNull($('#ddlCifosisCervical').val()),
-            CifosisDorsal:    toIntOrNull($('#ddlCifosisDorsal').val()),
-            CifosisLumbar:    toIntOrNull($('#ddlCifosisLumbar').val()),
+            LordosisDorsal: toIntOrNull($('#ddlLordosisDorsal').val()),
+            LordosisLumbar: toIntOrNull($('#ddlLordosisLumbar').val()),
+            CifosisCervical: toIntOrNull($('#ddlCifosisCervical').val()),
+            CifosisDorsal: toIntOrNull($('#ddlCifosisDorsal').val()),
+            CifosisLumbar: toIntOrNull($('#ddlCifosisLumbar').val()),
             ObservacionesColumna: $('#txtObsColumna').val(),
-            EscoliosisDorsalDerecha:   $('#chkEscDorsalDer').is(':checked'),
+            EscoliosisDorsalDerecha: $('#chkEscDorsalDer').is(':checked'),
             EscoliosisDorsalIzquierda: $('#chkEscDorsalIzq').is(':checked'),
-            EscoliosisLumbarDerecha:   $('#chkEscLumbarDer').is(':checked'),
+            EscoliosisLumbarDerecha: $('#chkEscLumbarDer').is(':checked'),
             EscoliosisLumbarIzquierda: $('#chkEscLumbarIzq').is(':checked'),
-            EscoliosisDobleDerecha:     $('#chkEscDoboDer').is(':checked'),
-            EscoliosisDobleIzquierda:   $('#chkEscDoboIzq').is(':checked')
+            EscoliosisDobleDerecha: $('#chkEscDoboDer').is(':checked'),
+            EscoliosisDobleIzquierda: $('#chkEscDoboIzq').is(':checked')
         }
     };
 
-    $('#tbAntecedentesHF tr').each(function() {
+    $('#tbAntecedentesHF tr').each(function () {
         var name = $(this).find('.chk-hf').data('name');
         var checked = $(this).find('.chk-hf').is(':checked');
         var details = $(this).find('.ant-det').val();
         model.Antecedentes.push({ Categoria: 'Heredo Familiares', NombreCondicion: name, EsPositivo: checked, Detalles: details });
     });
 
-    $('#tbAntecedentesPP tr').each(function() {
+    $('#tbAntecedentesPP tr').each(function () {
         var name = $(this).find('.chk-pp').data('name');
         var checked = $(this).find('.chk-pp').is(':checked');
         var details = $(this).find('.ant-det').val();
         model.Antecedentes.push({ Categoria: 'Personales Patologicos', NombreCondicion: name, EsPositivo: checked, Detalles: details });
     });
 
-    $('#tbAntecedentesLaborales tr').each(function() {
+    $('#tbAntecedentesLaborales tr').each(function () {
         var emp = $(this).find('.lab-emp').val();
         var pue = $(this).find('.lab-pue').val();
         var tie = $(this).find('.lab-tie').val();
@@ -1343,7 +1457,7 @@ function saveExam() {
         }
     });
 
-    $('#tbExamenFisico tr').each(function() {
+    $('#tbExamenFisico tr').each(function () {
         model.OrdenExamenFisico.push({
             SistemaCuerpo: $(this).find('.chk-norm').data('sys'),
             EsNormal: $(this).find('.chk-norm').is(':checked'),
@@ -1351,10 +1465,10 @@ function saveExam() {
         });
     });
 
-    if(currentSexo === 'F') {
+    if (currentSexo === 'F') {
         model.DetalleFemenino = {
             EdadMenarca: toIntOrNull($('#txtMenarca').val()),
-            FechaUltimaMenstruacion: toDateOrNull($('#txtFum').val()), 
+            FechaUltimaMenstruacion: toDateOrNull($('#txtFum').val()),
             Ciclos: $('#txtCiclos').val(),
             Gestas: toIntOrNull($('#txtGestas').val()),
             Partos: toIntOrNull($('#txtPartos').val()),
@@ -1365,14 +1479,14 @@ function saveExam() {
         };
     } else if (currentSexo === 'M') {
         model.DetalleMasculino = {
-            PrepucioRetractil:     $('#chkPrepucio').is(':checked'),
+            PrepucioRetractil: $('#chkPrepucio').is(':checked'),
             TesticulosDescendidos: $('#chkTesticulos').is(':checked'),
-            Fimosis:               $('#chkFimosis').is(':checked'),
-            Criptorquidia:         $('#chkCriptorquidia').is(':checked'),
-            Varicocele:            $('#chkVaricocele').is(':checked'),
-            Hidrocele:             $('#chkHidrocele').is(':checked'),
-            Hernia:                $('#chkHernia').is(':checked'),
-            Psa:  $('#txtPsa').val(),
+            Fimosis: $('#chkFimosis').is(':checked'),
+            Criptorquidia: $('#chkCriptorquidia').is(':checked'),
+            Varicocele: $('#chkVaricocele').is(':checked'),
+            Hidrocele: $('#chkHidrocele').is(':checked'),
+            Hernia: $('#chkHernia').is(':checked'),
+            Psa: $('#txtPsa').val(),
             MetodoPlanificacion: $('#txtMpf').val()
         };
     }
@@ -1382,16 +1496,17 @@ function saveExam() {
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ model: model }),
-        success: function(r) {
+        success: function (r) {
             var resp = r.d;
-            if(resp.success) {
-                idOrden = resp.pkOrden || idOrden; 
+            if (resp.success) {
+                limpiarBorrador();
+                idOrden = resp.pkOrden || idOrden;
                 $('#modalConfirmacionAD').css('display', 'flex');
             } else {
                 showError("Error al guardar: " + resp.message);
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             var detail = xhr && xhr.responseText ? xhr.responseText : '';
             showError('Ocurrió un error en el servidor. HTTP ' + (xhr ? xhr.status : '') + ': ' + error + (detail ? (' | ' + detail) : ''));
         }
@@ -1422,67 +1537,67 @@ function mapearEvaluacionAlFormulario(d, esHistorial) {
         $('#txtGlucosa').val(d.Glucosa);
         $('#txtOximetria').val(d.Oximetria);
         $('#txtImcDescripcion').val(d.ImcDescripcion);
-        
+
         $('#txtSintomas').val(d.SintomasPaciente);
         $('#txtAparatosSistemas').val(d.AparatosSistemas);
         $('#txtDiagnostico').val(d.Observaciones);
         $('#txtRecomendaciones').val(d.Recomendaciones);
-        if(d.FkAptitudMedica) $('#ddlAptitud').val(d.FkAptitudMedica);
+        if (d.FkAptitudMedica) $('#ddlAptitud').val(d.FkAptitudMedica);
     }
 
     // Datos persistentes (Identidad) siempre se cargan
-    if(d.Nss) $('#txtNss').val(d.Nss);
-    if(d.Email) $('#txtEmail').val(d.Email);
-    
-    if(d.FechaNacimiento) {
+    if (d.Nss) $('#txtNss').val(d.Nss);
+    if (d.Email) $('#txtEmail').val(d.Email);
+
+    if (d.FechaNacimiento) {
         var formattedDate = formatDateForInput(d.FechaNacimiento);
         $('#txtFechaNacimiento').val(formattedDate);
-        if(typeof calcularEdad === 'function') calcularEdad();
+        if (typeof calcularEdad === 'function') calcularEdad();
     }
-    
-    if(d.LugarNacimiento) {
+
+    if (d.LugarNacimiento) {
         var found = false;
         var ln = d.LugarNacimiento.toUpperCase();
-        $("#ddlEstadoNacimiento option").each(function() {
-            if($(this).text().toUpperCase() == ln) {
+        $("#ddlEstadoNacimiento option").each(function () {
+            if ($(this).text().toUpperCase() == ln) {
                 $(this).prop('selected', true);
                 found = true;
                 return false;
             }
         });
-        if(!found) $('#ddlEstadoNacimiento').val(d.LugarNacimiento);
+        if (!found) $('#ddlEstadoNacimiento').val(d.LugarNacimiento);
     }
-    
-    if(d.EstadoCivil) $('#ddlEstadoCivil').val(d.EstadoCivil);
-    if(d.ManoDominante) $('#ddlManoDominante').val(d.ManoDominante);
-    if(d.Telefono) $('#txtTelefono').val(d.Telefono);
-    if(d.Domicilio) $('#txtDomicilio').val(d.Domicilio);
-    
-    if(d.Escolaridad) {
+
+    if (d.EstadoCivil) $('#ddlEstadoCivil').val(d.EstadoCivil);
+    if (d.ManoDominante) $('#ddlManoDominante').val(d.ManoDominante);
+    if (d.Telefono) $('#txtTelefono').val(d.Telefono);
+    if (d.Domicilio) $('#txtDomicilio').val(d.Domicilio);
+
+    if (d.Escolaridad) {
         var esc = d.Escolaridad.toUpperCase().trim();
-        if(esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
-        if(esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
-        
+        if (esc === 'MEDIA SUPERIOR' || esc === 'BACHILLERATO') esc = 'PREPARATORIA';
+        if (esc === 'UNIVERSIDAD' || esc === 'PROFESIONAL') esc = 'LICENCIATURA';
+
         var foundEsc = false;
-        $("#ddlEscolaridad option").each(function() {
+        $("#ddlEscolaridad option").each(function () {
             var val = $(this).val().toUpperCase();
             var text = $(this).text().toUpperCase();
-            if(val == esc || text == esc) {
+            if (val == esc || text == esc) {
                 $(this).prop('selected', true);
                 foundEsc = true;
                 return false;
             }
         });
-        if(!foundEsc) $('#ddlEscolaridad').val(esc);
+        if (!foundEsc) $('#ddlEscolaridad').val(esc);
     }
-    if(d.Profesion) $('#txtProfesion').val(d.Profesion);
-    if(d.Alergias) $('#txtAlergias').val(d.Alergias);
-    if(d.FkTipoSangre) $('#ddlTipoSangre').val(d.FkTipoSangre);
-    if(d.LugarEvaluacion) $('#txtLugarEvaluacion').val(d.LugarEvaluacion);
+    if (d.Profesion) $('#txtProfesion').val(d.Profesion);
+    if (d.Alergias) $('#txtAlergias').val(d.Alergias);
+    if (d.FkTipoSangre) $('#ddlTipoSangre').val(d.FkTipoSangre);
+    if (d.LugarEvaluacion) $('#txtLugarEvaluacion').val(d.LugarEvaluacion);
 
     // Antecedentes (Historia MÃ©dica)
     if (d.Antecedentes && d.Antecedentes.length > 0) {
-        d.Antecedentes.forEach(function(a) {
+        d.Antecedentes.forEach(function (a) {
             var $chk = $('.chk-ant[data-name="' + a.NombreCondicion + '"]');
             if ($chk.length > 0) {
                 $chk.prop('checked', a.EsPositivo).trigger('change');
@@ -1496,17 +1611,17 @@ function mapearEvaluacionAlFormulario(d, esHistorial) {
     // HÃ¡bitos
     if (d.Habitos) {
         $('#chkFuma').prop('checked', d.Habitos.Fuma).trigger('change');
-        if(d.Habitos.Fuma) {
+        if (d.Habitos.Fuma) {
             $('#txtAnosFuma').val(d.Habitos.AnosFumando);
             $('#txtCigarrillos').val(d.Habitos.CigarrosDiarios);
         }
         $('#chkExFumador').prop('checked', d.Habitos.EsExFumador);
         $('#chkAlcohol').prop('checked', d.Habitos.BebeAlcohol).trigger('change');
-        if(d.Habitos.BebeAlcohol) $('#txtFrecAlcohol').val(d.Habitos.FrecuenciaAlcohol);
+        if (d.Habitos.BebeAlcohol) $('#txtFrecAlcohol').val(d.Habitos.FrecuenciaAlcohol);
         $('#chkDrogas').prop('checked', d.Habitos.UsaDrogas).trigger('change');
-        if(d.Habitos.UsaDrogas) $('#txtTipoDrogas').val(d.Habitos.TipoDrogas);
+        if (d.Habitos.UsaDrogas) $('#txtTipoDrogas').val(d.Habitos.TipoDrogas);
         $('#chkDeporte').prop('checked', d.Habitos.HaceDeporte).trigger('change');
-        if(d.Habitos.HaceDeporte) $('#txtTipoDeporte').val(d.Habitos.TipoDeporte);
+        if (d.Habitos.HaceDeporte) $('#txtTipoDeporte').val(d.Habitos.TipoDeporte);
         $('#txtTiempoLibre').val(d.Habitos.DescripcionTiempoLibre);
     }
 
@@ -1560,7 +1675,7 @@ function mapearEvaluacionAlFormulario(d, esHistorial) {
         $('#txtPsa').val(d.DetalleMasculino.Psa);
         $('#txtMpf').val(d.DetalleMasculino.MetodoPlanificacion);
     }
-    
+
     // Signos Vitales y Agudeza Visual Historia
     if (d.PesoKg) $('#txtPeso').val(d.PesoKg);
     if (d.AlturaMetros) $('#txtEstatura').val(d.AlturaMetros);
@@ -1589,10 +1704,10 @@ function mapearEvaluacionAlFormulario(d, esHistorial) {
     }
 
     if (d.OrdenExamenFisico && d.OrdenExamenFisico.length > 0) {
-        d.OrdenExamenFisico.forEach(function(ef) {
+        d.OrdenExamenFisico.forEach(function (ef) {
             var sys = ef.SistemaCuerpo;
-            $('#tbExamenFisico tr').each(function() {
-                if($(this).find('td:first').text() == sys) {
+            $('#tbExamenFisico tr').each(function () {
+                if ($(this).find('td:first').text() == sys) {
                     $(this).find('.chk-norm').prop('checked', ef.EsNormal).trigger('change');
                     $(this).find('.chk-anorm').prop('checked', !ef.EsNormal).trigger('change');
                     $(this).find('.hall-ex').val(ef.Hallazgos);
@@ -1611,7 +1726,7 @@ function continuarAntidoping() {
     // Bandera global: el usuario decidió continuar al flujo de Antidoping
     // (se usa por el handler de consentimiento en el ASPX).
     window.__antidopingFlow = true;
-    
+
     // Configurar consentimiento para Antidoping antes de mostrarlo
     var em = $('#txtEmpresa').val() || 'la Empresa';
     $('#consentTitle').text('Consentimiento Informado — Examen Toxicológico');
@@ -1619,7 +1734,7 @@ function continuarAntidoping() {
         <p>La empresa <strong>${em}</strong> informa que se realizará una prueba de detección de consumo de drogas y alcohol, conforme al reglamento interno vigente.</p>
         <p>Los resultados son <strong>confidenciales</strong> y serán utilizados únicamente con fines laborales y de seguridad.</p>
     `);
-    
+
     // Reset check
     $('#chkAceptoConsentimiento').prop('checked', false);
     $('#btnAceptoCon').prop('disabled', true);
@@ -1639,20 +1754,21 @@ function validarConsentimiento() {
 }
 
 function aceptarConsentimiento() {
-    $('#consentOverlay').fadeOut(150, function() {
-        showSuccess("Consentimiento aceptado. Iniciando prueba Antidoping...", function() {
-            if($('#mainWizard').length) $('#mainWizard').hide();
+    $('#consentOverlay').fadeOut(150, function () {
+        showSuccess("Consentimiento aceptado. Iniciando prueba Antidoping...", function () {
+            if ($('#mainWizard').length) $('#mainWizard').hide();
             $('#secAntidoping').fadeIn(400);
             $('.ad-container').show().css('visibility', 'visible');
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
+            if (typeof guardarBorrador === 'function') guardarBorrador();
         });
     });
 }
 
 
 function rechazarConsentimiento() {
-    showConfirm("Al rechazar el consentimiento, no se podr\u00e1 realizar el Antidoping. La solicitud se marcar\u00e1 como completada solo con el examen m\u00e9dico. \u00bfDesea salir?", function(res) {
-        if(res) completarSinAntidoping();
+    showConfirm("Al rechazar el consentimiento, no se podr\u00e1 realizar el Antidoping. La solicitud se marcar\u00e1 como completada solo con el examen m\u00e9dico. \u00bfDesea salir?", function (res) {
+        if (res) completarSinAntidoping();
     });
 }
 
@@ -1664,10 +1780,10 @@ function completarSinAntidoping() {
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ pkOrdenMedico: idOrden }),
-        success: function(r) {
+        success: function (r) {
             window.location.href = '../RecursosHumanos/DashboardRecursosHumanosSM.aspx';
         },
-        error: function() {
+        error: function () {
             window.location.href = '../RecursosHumanos/DashboardRecursosHumanosSM.aspx';
         }
     });
@@ -1675,10 +1791,10 @@ function completarSinAntidoping() {
 
 function toggleResult(btn, type) {
     var $btn = $(btn);
-    if($btn.closest('.switch-field').find('.res-btns').hasClass('disabled')) return;
-    
+    if ($btn.closest('.switch-field').find('.res-btns').hasClass('disabled')) return;
+
     $btn.parent().find('.switch-btn').removeClass('active pos neg');
-    if($btn.text() === 'Positivo') {
+    if ($btn.text() === 'Positivo') {
         $btn.addClass('active pos');
     } else {
         $btn.addClass('active neg');
@@ -1689,8 +1805,8 @@ function toggleAplicaRow(chk) {
     var $chk = $(chk);
     var $container = $chk.closest('.switch-field');
     var $resBtns = $container.find('.res-btns');
-    
-    if(!chk.checked) {
+
+    if (!chk.checked) {
         $resBtns.addClass('disabled').css('opacity', '0.5');
         // $resBtns.find('.switch-btn').removeClass('active pos neg');
     } else {
@@ -1706,7 +1822,7 @@ function toggleAplicaRow(chk) {
 function saveAntidoping() {
     // Crear objeto FormData para enviar datos y archivos al servidor
     var formData = new FormData();
-    
+
     // Agregar datos básicos del formulario
     formData.append('PkOrdenMedico', idOrden);  // ID de la orden médica
     formData.append('ConsentimientoFirmado', $('#chkAceptoConsentimiento').is(':checked'));  // Consentimiento (true/false)
@@ -1737,11 +1853,11 @@ function saveAntidoping() {
     ];
 
     // Recorrer cada droga para capturar su estado (aplica/no aplica) y resultado (positivo/negativo)
-    drugMappings.forEach(function(d) {
+    drugMappings.forEach(function (d) {
         var $row = $('[data-drug="' + d.code + '"]');  // Encontrar fila de la droga
         var aplica = $row.find('.chk-aplica').is(':checked');  // ¿Se aplicó la prueba?
         var result = $row.find('.res-btns .switch-btn.active').text() === 'Positivo';  // ¿Resultado positivo?
-        
+
         // Agregar datos de cada droga al formulario
         formData.append('Aplica' + d.name, aplica);  // Ej: AplicaAlcohol, AplicaCocaina
         formData.append('Resultado' + d.name, result);  // Ej: ResultadoAlcohol, ResultadoCocaina
@@ -1754,10 +1870,10 @@ function saveAntidoping() {
         data: formData,  // Datos del formulario (incluye archivos)
         contentType: false,  // Dejar que jQuery establezca el content-type correcto para FormData
         processData: false,  // No procesar los datos (jQuery no debe convertir FormData a string)
-        success: function(resp) {
+        success: function (resp) {
             // Si el servidor respondió con éxito
             if (resp.success) {
-                showSuccess("Examen Antidoping registrado con \u00e9xito.", function() {
+                showSuccess("Examen Antidoping registrado con \u00e9xito.", function () {
                     // Redirigir al dashboard de recursos humanos después de guardar
                     window.location.href = '../RecursosHumanos/DashboardRecursosHumanosSM.aspx';
                 });
@@ -1766,7 +1882,7 @@ function saveAntidoping() {
                 showError("No se pudo completar el guardado: " + resp.message);
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             // Si hubo error de comunicación con el servidor
             showError("Error de conexi\u00f3n al guardar el antidoping: " + error);
         }
@@ -1777,9 +1893,11 @@ function saveAntidoping() {
 
 var cambiosSinGuardar = false;
 
-$(document).ready(function() {
+$(document).ready(function () {
+    setupPersistencia();
+
     // Detect changes to warn before leaving
-    $('input, select, textarea').on('change input', function() {
+    $('input, select, textarea').on('change input', function () {
         cambiosSinGuardar = true;
     });
 
@@ -1795,11 +1913,11 @@ $(document).ready(function() {
     loadPatientData(idOrden);
 
     // Contextual UI behavior
-    $('#txtFechaNacimiento').on('change', function() {
+    $('#txtFechaNacimiento').on('change', function () {
         calcularEdad();
     });
 
-    $('#ddlEscolaridad').on('change', function() {
+    $('#ddlEscolaridad').on('change', function () {
         var val = ($(this).val() || "").toUpperCase().trim();
         var show = (val === 'UNIVERSIDAD' || val === 'POSGRADO' || val === 'LICENCIATURA');
         if (!show) $('#txtProfesion').val('');
@@ -1807,16 +1925,16 @@ $(document).ready(function() {
     });
 
     // Antecedentes Checkboxes toggle detalles
-    $('#tbAntecedentesHF, #tbAntecedentesPP').on('change', '.chk-ant', function() {
+    $('#tbAntecedentesHF, #tbAntecedentesPP').on('change', '.chk-ant', function () {
         var $det = $(this).closest('tr').find('.ant-det');
-        if(this.checked) {
+        if (this.checked) {
             $det.prop('disabled', false).removeClass('blocked');
         } else {
             $det.val('').prop('disabled', true).addClass('blocked');
         }
     });
 
-    $('#ddlSexo').change(function() {
+    $('#ddlSexo').change(function () {
         setSexoDisplay($(this).val());
     });
 });
@@ -1831,7 +1949,7 @@ function cargarHistorialEmpleado(idOrden) {
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ idOrden: idOrden }),
-        success: function(r) {
+        success: function (r) {
             var resp = r.d;
             if (!resp.success) {
                 $('#expedienteContainer').html('<div class="exp-empty"><i class="fas fa-exclamation-triangle"></i> No se pudo cargar el historial.</div>');
@@ -1840,17 +1958,21 @@ function cargarHistorialEmpleado(idOrden) {
 
             if (resp.esCandidato || !resp.historial || resp.historial.length === 0) {
                 $('#expedienteContainer').html('<div class="exp-empty"><i class="fas fa-folder-open" style="font-size:2rem; display:block; margin-bottom:10px; color:#ccc;"></i>Este paciente no tiene evaluaciones previas registradas en el sistema.</div>');
+                $('#comparativaSignosContainer').hide();
                 return;
             }
+
+            // Población de tabla comparativa en Exploración Física
+            generarTablaComparativa(resp.historial);
 
             // Limitar a solo las 2 evaluaciones más recientes para mejor visualización
             var historialLimitado = resp.historial.slice(0, 2);
             var totalRegistros = resp.historial.length;
-            var html = '';            
-            historialLimitado.forEach(function(ev, idx) {
+            var html = '';
+            historialLimitado.forEach(function (ev, idx) {
                 var aptClass = (ev.AptitudDesc || '').replace(/\s+/g, '-').toUpperCase();
                 var antecedentesPositivos = Array.isArray(ev.AntecedentesPositivos)
-                    ? ev.AntecedentesPositivos.filter(function(a) { return !!a; })
+                    ? ev.AntecedentesPositivos.filter(function (a) { return !!a; })
                     : [];
                 var totalAntecedentes = antecedentesPositivos.length;
                 var tieneRiesgoPrevio = totalAntecedentes > 0;
@@ -1861,24 +1983,24 @@ function cargarHistorialEmpleado(idOrden) {
                 vitals += vital('IMC', ev.Imc, ev.ImcDescripcion ? ' (' + ev.ImcDescripcion + ')' : '');
                 vitals += vital('Sistólica', ev.PresionSistolica, 'mmHg');
                 vitals += vital('Diastólica', ev.PresionDiastolica, 'mmHg');
-                if (ev.Glucosa)   vitals += vital('Glucosa', ev.Glucosa, 'mg/dL');
+                if (ev.Glucosa) vitals += vital('Glucosa', ev.Glucosa, 'mg/dL');
                 if (ev.Oximetria) vitals += vital('Oximetría', ev.Oximetria, '%');
 
                 var alertaAntecedentes = '<div class="expr-alert ' + (tieneRiesgoPrevio ? 'expr-alert-risk' : 'expr-alert-ok') + '">' +
                     '<i class="fas ' + (tieneRiesgoPrevio ? 'fa-exclamation-triangle' : 'fa-check-circle') + '"></i>' +
                     '<span>' +
-                        (tieneRiesgoPrevio
-                            ? ('Se detectaron <strong>' + totalAntecedentes + ' antecedente(s) positivo(s)</strong> en esta evaluación previa.')
-                            : 'No se registraron antecedentes positivos en esta evaluación previa.') +
+                    (tieneRiesgoPrevio
+                        ? ('Se detectaron <strong>' + totalAntecedentes + ' antecedente(s) positivo(s)</strong> en esta evaluación previa.')
+                        : 'No se registraron antecedentes positivos en esta evaluación previa.') +
                     '</span>' +
-                '</div>';
+                    '</div>';
 
                 var tags = '<div class="expr-section-title"><i class="fas fa-notes-medical" style="color:#e74c3c;"></i> Antecedentes clínicos previos</div>';
                 if (tieneRiesgoPrevio) {
                     var limite = 6;
                     var visibles = antecedentesPositivos.slice(0, limite);
                     tags += '<div class="expr-tags">';
-                    visibles.forEach(function(a) { tags += '<span class="expr-tag">' + escapeHtml(a) + '</span>'; });
+                    visibles.forEach(function (a) { tags += '<span class="expr-tag">' + escapeHtml(a) + '</span>'; });
                     if (totalAntecedentes > limite) {
                         tags += '<span class="expr-tag expr-tag-more">+' + (totalAntecedentes - limite) + ' más</span>';
                     }
@@ -1893,17 +2015,17 @@ function cargarHistorialEmpleado(idOrden) {
 
                 html += '<div class="expr-card">' +
                     '<div class="expr-card-header" onclick="toggleExpedienteCard(this)">' +
-                        '<span class="expr-fecha"><i class="fas fa-calendar-check" style="margin-right:6px; color:#aaa;"></i>' + ev.FechaEvaluacion + '</span>' +
-                        '<span class="expr-lugar">' + (ev.LugarEvaluacion || '') + '</span>' +
-                        '<span class="expr-aptitud ' + aptClass + '">' + (ev.AptitudDesc || '—') + '</span>' +
-                        '<i class="fas fa-chevron-down expr-chevron"></i>' +
+                    '<span class="expr-fecha"><i class="fas fa-calendar-check" style="margin-right:6px; color:#aaa;"></i>' + ev.FechaEvaluacion + '</span>' +
+                    '<span class="expr-lugar">' + (ev.LugarEvaluacion || '') + '</span>' +
+                    '<span class="expr-aptitud ' + aptClass + '">' + (ev.AptitudDesc || '—') + '</span>' +
+                    '<i class="fas fa-chevron-down expr-chevron"></i>' +
                     '</div>' +
                     '<div class="expr-body">' +
-                        alertaAntecedentes +
-                        '<div class="expr-vitals-grid">' + vitals + '</div>' +
-                        tags + diag +
+                    alertaAntecedentes +
+                    '<div class="expr-vitals-grid">' + vitals + '</div>' +
+                    tags + diag +
                     '</div>' +
-                '</div>';
+                    '</div>';
             });
 
             $('#expedienteContainer').html(html);
@@ -1912,7 +2034,7 @@ function cargarHistorialEmpleado(idOrden) {
             var $first = $('#expedienteContainer .expr-card-header').first();
             if ($first.length) toggleExpedienteCard($first[0]);
         },
-        error: function() {
+        error: function () {
             $('#expedienteContainer').html('<div class="exp-empty"><i class="fas fa-wifi-slash"></i> Error de conexión al cargar el historial.</div>');
         }
     });
@@ -1956,24 +2078,88 @@ function toggleExpedienteCard(header) {
 
 // Función para abrir e imprimir el formato de examen de antidoping
 function imprimirAntidoping() {
-    // Validar que exista un ID de orden válido
     if (!idOrden || idOrden <= 0) {
         showError("No se puede imprimir: ID de orden no válido.");
-        return;  // Detener ejecución si no hay ID válido
+        return;
     }
     
-    // Construir URL para abrir el formato de impresión con auto-impresión activada
-    var url = 'AntidopingPrint.aspx?id=' + idOrden + '&autoPrint=true';
+    // Usar el nuevo motor de impresión centralizado
+    var url = 'ImpresionFormatos.aspx?id=' + idOrden + '&tipo=ANTIDOPING';
     
-    // Abrir nueva ventana con el formato de impresión (800x600px, con scroll y redimensionable)
-    var ventana = window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-    
-    // Verificar si el navegador permitió abrir la ventana emergente
-    if (!ventana) {
-        // Mostrar error si el bloqueador de ventanas emergentes está activo
-        showError("Por favor, permita ventanas emergentes para imprimir el formato.");
+    // Si existe la función abrirVistaPrevia (usada en el dashboard), la usamos.
+    // Si no, abrimos en una ventana nueva limpia.
+    if (typeof abrirVistaPrevia === 'function') {
+        abrirVistaPrevia(url, 'Resultado Antidoping');
     } else {
-        // Mostrar mensaje informativo mientras se carga el formato
-        showToast("Abriendo formato de impresión...", "info");
+        window.open(url, '_blank', 'width=900,height=800,scrollbars=yes,resizable=yes');
     }
+}
+
+function generarTablaComparativa(historial) {
+    if (!historial || historial.length === 0) return;
+
+    var html = '<table class="table table-sm table-bordered" style="font-size: 0.7rem; margin:0; background:white; table-layout:fixed; width:100%;">';
+    html += '<thead class="table-light"><tr>' + 
+            '<th style="width:70px; background:#f1f5f9; color:#475569;">Fecha</th>' +
+            '<th style="width:50px;">Peso</th>' +
+            '<th style="width:50px;">IMC</th>' +
+            '<th style="width:75px;">P.A. (mmHg)</th>' +
+            '<th>Vacunación</th>' +
+            '<th style="width:100px;">Agud. Visual</th>' +
+            '</tr></thead>';
+    html += '<tbody>';
+
+    var subset = historial.slice(0, 3);
+    subset.forEach(function (ev) {
+        var bp = (ev.PresionSistolica || '—') + '/' + (ev.PresionDiastolica || '—');
+        var imcColor = '#2c3e50';
+        if (ev.Imc >= 25) imcColor = '#e67e22';
+        if (ev.Imc >= 30) imcColor = '#e74c3c';
+
+        html += '<tr>';
+        html += '<td style="font-weight:600; background:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + (ev.FechaEvaluacion || '—') + '</td>';
+        html += '<td>' + (ev.PesoKg || '—') + ' kg</td>';
+        html += '<td style="color:' + imcColor + '; font-weight:bold;">' + (ev.Imc || '—') + '</td>';
+        html += '<td>' + bp + '</td>';
+        html += '<td style="font-size:0.65rem; color:#555;">' + (ev.VacunasResumen || '—') + '</td>';
+        html += '<td style="font-weight:600;">' + (ev.VisionResumen || '—') + '</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    $('#comparativaSignosTable').html(html);
+    $('#comparativaSignosContainer').fadeIn(400);
+
+    // También generar la de columna si estamos aquí
+    generarComparativaColumna(historial);
+}
+
+function generarComparativaColumna(historial) {
+    if (!historial || historial.length === 0) return;
+
+    var html = '<table class="table table-sm table-bordered" style="font-size: 0.75rem; margin:0; background:white; width:100%;">';
+    html += '<thead class="table-light"><tr>' + 
+            '<th style="width:100px;">Fecha</th>' +
+            '<th>Hallazgos Columna Vertebral</th>' +
+            '<th>Sistemas Anormales Anterior</th>' +
+            '</tr></thead>';
+    html += '<tbody>';
+
+    var subset = historial.slice(0, 2);
+    subset.forEach(function (ev) {
+        var colStr = ev.ColumnaResumen || 'Alineada';
+        var sistStr = ev.SistemasAnormales || 'Normales';
+
+        html += '<tr>';
+        html += '<td style="font-weight:600;">' + ev.FechaEvaluacion + '</td>';
+        html += '<td>' + colStr + '</td>';
+        html += '<td style="color:' + (sistStr === 'Normales' ? '#28a745' : '#d9534f') + ';">' + sistStr + '</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    $('#comparativaColumnaTable').html(html);
+    $('#comparativaColumnaContainer').fadeIn(400);
 }
