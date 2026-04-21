@@ -58,10 +58,11 @@ function aplicarFiltros(resetPage) {
     var filtroEstatus = (estatusVal && estatusVal !== "-1") ? parseInt(estatusVal) : null;
     var soloPendientes = (estatusVal === "-1");
 
+    var idVal = $('#filtroIdMini').val();
     var req = {
         pagina: paginaActual,
         tamanoPagina: registrosPorPagina,
-        filtroNumEmpleado: $('#filtroNumEmp').val() ? parseInt($('#filtroNumEmp').val()) : null,
+        filtroNumEmpleado: (idVal && !isNaN(idVal)) ? parseInt(idVal) : null,
         filtroModalidad: $('#filtroModalidad').val() || null,
         filtroEstatus: soloPendientes ? -1 : filtroEstatus,
         fechaDesde: $('#filtroFechaDesde').val() || null,
@@ -69,7 +70,8 @@ function aplicarFiltros(resetPage) {
         filtroEmpresa: null,
         filtroArea: null,
         filtroAnio: null,
-        filtroSemana: null
+        filtroSemana: null,
+        filtroNombre: $('#filtroNombreMini').val() || null
     };
 
     $('#tbodySolicitudes').html('<tr><td colspan="9" class="no-data">Cargando bandeja médica...</td></tr>');
@@ -243,7 +245,9 @@ function verDetalle(id) {
     });
 }
 
-function cerrarModal() { $('.modal-overlay').removeClass('active'); }
+function cerrarModal() { 
+    $('.modal-overlay:not(#msgOverlay)').removeClass('active'); 
+}
 
 function verPaseEmpleado(id) {
     abrirVistaPrevia('ImpresionFormatos.aspx?id=' + id + '&tipo=PASE', 'Pase Médico');
@@ -295,7 +299,7 @@ function imprimirPaseModal() {
             ventana.print();
         }, 500);
     } else {
-        alert('Por favor, permita las ventanas emergentes para imprimir.');
+        showNotification('error', 'Error de Impresión', 'Por favor, permita las ventanas emergentes para imprimir el pase médico.');
     }
 }
 
@@ -388,7 +392,7 @@ function iniciarCreacionEvaluacion() {
                 if (r.d && r.d.success) {
                     window.location.href = 'EvaluacionMedica.aspx?id=' + r.d.PkOrdenMedico;
                 } else {
-                    alert('Error al crear la evaluación: ' + (r.d ? r.d.message : 'Desconocido'));
+                    showNotification('error', 'Error al crear', r.d ? r.d.message : 'No se pudo generar la orden médica.');
                 }
             }
         });

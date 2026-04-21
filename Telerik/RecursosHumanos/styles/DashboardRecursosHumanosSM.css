@@ -259,6 +259,12 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+.gci-spinner-sm {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+    margin: 0;
+}
 .loading-spinner-row {
     text-align: center;
     padding: 40px;

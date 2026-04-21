@@ -69,6 +69,27 @@ namespace Telerik.Models.DAL
             return MapCatalogo(dt);
         }
 
+        public static List<CatalogoItem> ObtenerDepartamentosPorEmpresa(int fkEmpresa)
+        {
+            string sql = "SELECT pkDepartamento as Id, descripcion as Descripcion FROM Departamentos WHERE fkEmpresa = @id AND (regActivo = 1 OR regActivo IS NULL) ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", fkEmpresa));
+            return MapCatalogo(dt);
+        }
+
+        public static List<CatalogoItem> ObtenerAreasPorDepartamento(int fkDepartamento)
+        {
+            string sql = "SELECT pkArea as Id, descripcion as Descripcion FROM Areas WHERE fkDepartamento = @id ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", fkDepartamento));
+            return MapCatalogo(dt);
+        }
+
+        public static List<CatalogoItem> ObtenerPuestosPorArea(int fkArea)
+        {
+            string sql = "SELECT pkPuesto as Id, descripcion as Descripcion FROM Puesto WHERE fkArea = @id ORDER BY descripcion";
+            DataTable dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", fkArea));
+            return MapCatalogo(dt);
+        }
+
         public static List<CatalogoItem> ObtenerPuestosPorEmpresa(int fkEmpresa)
         {
             string sql = "SELECT pkPuesto as Id, descripcion as Descripcion FROM Puesto WHERE fkEmpresa = @id ORDER BY descripcion";

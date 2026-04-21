@@ -13,7 +13,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+            rel="stylesheet">
         <link rel="stylesheet" href="./styles/DashboardRecursosHumanosSM.css" />
 
         <style>
@@ -22,13 +23,42 @@
                 background-color: #f4f7f6;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             }
+
             /* Paginación */
-        .paginacion-wrapper { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 20px 0; }
-        .pag-btn { padding: 5px 12px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; transition: all 0.2s; }
-        .pag-btn:hover { background: #f0f0f0; border-color: #999; }
-        .pag-btn.active { background: #007bff; color: #fff; border-color: #007bff; font-weight: bold; }
-        .pag-btn:disabled { opacity: 0.5; cursor: default; }
-    </style>
+            .paginacion-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                margin: 20px 0;
+            }
+
+            .pag-btn {
+                padding: 5px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background: #fff;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .pag-btn:hover {
+                background: #f0f0f0;
+                border-color: #999;
+            }
+
+            .pag-btn.active {
+                background: #007bff;
+                color: #fff;
+                border-color: #007bff;
+                font-weight: bold;
+            }
+
+            .pag-btn:disabled {
+                opacity: 0.5;
+                cursor: default;
+            }
+        </style>
     </head>
 
     <body>
@@ -51,10 +81,30 @@
                             <div class="sp-title-text"><i class="fas fa-history"></i> Solicitudes Recientes</div>
                             <div class="sp-filters-inline">
                                 <div>
-                                    Empleado: <input type="text" id="filtroEmpleadoMini" class="filter-input-mini"
-                                        onkeyup="aplicarFiltros(true)" placeholder="Buscar..." />
+                                    Nombre: <input type="text" id="filtroNombreMini" class="filter-input-mini"
+                                        onkeyup="aplicarFiltros(true)" placeholder="Buscar por nombre..." style="width:160px;" />
                                 </div>
                                 <div>
+                                    Folio / ID: <input type="text" id="filtroIdMini" class="filter-input-mini"
+                                        onkeyup="aplicarFiltros(true)" placeholder="Folio..." style="width:80px;" />
+                                </div>
+                                <div style="margin-right:15px;">
+                                    Modalidad:
+                                    <select id="filtroModalidad" class="filter-select-mini" onchange="aplicarFiltros(true)">
+                                        <option value="">TODAS</option>
+                                        <option value="INGRESO" selected>INGRESO</option>
+                                        <option value="PERIODICO">PERIÓDICO</option>
+                                    </select>
+                                </div>
+                                <div style="margin-right:15px;">
+                                    Estatus:
+                                    <select id="filtroEstatus" class="filter-select-mini" onchange="aplicarFiltros(true)">
+                                        <option value="">TODOS</option>
+                                        <option value="-1" selected>PENDIENTES</option>
+                                        <option value="3">COMPLETADAS</option>
+                                    </select>
+                                </div>
+                                <div style="margin-left:5px;">
                                     Mostrar:
                                     <select id="selectTamanoPagina" class="filter-select-mini"
                                         onchange="onCambioTamanoPagina()">
@@ -147,6 +197,10 @@
                                         <input type="text" id="txtApeMat" class="form-control" placeholder="Ej: García"
                                             onkeypress="return soloLetras(event)" />
                                     </div>
+                                </div>
+                                
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                     <div class="form-group">
                                         <label>Empresa *</label>
                                         <select id="ddlEmpresaIngreso" class="form-control"
@@ -154,20 +208,36 @@
                                             <option value="">-- Seleccione Empresa --</option>
                                         </select>
                                     </div>
-                                </div>
-
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                                     <div class="form-group">
-                                        <label>Proyecto</label>
+                                        <label>Proyecto *</label>
                                         <select id="ddlProyectoIngreso" class="form-control">
                                             <option value="">-- Primero Empresa --</option>
                                         </select>
                                     </div>
+                                </div>
+
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                     <div class="form-group">
-                                        <label>Puesto / Vacante</label>
-                                        <select id="ddlPuestoIngreso" class="form-control">
+                                        <label>Departamento *</label>
+                                        <select id="ddlDepartamentoIngreso" class="form-control" onchange="onDepartamentoIngresoChange()">
                                             <option value="">-- Primero Empresa --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Área *</label>
+                                        <select id="ddlAreaIngreso" class="form-control" onchange="onAreaIngresoChange()">
+                                            <option value="">-- Primero Departamento --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;">
+                                    <div class="form-group">
+                                        <label>Puesto / Vacante *</label>
+                                        <select id="ddlPuestoIngreso" class="form-control">
+                                            <option value="">-- Primero Área --</option>
                                         </select>
                                     </div>
                                 </div>

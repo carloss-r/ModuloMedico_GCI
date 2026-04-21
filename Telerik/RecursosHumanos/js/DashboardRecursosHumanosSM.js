@@ -57,9 +57,9 @@ function apiCall(opts) {
 }
 
 // Función para recargar datos
-window.recargarDatos = function() {
+window.recargarDatos = function () {
     $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="11"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
-    setTimeout(function() {
+    setTimeout(function () {
         cargarInicial();
     }, 500);
 };
@@ -68,7 +68,7 @@ $(document).ready(function () {
     cargarInicial();
 
     // Cerrar menú contextual al hacer clic fuera
-    $(document).on('click', function() { $('#ctxMenu').hide(); });
+    $(document).on('click', function () { $('#ctxMenu').hide(); });
 
     // Delegación de eventos para cerrar modales al hacer clic en el overlay
     $(document).on('click', '.modal-overlay', function (e) {
@@ -106,7 +106,7 @@ $(document).ready(function () {
 });
 
 // --- Helper de Notificaciones Modernas ---
-window.showNotification = function(type, title, body, callbackOrPkPrint) {
+window.showNotification = function (type, title, body, callbackOrPkPrint) {
     var $msgOverlay = $('#msgOverlay');
     var $msgIcon = $('#msgIcon');
     var $msgTitle = $('#msgTitle');
@@ -141,14 +141,14 @@ window.showNotification = function(type, title, body, callbackOrPkPrint) {
     // Lógica especial para confirmación
     if (type === 'confirm' && typeof callbackOrPkPrint === 'function') {
         $btnCancel.show();
-        $btnOk.text('Confirmar').off('click').on('click', function() {
+        $btnOk.text('Confirmar').off('click').on('click', function () {
             cerrarMsg();
             callbackOrPkPrint();
         });
-    } 
+    }
     // Lógica para impresión en éxito
     else if (typeof callbackOrPkPrint === 'number' || (typeof callbackOrPkPrint === 'string' && !isNaN(callbackOrPkPrint))) {
-        $btnPrint.show().off('click').on('click', function() {
+        $btnPrint.show().off('click').on('click', function () {
             cerrarMsg();
             mostrarModalPase(callbackOrPkPrint);
         });
@@ -158,15 +158,15 @@ window.showNotification = function(type, title, body, callbackOrPkPrint) {
     $msgOverlay.css('display', 'flex').hide().fadeIn(300);
 };
 
-window.cerrarMsg = function() {
-    $('#msgOverlay').fadeOut(200, function() {
+window.cerrarMsg = function () {
+    $('#msgOverlay').fadeOut(200, function () {
         $(this).hide();
     });
 };
 
 // --- Funciones Globales (Disponibles para onclick) ---
 
-window.cargarInicial = function() {
+window.cargarInicial = function () {
     apiCall({
         url: 'DashboardRecursosHumanosSM.aspx/CargarInicial',
         contentType: 'application/json',
@@ -179,16 +179,16 @@ window.cargarInicial = function() {
                 $ddlPer.empty().append('<option value="">-- Seleccione Tipo de Examen --</option>');
                 $ddlEmp.find('option:gt(0)').remove();
 
-                $.each(resp.tiposServicio || [], function(_, s) {
+                $.each(resp.tiposServicio || [], function (_, s) {
                     var txt = (s.Descripcion || '').toUpperCase();
                     var esAntidoping = txt.indexOf('ANTIDOP') >= 0;
-                    var esPeriodico = txt.indexOf('PERIOD') >= 0;
+                    var esPeriodico = txt.indexOf('PERIOD') >= 0 || txt.indexOf('PERIÓ') >= 0 || txt.indexOf('EXAMEN') >= 0;
                     if (esAntidoping || esPeriodico) {
                         $ddlPer.append('<option value="' + s.Id + '">' + s.Descripcion + '</option>');
                     }
                 });
 
-                $.each(resp.empresas || [], function(_, e) {
+                $.each(resp.empresas || [], function (_, e) {
                     $ddlEmp.append('<option value="' + e.Id + '">' + e.Descripcion + '</option>');
                 });
             }
@@ -201,24 +201,25 @@ window.cargarInicial = function() {
     aplicarFiltros(true);
 };
 
-window.cargarSolicitudes = function() { aplicarFiltros(); };
+window.cargarSolicitudes = function () { aplicarFiltros(); };
 
-window.aplicarFiltros = function(resetPage) {
+window.aplicarFiltros = function (resetPage) {
     if (resetPage) paginaActual = 1;
 
+    var idVal = $('#filtroIdMini').val();
     var req = {
         pagina: paginaActual,
         tamanoPagina: registrosPorPagina,
-        filtroNumEmpleado: $('#filtroNumEmp').length ? ($('#filtroNumEmp').val() ? parseInt($('#filtroNumEmp').val()) : null) : null,
-        filtroModalidad: null,
+        filtroNumEmpleado: (idVal && !isNaN(idVal)) ? parseInt(idVal) : null,
+        filtroModalidad: $('#filtroModalidad').val() || null,
         filtroEstatus: ($('#filtroEstatus').val() === '-1') ? -1 : ($('#filtroEstatus').val() ? parseInt($('#filtroEstatus').val()) : null),
-        fechaDesde: $('#filtroFechaDesde').val() || null,
-        fechaHasta: $('#filtroFechaHasta').val() || null,
+        fechaDesde: $('#filtroFechaDesde').length ? ($('#filtroFechaDesde').val() || null) : null,
+        fechaHasta: $('#filtroFechaHasta').length ? ($('#filtroFechaHasta').val() || null) : null,
         filtroEmpresa: null,
         filtroArea: null,
         filtroAnio: null,
         filtroSemana: null,
-        filtroNombre: $('#filtroEmpleadoMini').val() || null
+        filtroNombre: $('#filtroNombreMini').val() || null
     };
 
     $('#tbodySolicitudes').html('<tr class="loading-spinner-row"><td colspan="11"><div class="gci-spinner"></div><span class="gci-loading-text">Cargando solicitudes...</span></td></tr>');
@@ -226,7 +227,7 @@ window.aplicarFiltros = function(resetPage) {
     apiCall({
         url: 'DashboardRecursosHumanosSM.aspx/CargarPagina',
         data: req,
-        onSuccess: function(r) {
+        onSuccess: function (r) {
             var resp = r.d;
             if (resp.success) {
                 totalRegistrosGlobal = resp.total;
@@ -235,7 +236,7 @@ window.aplicarFiltros = function(resetPage) {
                 renderTableError(resp.message || 'Error al cargar datos.', 'aplicarFiltros');
             }
         },
-        onError: function(xhr, status, error, msg) {
+        onError: function (xhr, status, error, msg) {
             renderTableError(msg, 'aplicarFiltros');
         }
     });
@@ -250,8 +251,8 @@ function renderPaginaMed(paginaDatos) {
     $tbody.empty();
     if (paginaDatos.length > 0) {
         $('#resultsInfo').text('Mostrando ' + (inicio + 1) + '-' + fin + ' de ' + totalRegistrosGlobal + ' solicitudes.');
-        
-        paginaDatos.forEach(function(s) {
+
+        paginaDatos.forEach(function (s) {
             var estLow = (s.EstatusDesc || '').toLowerCase();
             var badgeEst = 'badge-pendiente';
             if (estLow.indexOf('proceso') >= 0) badgeEst = 'badge-proceso';
@@ -259,11 +260,8 @@ function renderPaginaMed(paginaDatos) {
 
             // Modalidad badge (Text only)
             var badgeMod = s.Modalidad === 'INGRESO' ? 'badge-ingreso' : 'badge-periodico';
-            
-            // Indicadores de exámenes completados - Removidos para limpiar la UI
-            var examIndicators = '';
 
-            // Aptitud badge (solo si está completada)
+            // Aptitud badge (solo si estÃ¡ completada)
             var aptitudHtml = '';
             if (estLow.indexOf('complet') >= 0) {
                 aptitudHtml = '<span class="status-badge badge-apto"><i class="fas fa-check-double"></i> APTO</span>';
@@ -281,14 +279,13 @@ function renderPaginaMed(paginaDatos) {
                 '<td>' + (s.ProyectoDesc || '-') + '</td>' +
                 '<td>' + (s.TipoServicioDesc || '-') + '</td>' +
                 '<td>' +
-                    '<span class="status-badge ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span>' +
-                    '<div style="margin-top:4px; display:flex; flex-direction:column; gap:2px;">' + examIndicators + '</div>' +
+                '<span class="status-badge ' + badgeEst + '">' + (s.EstatusDesc || 'Pendiente') + '</span>' +
                 '</td>' +
                 '<td style="text-align:center;">' + aptitudHtml + '</td>' +
                 '<td style="text-align:center;">' +
                    '<div style="display:flex; justify-content:center; gap:5px;">' +
-                      '<button type="button" class="btn-action" title="Ver Detalle" onclick="event.stopPropagation(); verDetalle(' + s.PkOrdenMedico + ')"><i class="fas fa-eye"></i></button>' +
-                      '<button type="button" class="btn-action" title="Ver Pase" onclick="event.stopPropagation(); mostrarModalPase(' + s.PkOrdenMedico + ')"><i class="fas fa-file-signature"></i></button>' +
+                      '<button type="button" class="btn-action" title="Ver Detalle" onclick="event.stopPropagation(); verDetalle(' + s.PkOrdenMedico + '); return false;"><i class="fas fa-eye"></i></button>' +
+                      '<button type="button" class="btn-action" title="Ver Pase" onclick="event.stopPropagation(); mostrarModalPase(' + s.PkOrdenMedico + '); return false;"><i class="fas fa-file-signature"></i></button>' +
                    '</div>' +
                 '</td>' +
                 '</tr>';
@@ -301,27 +298,30 @@ function renderPaginaMed(paginaDatos) {
     $('#paginacionControles').html(buildPaginacion(paginaActual, totalPaginas));
 }
 
-window.verDetalle = function(pkOrden) {
+window.verDetalle = function (pkOrden) {
     currentOrdenId = pkOrden;
-    
+
     // Mostrar modal con estado de carga
-    $('#modalFolio').text('Cargando...');
+    $('#modalFolio').html('<div class="gci-spinner gci-spinner-sm" style="display:inline-block; margin-right:10px;"></div> Cargando...');
     $('#modalDetalle').addClass('active');
     
+    // Limpiar campos previos
+    $('#detFolio, #detFecha, #detGeneralEmpresa, #detGeneralProyecto, #detModalidad, #detTipoServicio, #detEstatus, #detEmpNombre, #detEmpNum, #detEmpPuesto, #detEmpNss').text('...');
+
     apiCall({
         url: 'DashboardRecursosHumanosSM.aspx/VerDetalle',
         contentType: 'application/json',
         data: { id: pkOrden },
         timeout: 15000,
-        onSuccess: function(r) {
+        onSuccess: function (r) {
             var resp = r.d;
-            if (!resp.success) { 
+            if (!resp.success) {
                 cerrarModal();
-                showNotification('error', 'No se pudo cargar', resp.message || 'Error al cargar el detalle'); 
-                return; 
+                showNotification('error', 'No se pudo cargar', resp.message || 'Error al cargar el detalle');
+                return;
             }
             var o = resp.orden;
-            
+
             $('#modalFolio').text(o.FolioDisplay);
             $('#detFolio').text(o.FolioDisplay);
             $('#detFecha').text(o.FechaOrdenFormateada);
@@ -329,7 +329,7 @@ window.verDetalle = function(pkOrden) {
             $('#detGeneralProyecto').text(o.ProyectoDesc || '-');
             $('#detModalidad').text(o.Modalidad || '-');
             $('#detTipoServicio').text(o.TipoServicioDesc || '-');
-            
+
             // Si Modalidad y Tipo de Servicio son iguales, ocultamos uno para no repetir
             if ((o.Modalidad || '').toLowerCase() === (o.TipoServicioDesc || '').toLowerCase()) {
                 $('#detModalidad').closest('.field').hide();
@@ -341,11 +341,11 @@ window.verDetalle = function(pkOrden) {
 
             // Poblar Datos de la Persona (Unificado con aviso dinámico)
             $('#detEmpNombre').text(o.NombrePersona || '-');
-            
+
             if (o.Modalidad === 'INGRESO') {
                 $('#seccionIngresoAviso').show();
                 $('#lblNomPersona').text('NOMBRE DEL CANDIDATO');
-                $('#detEmpNum').text('-'); 
+                $('#detEmpNum').text('-');
                 $('#detEmpPuesto').text(o.PuestoCandidato || '-');
                 $('#detEmpNss').text(o.NssCandidato || '-');
             } else {
@@ -358,20 +358,20 @@ window.verDetalle = function(pkOrden) {
             }
 
             // Configurar botón de impresión dentro del detalle
-            $('#btnImprimirPase').off('click').on('click', function() {
+            $('#btnImprimirPase').off('click').on('click', function () {
                 mostrarModalPase(o.PkOrdenMedico);
             });
 
             $('#btnEliminar').toggle(o.EstatusDesc.toLowerCase().indexOf('complet') < 0);
         },
-        onError: function(xhr, status, error, msg) {
+        onError: function (xhr, status, error, msg) {
             cerrarModal();
             showNotification('error', 'Error de Respuesta', msg + '\n\nSi el problema persiste, recargue la página (F5).');
         }
     });
 };
 
-window.imprimirPase = function() {
+window.imprimirPase = function () {
     if (!currentOrdenId) {
         showNotification('warning', 'Atención', 'Seleccione una solicitud primero.');
         return;
@@ -379,19 +379,19 @@ window.imprimirPase = function() {
     mostrarModalPase(currentOrdenId);
 };
 
-window.mostrarModalPase = function(pkOrdenMedico) {
+window.mostrarModalPase = function (pkOrdenMedico) {
     // Cerrar modal de detalle si está abierto
     $('#modalDetalle').removeClass('active');
-    
+
     // Mostrar indicador de carga
     $('#paseContent').html('<div style="text-align:center; padding:40px;"><div class="gci-spinner"></div><p>Cargando pase...</p></div>');
     $('#modalPase').addClass('active');
-    
+
     apiCall({
         url: 'DashboardRecursosHumanosSM.aspx/ObtenerPaseHtml',
         data: { pkOrdenMedico: pkOrdenMedico },
         timeout: 15000,
-        onSuccess: function(r) {
+        onSuccess: function (r) {
             if (r.d && r.d.success) {
                 $('#paseContent').html(r.d.html);
             } else {
@@ -399,25 +399,25 @@ window.mostrarModalPase = function(pkOrdenMedico) {
                 $('#paseContent').html('<div style="text-align:center; padding:40px; color:#d32f2f;"><i class="fas fa-exclamation-circle" style="font-size:48px; margin-bottom:15px;"></i><p>' + errorMsg + '</p><button type="button" class="btn-gci btn-gci-primary" onclick="mostrarModalPase(' + pkOrdenMedico + ')" style="margin-top:15px;"><i class="fas fa-sync"></i> Reintentar</button></div>');
             }
         },
-        onError: function(xhr, status, error, msg) {
+        onError: function (xhr, status, error, msg) {
             $('#paseContent').html('<div style="text-align:center; padding:40px; color:#d32f2f;"><i class="fas fa-exclamation-circle" style="font-size:48px; margin-bottom:15px;"></i><p>' + msg + '</p><button type="button" class="btn-gci btn-gci-primary" onclick="mostrarModalPase(' + pkOrdenMedico + ')" style="margin-top:15px;"><i class="fas fa-sync"></i> Reintentar</button></div>');
         }
     });
 };
 
-window.cerrarModalPase = function() {
+window.cerrarModalPase = function () {
     $('#modalPase').removeClass('active');
     $('#paseContent').html('');
 };
 
-window.imprimirPaseModal = function() {
+window.imprimirPaseModal = function () {
     var contenido = document.getElementById('paseContent').innerHTML;
     var ventana = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
     if (ventana) {
         ventana.document.write('<!DOCTYPE html><html><head><title>Pase Médico</title></head><body>' + contenido + '</body></html>');
         ventana.document.close();
         ventana.focus();
-        setTimeout(function() {
+        setTimeout(function () {
             ventana.print();
         }, 500);
     } else {
@@ -425,16 +425,16 @@ window.imprimirPaseModal = function() {
     }
 };
 
-window.cerrarModal = function() { $('.modal-overlay').removeClass('active'); };
+window.cerrarModal = function () { $('.modal-overlay').removeClass('active'); };
 
-window.eliminarSolicitud = function() {
+window.eliminarSolicitud = function () {
     if (!currentOrdenId) {
         showNotification('warning', 'Atención', 'Seleccione una solicitud primero.');
         return;
     }
-    
+
     // Cambio de confirm de navegador por modal personalizado
-    showNotification('confirm', 'Confirmar Eliminación', '¿Está seguro de que desea eliminar permanentemente esta solicitud? Esta acción no se puede deshacer.', function() {
+    showNotification('confirm', 'Confirmar Eliminación', '¿Está seguro de que desea eliminar permanentemente esta solicitud? Esta acción no se puede deshacer.', function () {
         apiCall({
             url: 'DashboardRecursosHumanosSM.aspx/Eliminar',
             data: { pkOrdenMedico: currentOrdenId },
@@ -448,14 +448,14 @@ window.eliminarSolicitud = function() {
                     showNotification('error', 'Error', (resp && resp.message) ? resp.message : 'No fue posible eliminar la solicitud.');
                 }
             },
-            onError: function(xhr, status, error, msg) {
+            onError: function (xhr, status, error, msg) {
                 showNotification('error', 'Error de Conexión', msg);
             }
         });
     });
 };
 
-window.abrirNuevaSolicitud = function() {
+window.abrirNuevaSolicitud = function () {
     $('#modalNuevaSolicitud').addClass('active');
     $('#modalAlert').hide();
     switchModalidad('INGRESO'); // Default
@@ -465,11 +465,11 @@ window.abrirNuevaSolicitud = function() {
     $('#lblTipoPersonaEmpleado').hide();
     $('#infoEmpleadoEncontrado').hide();
     $('#ddlEmpresaIngreso').val('');
-    $('#ddlProyectoIngreso, #ddlPuestoIngreso').html('<option value="">-- Primero Empresa --</option>');
+    $('#ddlProyectoIngreso, #ddlDepartamentoIngreso, #ddlAreaIngreso, #ddlPuestoIngreso').html('<option value="">-- Primero Empresa --</option>');
 };
 
 var currentModalidad = 'INGRESO';
-window.switchModalidad = function(tipo) {
+window.switchModalidad = function (tipo) {
     currentModalidad = (tipo === 'PERIODICO') ? 'PERIODICO' : 'INGRESO';
     if (currentModalidad === 'PERIODICO') {
         $('#btnTabPeriodico').addClass('active').siblings().removeClass('active');
@@ -484,7 +484,7 @@ window.switchModalidad = function(tipo) {
     $('#modalAlert').hide();
 };
 
-window.actualizarTipoPersonaEmpleado = function() {
+window.actualizarTipoPersonaEmpleado = function () {
     var txt = ($('#ddlTipoServicioPeriodico option:selected').text() || '').trim();
     if (!txt || txt.indexOf('Seleccione') >= 0) {
         $('#lblTipoPersonaEmpleado').hide();
@@ -492,11 +492,14 @@ window.actualizarTipoPersonaEmpleado = function() {
     }
 
     var upper = txt.toUpperCase();
-    var tipoExamen = upper.indexOf('ANTIDOP') >= 0 ? 'ANTIDOPING' : 'PERIÓDICO';
+    var esAnti = upper.indexOf('ANTIDOP') >= 0;
+    var esPeri = upper.indexOf('PERIOD') >= 0 || upper.indexOf('PERIÓ') >= 0 || upper.indexOf('EXAMEN') >= 0;
+
+    var tipoExamen = esAnti ? 'ANTIDOPING' : (esPeri ? 'PERIÓDICO' : 'OTRO');
     $('#lblTipoPersonaEmpleado').html('<i class="fas fa-user-tag"></i> Tipo de persona: EMPLEADO — Examen: ' + tipoExamen).show();
 };
 
-window.buscarEmpleado = function() {
+window.buscarEmpleado = function () {
     var num = $('#txtNumEmpleadoBusqueda').val();
     if (!num) return;
 
@@ -504,7 +507,7 @@ window.buscarEmpleado = function() {
         url: 'DashboardRecursosHumanosSM.aspx/BuscarEmpleado',
         contentType: 'application/json',
         data: { numeroEmpleado: parseInt(num) },
-        onSuccess: function(r) {
+        onSuccess: function (r) {
             if (r.d.success) {
                 var e = r.d.empleado;
                 $('#lblNombreEmpleado').text(e.NombreCompleto);
@@ -519,40 +522,91 @@ window.buscarEmpleado = function() {
     });
 };
 
-window.cerrarNuevaSolicitud = function() { $('#modalNuevaSolicitud').removeClass('active'); };
+window.cerrarNuevaSolicitud = function () { $('#modalNuevaSolicitud').removeClass('active'); };
 
 window.onEmpresaIngresoChange = function() {
     var idEmp = $('#ddlEmpresaIngreso').val();
     if (!idEmp) return;
 
+    // Cargar Proyectos
+    var $ddlProj = $('#ddlProyectoIngreso');
+    $ddlProj.empty().append('<option value="">Cargando proyectos...</option>');
+
     apiCall({
         url: 'DashboardRecursosHumanosSM.aspx/ObtenerProyectosPorEmpresa',
-        contentType: 'application/json',
         data: { fkEmpresa: parseInt(idEmp) },
         onSuccess: function(r) {
-            var $ddl = $('#ddlProyectoIngreso');
-            $ddl.empty().append('<option value="">-- Seleccione Proyecto --</option>');
+            $ddlProj.empty().append('<option value="">-- Seleccione Proyecto --</option>');
             if (r.d.success) {
-                $.each(r.d.data, function(_, p) { $ddl.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>'); });
+                $.each(r.d.data, function(_, p) { $ddlProj.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>'); });
             }
         }
     });
 
+    // Cargar Departamentos
+    var $ddlDept = $('#ddlDepartamentoIngreso');
+    $ddlDept.empty().append('<option value="">Cargando departamentos...</option>');
+
     apiCall({
-        url: 'DashboardRecursosHumanosSM.aspx/ObtenerPuestosPorEmpresa',
-        contentType: 'application/json',
+        url: 'DashboardRecursosHumanosSM.aspx/ObtenerDepartamentosPorEmpresa',
         data: { fkEmpresa: parseInt(idEmp) },
         onSuccess: function(r) {
-            var $ddl = $('#ddlPuestoIngreso');
-            $ddl.empty().append('<option value="">-- Seleccione Puesto --</option>');
+            $ddlDept.empty().append('<option value="">-- Seleccione Departamento --</option>');
             if (r.d.success) {
-                $.each(r.d.data, function(_, p) { $ddl.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>'); });
+                $.each(r.d.data, function(_, p) { $ddlDept.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>'); });
+            }
+            $('#ddlAreaIngreso').html('<option value="">-- Primero Departamento --</option>');
+            $('#ddlPuestoIngreso').html('<option value="">-- Primero Área --</option>');
+        }
+    });
+};
+
+window.onDepartamentoIngresoChange = function() {
+    var idDept = $('#ddlDepartamentoIngreso').val();
+    if (!idDept) {
+        $('#ddlAreaIngreso').html('<option value="">-- Primero Departamento --</option>');
+        return;
+    }
+
+    var $ddlArea = $('#ddlAreaIngreso');
+    $ddlArea.empty().append('<option value="">Cargando áreas...</option>');
+
+    apiCall({
+        url: 'DashboardRecursosHumanosSM.aspx/ObtenerAreasPorDepartamento',
+        data: { fkDepartamento: parseInt(idDept) },
+        onSuccess: function(r) {
+            $ddlArea.empty().append('<option value="">-- Seleccione Área --</option>');
+            if (r.d.success) {
+                $.each(r.d.data, function(_, p) { $ddlArea.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>'); });
+            }
+            $('#ddlPuestoIngreso').html('<option value="">-- Primero Área --</option>');
+        }
+    });
+};
+
+window.onAreaIngresoChange = function() {
+    var idArea = $('#ddlAreaIngreso').val();
+    if (!idArea) {
+        $('#ddlPuestoIngreso').html('<option value="">-- Primero Área --</option>');
+        return;
+    }
+
+    var $ddlPuesto = $('#ddlPuestoIngreso');
+    $ddlPuesto.empty().append('<option value="">Cargando vacantes...</option>');
+
+    apiCall({
+        url: 'DashboardRecursosHumanosSM.aspx/ObtenerPuestosPorArea',
+        data: { fkArea: parseInt(idArea) },
+        onSuccess: function(r) {
+            $ddlPuesto.empty().append('<option value="">-- Seleccione Puesto --</option>');
+            if (r.d.success) {
+                $.each(r.d.data, function(_, p) { $ddlPuesto.append('<option value="' + p.Id + '">' + p.Descripcion + '</option>'); });
             }
         }
     });
 };
 
-window.crearSolicitud = function() {
+window.crearSolicitud = function () {
     var data = {
         Modalidad: currentModalidad,
         NumeroEmpleado: currentModalidad === 'PERIODICO' ? (parseInt($('#txtNumEmpleadoBusqueda').val()) || null) : null,
@@ -564,14 +618,15 @@ window.crearSolicitud = function() {
         PuestoDeseado: $('#ddlPuestoIngreso option:selected').text(),
         EmpresaDesc: $('#ddlEmpresaIngreso option:selected').text(),
         ProyectoDesc: $('#ddlProyectoIngreso option:selected').text(),
+        AreaDesc: $('#ddlAreaIngreso option:selected').text(),
         FkEmpresa: parseInt($('#ddlEmpresaIngreso').val()) || null,
         FkProyecto: parseInt($('#ddlProyectoIngreso').val()) || null,
         Sexo: ''
     };
 
     if (currentModalidad === 'INGRESO') {
-        if (!data.NombreCandidato || !data.ApellidoPaterno || !data.FkEmpresa) {
-            showNotification('warning', 'Campos Incompletos', 'Por favor complete los campos obligatorios del candidato (Nombres, Apellido Paterno y Empresa).');
+        if (!data.NombreCandidato || !data.ApellidoPaterno || !data.FkEmpresa || !$('#ddlAreaIngreso').val() || !$('#ddlPuestoIngreso').val()) {
+            showNotification('warning', 'Campos Incompletos', 'Por favor complete todos los campos obligatorios (Nombres, Apellidos, Empresa, Departamento, Área y Puesto).');
             return;
         }
     } else {
@@ -579,26 +634,23 @@ window.crearSolicitud = function() {
             showNotification('warning', 'Empleado No Seleccionado', 'Por favor busque y seleccione un empleado de la lista antes de continuar.');
             return;
         }
-        if (!data.FkTipoServicio) {
-            showNotification('warning', 'Tipo de Examen', 'Debe seleccionar el tipo de examen que se realizará al empleado.');
-            return;
-        }
+        // El tipo de servicio se resolverá en el servidor si no se selecciona uno específico
     }
 
     apiCall({
         url: 'DashboardRecursosHumanosSM.aspx/CrearSolicitud',
         contentType: 'application/json',
         data: data,
-        onSuccess: function(r) {
-            if(r.d.success) {
+        onSuccess: function (r) {
+            if (r.d.success) {
                 cerrarNuevaSolicitud();
                 aplicarFiltros(true);
-                
+
                 // NOTIFICACIÓN DE ÉXITO PREMIUM CON OPCIÓN DE IMPRESIÓN
                 showNotification(
-                    'success', 
-                    '¡Éxito!', 
-                    'La solicitud ha sido creada correctamente en el sistema. ¿Desea imprimir el pase médico en este momento?', 
+                    'success',
+                    '¡Éxito!',
+                    'La solicitud ha sido creada correctamente en el sistema. ¿Desea imprimir el pase médico en este momento?',
                     r.d.pkOrdenMedico
                 );
             } else {
@@ -608,7 +660,7 @@ window.crearSolicitud = function() {
     });
 };
 
-window.onCambioTamanoPagina = function() {
+window.onCambioTamanoPagina = function () {
     var size = parseInt($('#selectTamanoPagina').val(), 10);
     registrosPorPagina = isNaN(size) ? 25 : size;
     aplicarFiltros(true);
@@ -617,7 +669,7 @@ window.onCambioTamanoPagina = function() {
 function buildPaginacion(actual, total) {
     if (total <= 1) return '';
     var html = [];
-    
+
     // Ant
     html.push('<button class="pag-btn" ' + (actual <= 1 ? 'disabled' : '') + ' onclick="irAPagina(' + (actual - 1) + ')" title="Anterior"><i class="fas fa-chevron-left"></i></button>');
 
@@ -632,16 +684,16 @@ function buildPaginacion(actual, total) {
 
     // Sig
     html.push('<button class="pag-btn" ' + (actual >= total ? 'disabled' : '') + ' onclick="irAPagina(' + (actual + 1) + ')" title="Siguiente"><i class="fas fa-chevron-right"></i></button>');
-    
+
     return '<div class="paginacion-wrapper">' + html.join('') + '</div>';
 }
 
-window.irAPagina = function(num) {
+window.irAPagina = function (num) {
     paginaActual = num;
     aplicarFiltros(false);
 };
 
-window.soloLetras = function(e) {
+window.soloLetras = function (e) {
     var key = e.keyCode || e.which;
     var tecla = String.fromCharCode(key).toLowerCase();
     var letras = " áéíóúabcdefghijklmnñopqrstuvwxyz";

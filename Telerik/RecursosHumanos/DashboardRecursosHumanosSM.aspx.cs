@@ -14,33 +14,51 @@ namespace Telerik
 {
     public partial class DashboardRecursosHumanosSM : System.Web.UI.Page
     {
-        private static bool EsVisibleEnDashboardRh(OrdenServicioMedicoVm orden)
-        {
-            if (orden == null) return false;
-            return !orden.FkEmpleado.HasValue && orden.FkTipoServicio != 3;
-        }
 
         private static int ResolverTipoServicioIngreso()
         {
             using (var db = new ApplicationDbContext())
             {
-                var tipoIngreso = db.TiposServicio
+                var tipo = db.TiposServicio
                     .Where(t => t.descripcion != null)
                     .OrderBy(t => t.pkTipoServicio)
                     .FirstOrDefault(t => t.descripcion.ToUpper().Contains("INGRESO"));
 
-                if (tipoIngreso != null)
-                {
-                    return tipoIngreso.pkTipoServicio;
-                }
+                if (tipo != null) return tipo.pkTipoServicio;
 
-                var tipoExamen = db.TiposServicio
+                return db.TiposServicio
                     .Where(t => t.descripcion != null)
                     .OrderBy(t => t.pkTipoServicio)
-                    .FirstOrDefault(t => t.descripcion.ToUpper().Contains("EXAMEN") || t.descripcion.ToUpper().Contains("MEDICO"));
-
-                return tipoExamen != null ? tipoExamen.pkTipoServicio : 1;
+                    .FirstOrDefault(t => t.descripcion.ToUpper().Contains("EXAMEN") || t.descripcion.ToUpper().Contains("MEDICO"))?.pkTipoServicio ?? 1;
             }
+        }
+
+        private static int ResolverTipoServicioPeriodico()
+        {
+            using (var db = new ApplicationDbContext())
+            {
+                // Prioridad 1: Periódico
+                var tipo = db.TiposServicio
+                    .Where(t => t.descripcion != null)
+                    .OrderBy(t => t.pkTipoServicio)
+                    .FirstOrDefault(t => t.descripcion.ToUpper().Contains("PERI"));
+
+                if (tipo != null) return tipo.pkTipoServicio;
+
+                // Prioridad 2: Médico / Examen (si no hay específico de periódico)
+                return db.TiposServicio
+                    .Where(t => t.descripcion != null)
+                    .OrderBy(t => t.pkTipoServicio)
+                    .FirstOrDefault(t => t.descripcion.ToUpper().Contains("EXAMEN") || t.descripcion.ToUpper().Contains("MEDICO"))?.pkTipoServicio ?? 2;
+            }
+        }
+
+        private static bool EsVisibleEnDashboardRh(OrdenServicioMedicoVm orden)
+        {
+            if (orden == null) return false;
+            // RRHH solo gestiona Ingresos (candidatos) y Periódicos (empleados)
+            string mod = (orden.Modalidad ?? "").ToUpperInvariant();
+            return mod == "INGRESO" || mod == "PERIODICO";
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -98,7 +116,7 @@ namespace Telerik
                     pagina ?? 1,
                     tamanoPagina,
                     filtroNumEmpleado,
-                    "INGRESO",
+                    filtroModalidad,
                     filtroEstatus,
                     fechaDesde,
                     fechaHasta,
@@ -227,22 +245,16 @@ namespace Telerik
                         return new { success = false, message = "Debe ingresar un número de empleado válido." };
                     }
 
-                    if (FkTipoServicio <= 0)
+                    // Resolver tipo de servicio si no viene o para validar
+                    int resolvedTipo = FkTipoServicio;
+                    if (resolvedTipo <= 0)
                     {
-                        return new { success = false, message = "Seleccione el tipo de examen para empleado." };
+                        resolvedTipo = ResolverTipoServicioPeriodico();
                     }
 
-                    using (var db = new ApplicationDbContext())
+                    if (resolvedTipo <= 0)
                     {
-                        var tipoServicio = db.TiposServicio.FirstOrDefault(t => t.pkTipoServicio == FkTipoServicio);
-                        var descTipo = (tipoServicio != null ? tipoServicio.descripcion : string.Empty) ?? string.Empty;
-                        var descUpper = descTipo.ToUpperInvariant();
-                        bool esAntidoping = descUpper.Contains("ANTIDOP");
-                        bool esPeriodico = descUpper.Contains("PERIOD");
-                        if (!esAntidoping && !esPeriodico)
-                        {
-                            return new { success = false, message = "Para empleado solo se permite examen Antidoping o Periódico." };
-                        }
+                        return new { success = false, message = "Seleccione el tipo de examen para empleado." };
                     }
 
                     var empleado = EmpleadoDal.BuscarPorNumero(NumeroEmpleado.Value);
@@ -252,14 +264,22 @@ namespace Telerik
                     }
 
                     fkEmpleado = empleado.PkEmpleado;
-                    fkTipoServicio = FkTipoServicio;
+                    fkTipoServicio = resolvedTipo;
 
+                    // Intentar recuperar el proyecto del empleado si no se proporcionó
                     if (!fkProyecto.HasValue || fkProyecto.Value <= 0)
                     {
-                        using (var db = new ApplicationDbContext())
+                        if (empleado.FkProyecto.HasValue && empleado.FkProyecto.Value > 0)
                         {
-                            var ent = db.Empleados.Find(fkEmpleado.Value);
-                            if (ent != null) fkProyecto = ent.fkProyecto;
+                            fkProyecto = empleado.FkProyecto;
+                        }
+                        else
+                        {
+                            using (var db = new ApplicationDbContext())
+                            {
+                                var ent = db.Empleados.Find(fkEmpleado.Value);
+                                if (ent != null) fkProyecto = ent.fkProyecto;
+                            }
                         }
                     }
 
@@ -323,22 +343,35 @@ namespace Telerik
         [WebMethod]
         public static object ObtenerProyectosPorEmpresa(int fkEmpresa)
         {
-            try
-            {
-                var data = CatalogoDal.ObtenerProyectosPorEmpresa(fkEmpresa);
-                return new { success = true, data = data };
-            }
+            try { return new { success = true, data = CatalogoDal.ObtenerProyectosPorEmpresa(fkEmpresa) }; }
+            catch (Exception ex) { return new { success = false, message = ex.Message }; }
+        }
+
+        [WebMethod]
+        public static object ObtenerDepartamentosPorEmpresa(int fkEmpresa)
+        {
+            try { return new { success = true, data = CatalogoDal.ObtenerDepartamentosPorEmpresa(fkEmpresa) }; }
+            catch (Exception ex) { return new { success = false, message = ex.Message }; }
+        }
+
+        [WebMethod]
+        public static object ObtenerAreasPorDepartamento(int fkDepartamento)
+        {
+            try { return new { success = true, data = CatalogoDal.ObtenerAreasPorDepartamento(fkDepartamento) }; }
+            catch (Exception ex) { return new { success = false, message = ex.Message }; }
+        }
+
+        [WebMethod]
+        public static object ObtenerPuestosPorArea(int fkArea)
+        {
+            try { return new { success = true, data = CatalogoDal.ObtenerPuestosPorArea(fkArea) }; }
             catch (Exception ex) { return new { success = false, message = ex.Message }; }
         }
 
         [WebMethod]
         public static object ObtenerPuestosPorEmpresa(int fkEmpresa)
         {
-            try
-            {
-                var data = CatalogoDal.ObtenerPuestosPorEmpresa(fkEmpresa);
-                return new { success = true, data = data };
-            }
+            try { return new { success = true, data = CatalogoDal.ObtenerPuestosPorEmpresa(fkEmpresa) }; }
             catch (Exception ex) { return new { success = false, message = ex.Message }; }
         }
 

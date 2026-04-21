@@ -501,7 +501,12 @@ function loadPatientData(idOrden) {
                 currentTipo = p.Tipo;
 
                 // --- POBLAR BANNER ---
-                $('#pbNombre').text('SERV. MÉDICO — EXAMEN MÉDICO');
+                if (currentTipoServicio == 3) {
+                    $('#pbNombre').text('SERV. MÉDICO — PRUEBA TOXICOLÓGICA');
+                } else {
+                    $('#pbNombre').text('SERV. MÉDICO — EXAMEN MÉDICO');
+                }
+                
                 $('#pbEmpresa').text('');
                 $('#pbPuesto').text('');
                 $('#pbTipoServicio').text('');
@@ -519,20 +524,30 @@ function loadPatientData(idOrden) {
                 if (currentTipoServicio == 3) {
                     $('#consentTitle').text('Consentimiento Informado — Examen Toxicológico');
                     $('#consentBodyText').html('<p>La empresa <strong>' + empresa + '</strong> informa que se realizará una prueba de detección de consumo de drogas y alcohol, conforme al reglamento interno vigente.</p><p>Los resultados son <strong>confidenciales</strong> y serán utilizados únicamente con fines laborales y de seguridad.</p>');
+                    
+                    // Si es Antidoping, ocultamos el wizard principal y mostramos el consentimiento inmediatamente
+                    $('#mainWizard').hide();
+                    $('#consentOverlay').fadeIn(400);
+
                 } else {
                     $('#consentTitle').text('Consentimiento Informado — Examen Médico');
                     $('#consentBodyText').html('<p>Por este medio otorgo mi consentimiento a la empresa <strong>' + empresa + '</strong> para la realización de una evaluación médica integral.</p><p>Entiendo que los datos recabados son para uso exclusivo del expediente clínico laboral y serán manejados con estricta confidencialidad.</p><p>Manifiesto que la información proporcionada sobre mis antecedentes es verídica.</p>');
                 }
-                // No abrir consentimiento aquí: solo debe mostrarse cuando se inicie Antidoping.
 
-                // --- PASO 0 PARA EMPLEADOS ---
-                if (resp.esEmpleado) {
+                // --- PASO 0 PARA EMPLEADOS (Solo si no es Antidoping únicamente) ---
+                if (resp.esEmpleado && currentTipoServicio != 3) {
                     $('#step0').show();
                     $('#panel0').show();
                     // Ir al paso 0 primero para que el médico vea el historial
                     goToStep(0);
                     // Cargar historial
                     cargarHistorialEmpleado(idOrden);
+                } else if (currentTipoServicio == 3) {
+                    // Para Antidoping, ocultar pasos de navegación médica
+                    $('.wizard-steps, .wizard-header').hide();
+                } else {
+                    // Candidato o examen médico normal, ocultar paso 0
+                    $('#step0').hide();
                 }
 
                 // --- LLENAR CAMPOS DEL FORMULARIO ---
@@ -651,11 +666,15 @@ function loadPatientData(idOrden) {
                     $('#txtLugarEvaluacion').val(p.LugarEvaluacion);
                 }
 
-                // Precargar datos demográficos que ya están correctos
+                // Precargar datos demográficos que ya están correctos (BLOQUEADOS PARA INGRESO TAMBIÉN)
                 if (p.Tipo === 'CANDIDATO') {
-                    $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno, #txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', false);
+                    // Bloquear datos que vienen de RH para asegurar integridad
+                    $('#txtNombre, #txtApellidoPaterno, #txtApellidoMaterno').prop('readonly', true).addClass('bg-light');
+                    $('#txtPuesto, #txtArea, #txtEmpresa, #txtEdad').prop('readonly', true).addClass('bg-light');
+                    $('#txtFechaExamen').prop('readonly', true).addClass('bg-light');
+                    
+                    // Escolaridad y domicilio permanecen editables para candidatos
                     $('#txtEscolaridad').prop('readonly', false);
-                    // Domicilio habilitado
                     $('#txtCalle, #txtNumExt, #txtNumInt, #txtCp').prop('readonly', false);
                     $('#ddlPais, #ddlEstado, #ddlMunicipio, #ddlColonia').prop('disabled', false);
                     $('#ddlSexo').prop('disabled', false);
@@ -761,14 +780,15 @@ function loadPatientData(idOrden) {
                     setSexoDisplay("");
                 }
 
-                // Lógica de Expediente Clínico (Mostrar resumen rápido)
-
-                if (resp.evaluacionActual) {
-                    mapearEvaluacionAlFormulario(resp.evaluacionActual);
-                } else if (resp.evaluacionPrevia) {
-                    mapearAntecedentesHeredados(resp.evaluacionPrevia);
-                    mostrarResumenExpediente(resp.evaluacionPrevia);
-                    showToast("ANTECEDENTES HEREDADOS: Se cargaron antecedentes previos para seguimiento clínico.", "info");
+                // Lógica de Expediente Clínico (Mostrar resumen rápido) - Solo si no es Antidoping únicamente
+                if (currentTipoServicio != 3) {
+                    if (resp.evaluacionActual) {
+                        mapearEvaluacionAlFormulario(resp.evaluacionActual);
+                    } else if (resp.evaluacionPrevia) {
+                        mapearAntecedentesHeredados(resp.evaluacionPrevia);
+                        mostrarResumenExpediente(resp.evaluacionPrevia);
+                        showToast("ANTECEDENTES HEREDADOS: Se cargaron antecedentes previos para seguimiento clínico.", "info");
+                    }
                 }
 
             } else {
@@ -1355,7 +1375,7 @@ function saveExam() {
         NumExterior: $('#txtNumExt').val(),
         NumInterior: $('#txtNumInt').val(),
 
-        Escolaridad: $('#ddlEscolaridad').val(),
+        Escolaridad: $('#ddlEscolaridad option:selected').text(),
         Profesion: ($('#txtProfesion').val() || '').trim() || 'N/A',
         Alergias: $('#txtAlergias').val(),
         FkTipoSangre: $('#ddlTipoSangre').val(),
@@ -1715,6 +1735,9 @@ function mapearEvaluacionAlFormulario(d, esHistorial) {
             });
         });
     }
+
+    // Trigger profession field logic
+    $('#ddlEscolaridad').trigger('change');
 }
 
 // medical-antidoping.js
@@ -1918,10 +1941,17 @@ $(document).ready(function () {
     });
 
     $('#ddlEscolaridad').on('change', function () {
-        var val = ($(this).val() || "").toUpperCase().trim();
-        var show = (val === 'UNIVERSIDAD' || val === 'POSGRADO' || val === 'LICENCIATURA');
-        if (!show) $('#txtProfesion').val('');
-        $('#txtProfesion').prop('disabled', !show).prop('placeholder', show ? 'Especifique su carrera' : 'N/A');
+        var text = ( $(this).find('option:selected').text() || "" ).toUpperCase().trim();
+        // Se desbloquea profesión SOLO si es Universidad, Licenciatura o similar (Nivel Superior)
+        var esNivelSuperior = (text.indexOf('UNIV') >= 0 || text.indexOf('LIC') >= 0 || text.indexOf('PROFE') >= 0 || text.indexOf('POSG') >= 0 || text.indexOf('MAESTR') >= 0);
+        
+        if (!esNivelSuperior) {
+            $('#txtProfesion').val('N/A').prop('disabled', true).addClass('bg-light').css('opacity', '0.7');
+        } else {
+            // Si el valor era N/A y ahora es superior, limpiamos para que escriban
+            if ($('#txtProfesion').val() === 'N/A') $('#txtProfesion').val('');
+            $('#txtProfesion').prop('disabled', false).removeClass('bg-light').css('opacity', '1').prop('placeholder', 'Especifique su carrera');
+        }
     });
 
     // Antecedentes Checkboxes toggle detalles

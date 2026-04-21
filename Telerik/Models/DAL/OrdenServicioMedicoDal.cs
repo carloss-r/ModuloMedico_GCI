@@ -44,22 +44,20 @@ namespace Telerik.Models.DAL
             LEFT JOIN Empresas          emp_pro ON emp_pro.pkEmpresa  = pro.fkEmpresa
         ";
 
-        public static List<OrdenServicioMedicoVm> ObtenerTodas(out int totalCount, int pageIndex, int pageSize, int? filtroNumEmpleado, string modalidad)
-        {
-            return ObtenerTodas(out totalCount, pageIndex, pageSize, filtroNumEmpleado, modalidad, null, null, null, null, null, null, null, null);
-        }
-
-        public static List<OrdenServicioMedicoVm> ObtenerTodas(out int totalCount, int pageIndex, int pageSize,
-            int? filtroNumEmpleado, string modalidad,
-            int? fkEstatus, DateTime? fechaDesde, DateTime? fechaHasta,
-            int? fkEmpresa, int? fkArea, int? anio, int? semana)
-        {
-            return ObtenerTodas(out totalCount, pageIndex, pageSize, filtroNumEmpleado, modalidad, fkEstatus, fechaDesde, fechaHasta, fkEmpresa, fkArea, anio, semana, null);
-        }
-
-        public static List<OrdenServicioMedicoVm> ObtenerTodas(out int totalCount, int pageIndex, int pageSize, 
-            int? filtroNumEmpleado, string modalidad, int? fkEstatus, DateTime? fechaDesde, DateTime? fechaHasta, 
-            int? fkEmpresa, int? fkArea, int? anio, int? semana, string filtroNombre)
+        public static List<OrdenServicioMedicoVm> ObtenerTodas(
+            out int totalCount, 
+            int pageIndex = 1, 
+            int pageSize = 25,
+            int? filtroNumEmpleado = null, 
+            string modalidad = null,
+            int? fkEstatus = null, 
+            DateTime? fechaDesde = null, 
+            DateTime? fechaHasta = null,
+            int? fkEmpresa = null, 
+            int? fkArea = null, 
+            int? anio = null, 
+            int? semana = null, 
+            string filtroNombre = null)
         {
             string where = " WHERE 1=1 ";
             
@@ -105,7 +103,7 @@ namespace Telerik.Models.DAL
             
             totalCount = Convert.ToInt32(SqlHelper.ExecuteScalar(sqlCount, GetParams()));
 
-            string sqlData = SQL_SELECT + where + " ORDER BY o.fechaOrden DESC, o.pkOrdenMedico DESC OFFSET @off ROWS FETCH NEXT @top ROWS ONLY";
+            string sqlData = SQL_SELECT + where + " ORDER BY ISNULL((SELECT MAX(fechaEvaluacion) FROM EvaluacionesClinicas WHERE fkOrdenMedico = o.pkOrdenMedico), o.fechaOrden) DESC, o.pkOrdenMedico DESC OFFSET @off ROWS FETCH NEXT @top ROWS ONLY";
             var parsData = GetParams().ToList();
             parsData.Add(new SqlParameter("@off", (pageIndex - 1) * pageSize));
             parsData.Add(new SqlParameter("@top", pageSize));

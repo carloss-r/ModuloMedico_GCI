@@ -32,10 +32,18 @@
                 </div>
                 <!-- Tabla de resultados -->
                 <main class="gci-panel">
-                    <div class="sp-title-row">
-                        <div class="sp-title-text"><i class="fas fa-list-ul"></i> Bandeja Médica</div>
-                        <div class="sp-filters-inline" style="flex-wrap: wrap; justify-content: flex-end;">
+                    <div class="sp-title-row" style="margin-bottom: 1rem;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--gci-secondary);"><i class="fas fa-list-ul"></i> Bandeja Médica</h2>
+                        <div class="sp-filters-inline">
                             <div>
+                                Nombre: <input type="text" id="filtroNombreMini" class="filter-input-mini"
+                                    onkeyup="aplicarFiltros(true)" placeholder="Buscar por nombre..." style="width:160px;" />
+                            </div>
+                            <div>
+                                Folio / ID: <input type="text" id="filtroIdMini" class="filter-input-mini"
+                                    onkeyup="aplicarFiltros(true)" placeholder="Folio..." style="width:80px;" />
+                            </div>
+                            <div style="margin-left:5px;">
                                 Emp: <input type="number" id="filtroNumEmp" class="filter-input-mini" onkeyup="if(event.keyCode==13) aplicarFiltros(true)" placeholder="ID..." style="width:70px;" />
                             </div>
                             <div>
@@ -155,16 +163,12 @@
             </div>
 
             <!-- Modal Mensajes -->
-            <div class="modal-overlay" id="msgOverlay">
-                <div class="modal-box" style="width: 440px; text-align: center;">
-                    <div class="modal-body" style="padding: 3rem;">
-                        <div id="msgIcon" style="font-size: 4.5rem; margin-bottom: 1.5rem; color: var(--gci-accent);"></div>
-                        <h3 id="msgTitle" style="margin-bottom: 1rem;"></h3>
-                        <p id="msgBody" style="color: var(--gci-secondary); line-height: 1.6;"></p>
-                    </div>
-                    <div class="modal-actions" style="justify-content: center;">
-                        <button type="button" class="btn-gci btn-gci-primary" style="width: 100%;" onclick="cerrarMsg()">Entendido</button>
-                    </div>
+            <div class="modal-overlay" id="msgOverlay" style="z-index: 9999; display: none; align-items: center; justify-content: center;">
+                <div class="modal-box" style="width: 440px; text-align: center; border-radius: 20px; padding: 2.5rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+                    <div id="msgIcon" style="font-size: 4.5rem; margin-bottom: 1.5rem;"></div>
+                    <h3 id="msgTitle" style="margin-bottom: 1rem; font-weight: 800;"></h3>
+                    <p id="msgBody" style="color: #64748b; line-height: 1.6; font-size: 1.1rem; margin-bottom: 2rem;"></p>
+                    <button type="button" class="btn-gci btn-gci-primary" style="width: 100%; border-radius: 12px; padding: 12px;" onclick="cerrarMsg()">Aceptar</button>
                 </div>
             </div>
 
@@ -248,12 +252,17 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="js/DashboardServicioMedicoInbox.js?v=1"></script>
     <script>
-        function cerrarMsg() { $('#msgOverlay').removeClass('active'); }
-        function showMsg(title, body, icon) {
-            $('#msgTitle').text(title);
+        function cerrarMsg() { $('#msgOverlay').fadeOut(200); }
+        function showNotification(type, title, body) {
+            var icon = 'fa-info-circle';
+            var color = '#3b82f6';
+            if(type === 'success') { icon = 'fa-check-circle'; color = '#10b981'; }
+            if(type === 'error') { icon = 'fa-times-circle'; color = '#ef4444'; }
+            
+            $('#msgTitle').text(title).css('color', color);
             $('#msgBody').text(body);
-            $('#msgIcon').html('<i class="fas ' + (icon || 'fa-info-circle') + '"></i>');
-            $('#msgOverlay').addClass('active');
+            $('#msgIcon').html('<i class="fas ' + icon + '"></i>').css('color', color);
+            $('#msgOverlay').fadeIn(300).css('display', 'flex');
         }
     </script>
 </body>

@@ -17,6 +17,10 @@ namespace Telerik.Models.ViewModels
         public string Sexo { get; set; }
         public string Edad { get; set; }
 
+        public int? FkPuesto { get; set; }
+        public int? FkEmpresa { get; set; }
+        public int? FkProyecto { get; set; }
+
         // Puesto / Empresa / Proyecto
         public string PuestoDesc { get; set; }
         public string AreaDesc { get; set; }

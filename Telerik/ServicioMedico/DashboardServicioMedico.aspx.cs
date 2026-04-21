@@ -59,7 +59,8 @@ namespace Telerik.ServicioMedico
             int? filtroEmpresa,
             int? filtroArea,
             int? filtroAnio,
-            int? filtroSemana)
+            int? filtroSemana,
+            string filtroNombre)
         {
             try
             {
@@ -81,7 +82,8 @@ namespace Telerik.ServicioMedico
                     filtroEmpresa,
                     filtroArea,
                     filtroAnio,
-                    filtroSemana
+                    filtroSemana,
+                    filtroNombre
                 );
 
                 return new { success = true, data = solicitudes, total = totalRegistros };
@@ -191,12 +193,14 @@ namespace Telerik.ServicioMedico
             try
             {
                 int? fkProyecto = null;
+                int fkTipoServicio = ResolverTipoServicioPeriodico();
+
                 using (var db = new ApplicationDbContext())
                 {
                     fkProyecto = db.Empleados.Where(e => e.pkEmpleado == pkEmpleado).Select(e => e.fkProyecto).FirstOrDefault();
                 }
 
-                int pkOrden = Telerik.Models.DAL.OrdenServicioMedicoDal.Insertar(pkEmpleado, null, fkProyecto, 2);
+                int pkOrden = Telerik.Models.DAL.OrdenServicioMedicoDal.Insertar(pkEmpleado, null, fkProyecto, fkTipoServicio);
                 return new { success = true, PkOrdenMedico = pkOrden };
             }
             catch (Exception ex)
@@ -365,8 +369,8 @@ namespace Telerik.ServicioMedico
         {
             try
             {
-                // Obtener tipo de servicio EXAMEN MEDICO
-                int fkTipoServicio = db.TiposServicio.FirstOrDefault(t => t.descripcion != null && (t.descripcion.Contains("EXAMEN") || t.descripcion.Contains("MEDICO")))?.pkTipoServicio ?? 1;
+                // Obtener tipo de servicio periódico (evaluación médica)
+                int fkTipoServicio = ResolverTipoServicioPeriodico();
                 int fkEstatus = 1; // PENDIENTE
                 
                 var orden = new OrdenServicioMedico
@@ -383,9 +387,24 @@ namespace Telerik.ServicioMedico
 
                 return orden;
             }
-            catch
+            catch { return null; }
+        }
+
+        private static int ResolverTipoServicioPeriodico()
+        {
+            using (var db = new ApplicationDbContext())
             {
-                return null;
+                var tipo = db.TiposServicio
+                    .Where(t => t.descripcion != null)
+                    .OrderBy(t => t.pkTipoServicio)
+                    .FirstOrDefault(t => t.descripcion.ToUpper().Contains("PERI"));
+
+                if (tipo != null) return tipo.pkTipoServicio;
+
+                return db.TiposServicio
+                    .Where(t => t.descripcion != null)
+                    .OrderBy(t => t.pkTipoServicio)
+                    .FirstOrDefault(t => t.descripcion.ToUpper().Contains("EXAMEN") || t.descripcion.ToUpper().Contains("MEDICO"))?.pkTipoServicio ?? 2;
             }
         }
         [WebMethod]
