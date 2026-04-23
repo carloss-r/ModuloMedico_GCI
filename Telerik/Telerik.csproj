@@ -186,6 +186,9 @@
       <DependentUpon>EvaluacionMedica.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="ServicioMedico\EvaluacionMedica.aspx.designer.cs">
+      <DependentUpon>EvaluacionMedica.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ServicioMedico\DashboardServicioMedico.aspx.cs">
       <DependentUpon>DashboardServicioMedico.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

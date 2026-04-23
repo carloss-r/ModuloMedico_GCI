@@ -100,19 +100,19 @@
     <div class="paper-row">
         <div class="form-group flex-2">
             <label>Lugar y fecha del Examen:</label>
-            <input type="text" id="txtLugarEvaluacion" class="form-control" placeholder="Ej. Monterrey, N.L. / Obra Torre Centro" />
+            <asp:TextBox ID="txtLugarEvaluacion" runat="server" CssClass="form-control" placeholder="Ej. Monterrey, N.L. / Obra Torre Centro" />
         </div>
         <div class="form-group flex-1">
             <label>Fecha de Captura</label>
-            <input type="date" id="txtFechaExamen" class="form-control" value="<%= DateTime.Now.ToString("yyyy-MM-dd") %>" />
+            <asp:TextBox ID="txtFechaExamen" runat="server" CssClass="form-control" TextMode="Date" />
         </div>
         <div class="form-group flex-1">
             <label>Cargo</label>
-            <input type="text" id="txtPuesto" class="form-control" readonly />
+            <asp:TextBox ID="txtPuesto" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-2">
             <label>No. IMSS</label>
-            <input type="text" id="txtNss" class="form-control val-num" maxlength="11" placeholder="11 dígitos" />
+            <asp:TextBox ID="txtNss" runat="server" CssClass="form-control val-num" placeholder="11 dígitos" MaxLength="11" />
         </div>
     </div>
 
@@ -120,15 +120,15 @@
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>Nombre(s)</label>
-            <input type="text" id="txtNombre" class="form-control" readonly />
+            <asp:TextBox ID="txtNombre" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-1">
             <label>Apellido Paterno</label>
-            <input type="text" id="txtApellidoPaterno" class="form-control" readonly />
+            <asp:TextBox ID="txtApellidoPaterno" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-1">
             <label>Apellido Materno</label>
-            <input type="text" id="txtApellidoMaterno" class="form-control" readonly />
+            <asp:TextBox ID="txtApellidoMaterno" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
     </div>
 
@@ -141,11 +141,11 @@
         </div>
         <div class="form-group flex-1">
             <label>Fecha de Nacimiento</label>
-            <input type="date" id="txtFechaNacimiento" class="form-control" onchange="calcularEdad()" />
+            <asp:TextBox ID="txtFechaNacimiento" runat="server" CssClass="form-control" TextMode="Date" onchange="calcularEdad()" />
         </div>
         <div class="form-group flex-05">
             <label>Edad</label>
-            <input type="text" id="txtEdad" class="form-control" readonly style="text-align: center;" />
+            <asp:TextBox ID="txtEdad" runat="server" CssClass="form-control" ReadOnly="true" Style="text-align: center;" />
         </div>
     </div>
 
@@ -153,7 +153,7 @@
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>Examen de</label>
-            <input type="text" id="txtExamenDe" class="form-control" readonly value="<%= (currentTipoServicio == 2 ? "Periódico" : "Ingreso") %>" />
+            <asp:TextBox ID="txtExamenDe" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-1">
             <label>Estado Civil</label>
@@ -171,7 +171,7 @@
         </div>
         <div class="form-group flex-2">
             <label>Tel&eacute;fono</label>
-            <input type="tel" id="txtTelefono" class="form-control val-num" placeholder="10 d&iacute;gitos" maxlength="15" />
+            <asp:TextBox ID="txtTelefono" runat="server" CssClass="form-control val-num" TextMode="Phone" placeholder="10 d&iacute;gitos" MaxLength="15" />
         </div>
     </div>
 
@@ -209,19 +209,19 @@
     <div class="paper-row">
         <div class="form-group flex-2">
             <label>Calle</label>
-            <input type="text" id="txtCalle" class="form-control" readonly />
+            <asp:TextBox ID="txtCalle" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-1">
             <label>No. Ext.</label>
-            <input type="text" id="txtNumExt" class="form-control" readonly />
+            <asp:TextBox ID="txtNumExt" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-1">
             <label>No. Int.</label>
-            <input type="text" id="txtNumInt" class="form-control" readonly />
+            <asp:TextBox ID="txtNumInt" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-1">
             <label>C.P.</label>
-            <input type="text" id="txtCp" class="form-control val-num" readonly />
+            <asp:TextBox ID="txtCp" runat="server" CssClass="form-control val-num" ReadOnly="true" />
             <input type="hidden" id="hdnFkCp" />
         </div>
     </div>
@@ -239,7 +239,7 @@
         </div>
         <div class="form-group flex-2">
             <label>Profesi&oacute;n y/u Oficio</label>
-            <input type="text" id="txtProfesion" class="form-control val-text" />
+            <asp:TextBox ID="txtProfesion" runat="server" CssClass="form-control val-text" />
         </div>
     </div>
 
@@ -263,7 +263,7 @@
 
     <!-- Empresa (oculta pero necesaria para guardar) -->
     <div class="form-group" style="display:none;">
-        <input type="text" id="txtEmpresa" class="form-control" readonly />
+        <asp:TextBox ID="txtEmpresa" runat="server" CssClass="form-control" ReadOnly="true" />
     </div>
 </div>
 
@@ -328,11 +328,11 @@
             <div style="display:flex; gap:15px; width:100%;">
                 <div class="form-group flex-1">
                     <label>A&ntilde;os de h&aacute;bito</label>
-                    <input type="number" id="txtAnosFuma" class="form-control val-num" />
+                    <asp:TextBox ID="txtAnosFuma" runat="server" CssClass="form-control val-num" TextMode="Number" />
                 </div>
                 <div class="form-group flex-1">
                     <label>No. de Cigarros/d&iacute;a</label>
-                    <input type="number" id="txtCigarrillos" class="form-control val-num" />
+                    <asp:TextBox ID="txtCigarrillos" runat="server" CssClass="form-control val-num" TextMode="Number" />
                 </div>
                 <div class="form-group flex-05" style="justify-content: flex-end; padding-bottom: 8px;">
                     <label class="check-item"><input type="checkbox" id="chkExFumador" /> EX</label>
@@ -351,7 +351,7 @@
         </div>
         <div class="form-group flex-3" id="divDrogas" style="display:none;">
             <label>Tipo de droga</label>
-            <input type="text" id="txtTipoDrogas" class="form-control val-text" />
+            <asp:TextBox ID="txtTipoDrogas" runat="server" CssClass="form-control val-text" />
         </div>
     </div>
 
@@ -382,7 +382,7 @@
         </div>
         <div class="form-group flex-2" id="divDeporte" style="display:none;">
             <label>Tipo de deporte</label>
-            <input type="text" id="txtTipoDeporte" class="form-control" placeholder="¿Qu&eacute; deporte practica?" />
+            <asp:TextBox ID="txtTipoDeporte" runat="server" CssClass="form-control" placeholder="¿Qu&eacute; deporte practica?" />
         </div>
     </div>
 
@@ -457,27 +457,27 @@
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>TA Sist. (mmHg)</label>
-            <input type="number" id="txtSistolica" class="form-control val-num" placeholder="120" />
+            <asp:TextBox ID="txtSistolica" runat="server" CssClass="form-control val-num" TextMode="Number" placeholder="120" />
         </div>
         <div class="form-group flex-1">
             <label>TA Diast. (mmHg)</label>
-            <input type="number" id="txtDiastolica" class="form-control val-num" placeholder="80" />
+            <asp:TextBox ID="txtDiastolica" runat="server" CssClass="form-control val-num" TextMode="Number" placeholder="80" />
         </div>
         <div class="form-group flex-1">
             <label>FC (x min)</label>
-            <input type="number" id="txtFrecCardiaca" class="form-control val-num" placeholder="72" />
+            <asp:TextBox ID="txtFrecCardiaca" runat="server" CssClass="form-control val-num" TextMode="Number" placeholder="72" />
         </div>
         <div class="form-group flex-1">
             <label>FR (x min)</label>
-            <input type="number" id="txtFrecRespiratoria" class="form-control val-num" placeholder="16" />
+            <asp:TextBox ID="txtFrecRespiratoria" runat="server" CssClass="form-control val-num" TextMode="Number" placeholder="16" />
         </div>
         <div class="form-group flex-1">
             <label>Peso (kgs)</label>
-            <input type="text" id="txtPeso" class="form-control val-dec" onchange="calcImc()" />
+            <asp:TextBox ID="txtPeso" runat="server" CssClass="form-control val-dec" onchange="calcImc()" />
         </div>
         <div class="form-group flex-1">
             <label>Estatura (m)</label>
-            <input type="text" id="txtEstatura" class="form-control val-dec" onchange="calcImc()" />
+            <asp:TextBox ID="txtEstatura" runat="server" CssClass="form-control val-dec" onchange="calcImc()" />
         </div>
     </div>
 
@@ -485,15 +485,15 @@
     <div class="paper-row">
         <div class="form-group flex-1">
             <label>IMC</label>
-            <input type="text" id="txtImc" class="form-control" readonly />
+            <asp:TextBox ID="txtImc" runat="server" CssClass="form-control" ReadOnly="true" />
         </div>
         <div class="form-group flex-2">
             <label>Clasificaci&oacute;n IMC</label>
-            <input type="text" id="txtImcDescripcion" class="form-control" readonly style="background-color: #f9f9f9; font-weight: bold; color: #2c3e50;" />
+            <asp:TextBox ID="txtImcDescripcion" runat="server" CssClass="form-control" ReadOnly="true" Style="background-color: #f9f9f9; font-weight: bold; color: #2c3e50;" />
         </div>
         <div class="form-group flex-1">
             <label>Temp (&deg;C)</label>
-            <input type="text" id="txtTemperatura" class="form-control val-dec" placeholder="36.5" />
+            <asp:TextBox ID="txtTemperatura" runat="server" CssClass="form-control val-dec" placeholder="36.5" />
         </div>
     </div>
 
@@ -509,7 +509,7 @@
             </div>
             <div id="glucosaFieldContainer" style="display:none;">
                 <div style="display:flex; align-items:center;">
-                    <input type="text" id="txtGlucosa" class="form-control val-dec" placeholder="90" disabled />
+                    <asp:TextBox ID="txtGlucosa" runat="server" CssClass="form-control val-dec" placeholder="90" Enabled="false" />
                     <span style="margin-left:8px; font-size:0.85rem; color:#777;">mg/dl</span>
                 </div>
             </div>
@@ -517,7 +517,7 @@
         <div class="form-group flex-1">
             <label>Oximetr&iacute;a (O2)</label>
             <div style="display:flex; align-items:center;">
-                <input type="text" id="txtOximetria" class="form-control val-num" placeholder="98" maxlength="3" />
+                <asp:TextBox ID="txtOximetria" runat="server" CssClass="form-control val-num" placeholder="98" MaxLength="3" />
                 <span style="margin-left:8px; font-size:0.85rem; color:#777;">% SpO2</span>
             </div>
         </div>
@@ -679,7 +679,7 @@
         <h3 class="section-title">Gineco-Obst&eacute;tricos</h3>
 
         <div class="paper-row">
-            <div class="form-group flex-1"><label>Menarca (Edad)</label><input type="number" id="txtMenarca" class="form-control val-num" /></div>
+            <div class="form-group flex-1"><label>Menarca (Edad)</label><asp:TextBox ID="txtMenarca" runat="server" CssClass="form-control val-num" TextMode="Number" /></div>
             <div class="form-group flex-1">
                 <label>Ciclos</label>
                 <select id="txtCiclos" class="form-control">
@@ -691,7 +691,7 @@
                     <option value="Amenorrea">Amenorrea</option>
                 </select>
             </div>
-            <div class="form-group flex-1"><label>FUM</label><input type="date" id="txtFum" class="form-control" /></div>
+            <div class="form-group flex-1"><label>FUM</label><asp:TextBox ID="txtFum" runat="server" CssClass="form-control" TextMode="Date" /></div>
         </div>
 
         <!-- Row 2: Planificación | Cit. Vag. -->
@@ -712,15 +712,15 @@
                     <option value="Otro">Otro</option>
                 </select>
             </div>
-            <div class="form-group flex-1"><label>Cit. Vag.</label><input type="date" id="txtPap" class="form-control" /></div>
+            <div class="form-group flex-1"><label>Cit. Vag.</label><asp:TextBox ID="txtPap" runat="server" CssClass="form-control" TextMode="Date" /></div>
         </div>
 
         <!-- Row 3: Gestas | Partos | Abortos | Cesáreas -->
         <div class="paper-row">
-            <div class="form-group flex-1"><label>Gestas</label><input type="number" id="txtGestas" class="form-control val-num" /></div>
-            <div class="form-group flex-1"><label>P (Partos)</label><input type="number" id="txtPartos" class="form-control val-num" /></div>
-            <div class="form-group flex-1"><label>A (Abortos)</label><input type="number" id="txtAbortos" class="form-control val-num" /></div>
-            <div class="form-group flex-1"><label>C (Ces&aacute;reas)</label><input type="number" id="txtCesareas" class="form-control val-num" /></div>
+            <div class="form-group flex-1"><label>Gestas</label><asp:TextBox ID="txtGestas" runat="server" CssClass="form-control val-num" TextMode="Number" /></div>
+            <div class="form-group flex-1"><label>P (Partos)</label><asp:TextBox ID="txtPartos" runat="server" CssClass="form-control val-num" TextMode="Number" /></div>
+            <div class="form-group flex-1"><label>A (Abortos)</label><asp:TextBox ID="txtAbortos" runat="server" CssClass="form-control val-num" TextMode="Number" /></div>
+            <div class="form-group flex-1"><label>C (Ces&aacute;reas)</label><asp:TextBox ID="txtCesareas" runat="server" CssClass="form-control val-num" TextMode="Number" /></div>
         </div>
 
         <div id="formFem"></div>
@@ -767,8 +767,8 @@
         </div>
 
         <div class="paper-row">
-            <div class="form-group flex-1"><label>PSA (Ant&iacute;geno Prost&aacute;tico)</label><input type="text" id="txtPsa" class="form-control" /></div>
-            <div class="form-group flex-1"><label>MPF (Planificaci&oacute;n)</label><input type="text" id="txtMpf" class="form-control" /></div>
+            <div class="form-group flex-1"><label>PSA (Ant&iacute;geno Prost&aacute;tico)</label><asp:TextBox ID="txtPsa" runat="server" CssClass="form-control" /></div>
+            <div class="form-group flex-1"><label>MPF (Planificaci&oacute;n)</label><asp:TextBox ID="txtMpf" runat="server" CssClass="form-control" /></div>
         </div>
 
         <div id="formMasc"></div>
@@ -1585,7 +1585,7 @@
     // Modal redundant removed
 
     // ── Inicialización ─────────────────────────────────────
-    $(document).ready(function() {
+    $(document).ready(function () {
         renderDrugGrid();
         loadPatient();
     });
@@ -1593,18 +1593,18 @@
     // ── Renderizar grilla de drogas ────────────────────────
     function renderDrugGrid() {
         var html = '';
-        drugs.forEach(function(d) {
+        drugs.forEach(function (d) {
             html += '<div class="drug-row" data-drug="' + d.code + '">' +
                 '<span class="drug-name">' + d.name + '</span>' +
                 '<label class="chk-aplica-wrap">' +
-                    '<input type="checkbox" class="chk-aplica" checked onchange="toggleDrug(this)" />' +
-                    '<span>Aplica</span>' +
+                '<input type="checkbox" class="chk-aplica" checked onchange="toggleDrug(this)" />' +
+                '<span>Aplica</span>' +
                 '</label>' +
                 '<div class="result-switch">' +
-                    '<button class="sw-btn neg active" onclick="setResult(this,\'neg\')">Neg</button>' +
-                    '<button class="sw-btn pos"         onclick="setResult(this,\'pos\')">Pos</button>' +
+                '<button class="sw-btn neg active" onclick="setResult(this,\'neg\')">Neg</button>' +
+                '<button class="sw-btn pos"         onclick="setResult(this,\'pos\')">Pos</button>' +
                 '</div>' +
-            '</div>';
+                '</div>';
         });
         $('#drugGrid').html(html);
     }
@@ -1616,7 +1616,7 @@
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ idOrden: idOrden }),
-            success: function(r) {
+            success: function (r) {
                 var resp = r.d;
                 if (resp && resp.success && resp.paciente) {
                     var p = resp.paciente;
@@ -1638,15 +1638,15 @@
     }
 
     function aceptarConsiento() {
-        $('#consentOverlay').fadeOut(200, function() {
+        $('#consentOverlay').fadeOut(200, function () {
             // Si estamos en flujo de Antidoping (ya se guardó el médico)
             // o si el servicio es puramente Antidoping desde el inicio
             if (currentTipoServicio == 3 || window.__antidopingFlow === true || $('#mainWizard').css('display') === 'none') {
-                showSuccess("Consentimiento aceptado. Iniciando prueba Toxicológica...", function() {
-                    if($('#mainWizard').length) $('#mainWizard').hide();
+                showSuccess("Consentimiento aceptado. Iniciando prueba Toxicológica...", function () {
+                    if ($('#mainWizard').length) $('#mainWizard').hide();
                     $('#secAntidoping').fadeIn(400);
                     $('.ad-container').show().css('visibility', 'visible');
-                    window.scrollTo(0,0);
+                    window.scrollTo(0, 0);
                 });
             } else {
                 // Flujo médico normal, solo cerramos y dejamos que el usuario capture
@@ -1686,7 +1686,7 @@
     function onEvidenceSelected(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 $('#evidenceImg').attr('src', e.target.result);
                 $('#evidenceName').text(input.files[0].name);
                 $('#evidencePreview').show();
@@ -1713,14 +1713,16 @@
         if ($f[0].files.length > 0) fd.append('FileEvidencia', $f[0].files[0]);
 
         // Drogas
-        var map = { 'coc':'Cocaina','opi':'Opiaceos','thc':'THC','alc':'Alcohol',
-                    'anf':'Anfetaminas','met':'Metanfetaminas','mfn':'Metilfenidato',
-                    'fen':'Fentanilo','bzd':'Benzodiacepinas' };
-        drugs.forEach(function(d) {
+        var map = {
+            'coc': 'Cocaina', 'opi': 'Opiaceos', 'thc': 'THC', 'alc': 'Alcohol',
+            'anf': 'Anfetaminas', 'met': 'Metanfetaminas', 'mfn': 'Metilfenidato',
+            'fen': 'Fentanilo', 'bzd': 'Benzodiacepinas'
+        };
+        drugs.forEach(function (d) {
             var $row = $('[data-drug="' + d.code + '"]');
-            var aplica  = $row.find('.chk-aplica').is(':checked');
+            var aplica = $row.find('.chk-aplica').is(':checked');
             var positivo = $row.find('.sw-btn.pos.active').length > 0;
-            fd.append('Aplica'    + map[d.code], aplica);
+            fd.append('Aplica' + map[d.code], aplica);
             fd.append('Resultado' + map[d.code], positivo);
         });
 
@@ -1730,20 +1732,20 @@
             data: fd,
             contentType: false,
             processData: false,
-            success: function(resp) {
+            success: function (resp) {
                 if (resp && resp.success) {
                     $('#btnImprimirAD').fadeIn(300); // Mostrar botón de imprimir
                     $('#btnGuardarAd').hide(); // Ocultar botón de guardar ya que se completó
-                    
+
                     showAdMsg('success', '¡Antidoping Guardado!',
                         'El examen fue registrado correctamente. Puede imprimir el formato ahora o regresar a la bandeja.',
-                        function() { window.location.href = 'DashboardServicioMedico.aspx'; });
+                        function () { window.location.href = 'DashboardServicioMedico.aspx'; });
                 } else {
                     $('#btnGuardarAd').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Antidoping');
                     showAdMsg('error', 'Error al Guardar', resp.message || 'Ocurrió un error inesperado.');
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 $('#btnGuardarAd').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Antidoping');
                 showAdMsg('error', 'Error de Conexión',
                     'No se pudo conectar con el servidor. (HTTP ' + xhr.status + ')');
@@ -1768,8 +1770,8 @@
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ pkOrdenMedico: idOrden }),
-            success: function() { window.location.href = 'DashboardServicioMedico.aspx'; },
-            error: function() { window.location.href = 'DashboardServicioMedico.aspx'; }
+            success: function () { window.location.href = 'DashboardServicioMedico.aspx'; },
+            error: function () { window.location.href = 'DashboardServicioMedico.aspx'; }
         });
     }
 

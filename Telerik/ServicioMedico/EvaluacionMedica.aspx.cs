@@ -23,6 +23,10 @@ namespace Telerik.ServicioMedico
         // Evento que se ejecuta al cargar la página
         protected void Page_Load(object sender, EventArgs e)
         {
+            //  NUEVO FRAGMENTO Inicializar campos que antes usaban <%= %> en el ASPX (incompatible con runat="server")
+            // Se asignan aquí en el Page_Load para que el motor ASP.NET los renderice correctamente.
+            txtFechaExamen.Text = DateTime.Now.ToString("yyyy-MM-dd");
+
             // Obtener el ID de la orden desde la URL (ej: EvaluacionMedica.aspx?id=123)
             var qsId = Request.QueryString["id"];
             if (!string.IsNullOrEmpty(qsId))
@@ -44,6 +48,9 @@ namespace Telerik.ServicioMedico
                         
                         // Normalizar el sexo (M/F) para mostrar sección masculina o femenina
                         initialSexo = ms.NormalizarSexo(orden.SexoCandidato);
+
+                        // NUEVO FRAGMENTO Asignar el tipo de examen al input "Examen de" (Periódico / Ingreso) 
+                        txtExamenDe.Text = (currentTipoServicio == 2) ? "Periódico" : "Ingreso";
                     }
                 }
             }
